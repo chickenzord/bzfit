@@ -2,6 +2,23 @@ import { ApiProperty } from '@nestjs/swagger';
 import { MealType } from '../../entities';
 
 /**
+ * Aggregated nutrition totals
+ */
+export class NutritionTotalsDto {
+  @ApiProperty()
+  calories: number;
+
+  @ApiProperty()
+  protein: number;
+
+  @ApiProperty()
+  carbs: number;
+
+  @ApiProperty()
+  fat: number;
+}
+
+/**
  * Meal with items and nutrition totals
  */
 export class MealResponseDto {
@@ -102,21 +119,4 @@ export class MealItemResponseDto {
 
   @ApiProperty()
   updatedAt: string;
-}
-
-/**
- * Aggregated nutrition totals
- */
-export class NutritionTotalsDto {
-  @ApiProperty()
-  calories: number;
-
-  @ApiProperty()
-  protein: number;
-
-  @ApiProperty()
-  carbs: number;
-
-  @ApiProperty()
-  fat: number;
 }
