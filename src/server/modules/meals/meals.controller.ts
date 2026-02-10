@@ -1,30 +1,45 @@
-import { Controller, Get, Post, Param, Body } from '@nestjs/common';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { Controller, Get, Query, Param, UseGuards, Request } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { MealsService } from './meals.service';
+import { JwtAuthGuard } from '../auth/guards';
+import { MealResponseDto } from '../../../shared/dto';
 
 @ApiTags('meals')
 @Controller('meals')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 export class MealsController {
   constructor(private mealsService: MealsService) {}
 
-  @Post()
-  @ApiOperation({ summary: 'Create meal with items' })
-  async create(@Body() data: any) {
-    // TODO: Implement meal creation
-    return { message: 'Meal creation - to be implemented' };
+  @Get()
+  @ApiOperation({ summary: 'List meals with optional filters' })
+  @ApiQuery({ name: 'date', required: false, type: String, description: 'Filter by date (YYYY-MM-DD)' })
+  @ApiQuery({ name: 'mealType', required: false, enum: ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK'], description: 'Filter by meal type' })
+  @ApiResponse({ status: 200, description: 'List of meals', type: [MealResponseDto] })
+  async findAll(
+    @Request() req,
+    @Query('date') date?: string,
+    @Query('mealType') mealType?: string,
+  ) {
+    return this.mealsService.findAll(req.user.id, date, mealType);
   }
 
-  @Post(':id/items')
-  @ApiOperation({ summary: 'Add item to existing meal' })
-  async addItem(@Param('id') id: string, @Body() data: any) {
-    // TODO: Implement add item
-    return { message: 'Add meal item - to be implemented' };
+  @Get('daily-summary')
+  @ApiOperation({ summary: 'Get daily summary: all meals for a specific date with totals' })
+  @ApiQuery({ name: 'date', required: true, type: String, description: 'Date (YYYY-MM-DD)' })
+  @ApiResponse({ status: 200, description: 'Daily meals with nutrition totals' })
+  async getDailySummary(
+    @Request() req,
+    @Query('date') date: string,
+  ) {
+    return this.mealsService.getDailySummary(req.user.id, date);
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get meal by ID' })
-  async findOne(@Param('id') id: string) {
-    // TODO: Implement get meal
-    return { message: 'Get meal - to be implemented' };
+  @ApiOperation({ summary: 'Get single meal by ID' })
+  @ApiResponse({ status: 200, description: 'Meal details with items and nutrition', type: MealResponseDto })
+  @ApiResponse({ status: 404, description: 'Meal not found' })
+  async findOne(@Request() req, @Param('id') id: string) {
+    return this.mealsService.findOne(req.user.id, id);
   }
 }
