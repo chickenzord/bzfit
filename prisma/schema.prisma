@@ -1,0 +1,145 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum ServingStatus {
+  VERIFIED
+  NEEDS_REVIEW
+  USER_CREATED
+}
+
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+}
+
+// ============================================================================
+// MODELS
+// ============================================================================
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+
+  meals        Meal[]
+  apiKeys      ApiKey[]
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model ApiKey {
+  id        String    @id @default(uuid())
+  key       String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name      String
+  scopes    String    // JSON array stored as string: ["read:meals", "write:foods"]
+  expiresAt DateTime?
+  lastUsed  DateTime?
+
+  createdAt DateTime  @default(now())
+}
+
+model Food {
+  id       String    @id @default(uuid())
+  name     String
+  variant  String?
+  brand    String?
+
+  servings  Serving[]
+  mealItems MealItem[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Serving {
+  id          String        @id @default(uuid())
+  foodId      String
+  food        Food          @relation(fields: [foodId], references: [id], onDelete: Cascade)
+
+  name        String?
+  size        Float
+  unit        String
+  isDefault   Boolean       @default(false)
+
+  // Macros (always displayed in UI)
+  calories    Float?
+  protein     Float?
+  carbs       Float?
+  fat         Float?
+
+  // Detailed nutrition (stored, hidden in main UI)
+  saturatedFat  Float?
+  transFat      Float?
+  fiber         Float?
+  sugar         Float?
+  sodium        Float?
+  cholesterol   Float?
+  vitaminA      Float?
+  vitaminC      Float?
+  calcium       Float?
+  iron          Float?
+
+  status      ServingStatus @default(NEEDS_REVIEW)
+  dataSource  String?
+
+  mealItems   MealItem[]
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model Meal {
+  id       String    @id @default(uuid())
+  userId   String
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  date     DateTime
+  mealType MealType
+  notes    String?
+
+  items    MealItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, date, mealType])
+}
+
+model MealItem {
+  id          String   @id @default(uuid())
+  mealId      String
+  meal        Meal     @relation(fields: [mealId], references: [id], onDelete: Cascade)
+
+  foodId      String
+  food        Food     @relation(fields: [foodId], references: [id])
+
+  servingId   String
+  serving     Serving  @relation(fields: [servingId], references: [id])
+
+  quantity    Float    @default(1.0)
+  notes       String?
+  isEstimated Boolean  @default(false)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
