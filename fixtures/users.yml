@@ -1,0 +1,11 @@
+# User fixtures
+# Matched by email (upserted on each load)
+
+users:
+  - email: demo@bzfit.local
+    password: Demo1234!
+    name: Demo User
+
+  - email: admin@bzfit.local
+    password: Admin1234!
+    name: Admin User

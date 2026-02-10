@@ -1,0 +1,87 @@
+# McDonald's food catalog
+# Source: Approximate nutritional data
+
+- name: French Fries
+  brand: McDonald's
+  servings:
+    - name: Small
+      size: 71
+      unit: g
+      calories: 220
+      protein: 2.5
+      carbs: 29
+      fat: 10
+      saturatedFat: 1.5
+      sodium: 160
+      status: VERIFIED
+      dataSource: manual
+      isDefault: true
+
+    - name: Medium
+      size: 111
+      unit: g
+      calories: 340
+      protein: 4
+      carbs: 44
+      fat: 16
+      saturatedFat: 2.5
+      sodium: 260
+      status: VERIFIED
+      dataSource: manual
+
+    - name: Large
+      size: 154
+      unit: g
+      calories: 480
+      protein: 6
+      carbs: 61
+      fat: 22
+      saturatedFat: 3.5
+      sodium: 350
+      status: VERIFIED
+      dataSource: manual
+
+- name: Big Mac
+  brand: McDonald's
+  servings:
+    - name: 1 sandwich
+      size: 219
+      unit: g
+      calories: 550
+      protein: 25
+      carbs: 45
+      fat: 30
+      saturatedFat: 11
+      sodium: 1010
+      sugar: 9
+      status: VERIFIED
+      dataSource: manual
+      isDefault: true
+
+- name: Chicken McNuggets
+  brand: McDonald's
+  servings:
+    - name: 6 pieces
+      size: 96
+      unit: g
+      calories: 280
+      protein: 13
+      carbs: 18
+      fat: 18
+      saturatedFat: 3
+      sodium: 540
+      status: VERIFIED
+      dataSource: manual
+      isDefault: true
+
+    - name: 10 pieces
+      size: 160
+      unit: g
+      calories: 470
+      protein: 22
+      carbs: 30
+      fat: 30
+      saturatedFat: 5
+      sodium: 900
+      status: VERIFIED
+      dataSource: manual
