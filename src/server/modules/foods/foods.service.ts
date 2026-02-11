@@ -27,7 +27,7 @@ export class FoodsService {
     ]);
 
     return {
-      data: foods.map(this.formatFoodResponse),
+      data: foods.map((f) => this.formatFoodResponse(f)),
       meta: {
         page,
         limit,
@@ -103,7 +103,7 @@ export class FoodsService {
       return aName.localeCompare(bName);
     });
 
-    return sorted.map(this.formatFoodResponse);
+    return sorted.map((f) => this.formatFoodResponse(f));
   }
 
   /**
@@ -128,9 +128,9 @@ export class FoodsService {
     return {
       id: food.id,
       name: food.name,
-      variant: food.variant,
-      brand: food.brand,
-      servings: food.servings ? food.servings.map(this.formatServingResponse) : [],
+      variant: food.variant ?? null,
+      brand: food.brand ?? null,
+      servings: food.servings ? food.servings.map((s) => this.formatServingResponse(s)) : [],
       createdAt: food.createdAt.toISOString(),
       updatedAt: food.updatedAt.toISOString(),
     };
@@ -143,26 +143,26 @@ export class FoodsService {
     return {
       id: serving.id,
       foodId: serving.foodId,
-      name: serving.name,
+      name: serving.name ?? null,
       size: serving.size,
       unit: serving.unit,
       isDefault: serving.isDefault,
-      calories: serving.calories,
-      protein: serving.protein,
-      carbs: serving.carbs,
-      fat: serving.fat,
-      saturatedFat: serving.saturatedFat,
-      transFat: serving.transFat,
-      fiber: serving.fiber,
-      sugar: serving.sugar,
-      sodium: serving.sodium,
-      cholesterol: serving.cholesterol,
-      vitaminA: serving.vitaminA,
-      vitaminC: serving.vitaminC,
-      calcium: serving.calcium,
-      iron: serving.iron,
+      calories: serving.calories ?? null,
+      protein: serving.protein ?? null,
+      carbs: serving.carbs ?? null,
+      fat: serving.fat ?? null,
+      saturatedFat: serving.saturatedFat ?? null,
+      transFat: serving.transFat ?? null,
+      fiber: serving.fiber ?? null,
+      sugar: serving.sugar ?? null,
+      sodium: serving.sodium ?? null,
+      cholesterol: serving.cholesterol ?? null,
+      vitaminA: serving.vitaminA ?? null,
+      vitaminC: serving.vitaminC ?? null,
+      calcium: serving.calcium ?? null,
+      iron: serving.iron ?? null,
       status: serving.status,
-      dataSource: serving.dataSource,
+      dataSource: serving.dataSource ?? null,
       createdAt: serving.createdAt.toISOString(),
       updatedAt: serving.updatedAt.toISOString(),
     };

@@ -34,8 +34,8 @@ export class MealResponseDto {
   @ApiProperty({ enum: MealType })
   mealType: MealType;
 
-  @ApiProperty({ required: false })
-  notes?: string;
+  @ApiProperty({ required: false, nullable: true })
+  notes: string | null;
 
   @ApiProperty({
     description: 'Meal items with food and serving details',
@@ -74,8 +74,8 @@ export class MealItemResponseDto {
   @ApiProperty()
   quantity: number;
 
-  @ApiProperty({ required: false })
-  notes?: string;
+  @ApiProperty({ required: false, nullable: true })
+  notes: string | null;
 
   @ApiProperty()
   isEstimated: boolean;
@@ -86,8 +86,8 @@ export class MealItemResponseDto {
   food: {
     id: string;
     name: string;
-    variant?: string;
-    brand?: string;
+    variant: string | null;
+    brand: string | null;
   };
 
   @ApiProperty({
@@ -95,23 +95,23 @@ export class MealItemResponseDto {
   })
   serving: {
     id: string;
-    name?: string;
+    name: string | null;
     size: number;
     unit: string;
-    calories?: number;
-    protein?: number;
-    carbs?: number;
-    fat?: number;
+    calories: number | null;
+    protein: number | null;
+    carbs: number | null;
+    fat: number | null;
   };
 
   @ApiProperty({
     description: 'Calculated nutrition for this item (serving * quantity)',
   })
   nutrition: {
-    calories?: number;
-    protein?: number;
-    carbs?: number;
-    fat?: number;
+    calories: number | undefined;
+    protein: number | undefined;
+    carbs: number | undefined;
+    fat: number | undefined;
   };
 
   @ApiProperty()

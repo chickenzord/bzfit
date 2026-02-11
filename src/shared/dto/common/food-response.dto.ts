@@ -11,11 +11,11 @@ export class FoodResponseDto {
   @ApiProperty()
   name: string;
 
-  @ApiProperty({ required: false })
-  variant?: string;
+  @ApiProperty({ required: false, nullable: true })
+  variant: string | null;
 
-  @ApiProperty({ required: false })
-  brand?: string;
+  @ApiProperty({ required: false, nullable: true })
+  brand: string | null;
 
   @ApiProperty({
     description: 'Available serving sizes',
@@ -40,8 +40,8 @@ export class ServingResponseDto {
   @ApiProperty()
   foodId: string;
 
-  @ApiProperty({ required: false })
-  name?: string;
+  @ApiProperty({ required: false, nullable: true })
+  name: string | null;
 
   @ApiProperty()
   size: number;
@@ -52,53 +52,53 @@ export class ServingResponseDto {
   @ApiProperty()
   isDefault: boolean;
 
-  @ApiProperty({ required: false })
-  calories?: number;
+  @ApiProperty({ required: false, nullable: true })
+  calories: number | null;
 
-  @ApiProperty({ required: false })
-  protein?: number;
+  @ApiProperty({ required: false, nullable: true })
+  protein: number | null;
 
-  @ApiProperty({ required: false })
-  carbs?: number;
+  @ApiProperty({ required: false, nullable: true })
+  carbs: number | null;
 
-  @ApiProperty({ required: false })
-  fat?: number;
+  @ApiProperty({ required: false, nullable: true })
+  fat: number | null;
 
-  @ApiProperty({ required: false })
-  saturatedFat?: number;
+  @ApiProperty({ required: false, nullable: true })
+  saturatedFat: number | null;
 
-  @ApiProperty({ required: false })
-  transFat?: number;
+  @ApiProperty({ required: false, nullable: true })
+  transFat: number | null;
 
-  @ApiProperty({ required: false })
-  fiber?: number;
+  @ApiProperty({ required: false, nullable: true })
+  fiber: number | null;
 
-  @ApiProperty({ required: false })
-  sugar?: number;
+  @ApiProperty({ required: false, nullable: true })
+  sugar: number | null;
 
-  @ApiProperty({ required: false })
-  sodium?: number;
+  @ApiProperty({ required: false, nullable: true })
+  sodium: number | null;
 
-  @ApiProperty({ required: false })
-  cholesterol?: number;
+  @ApiProperty({ required: false, nullable: true })
+  cholesterol: number | null;
 
-  @ApiProperty({ required: false })
-  vitaminA?: number;
+  @ApiProperty({ required: false, nullable: true })
+  vitaminA: number | null;
 
-  @ApiProperty({ required: false })
-  vitaminC?: number;
+  @ApiProperty({ required: false, nullable: true })
+  vitaminC: number | null;
 
-  @ApiProperty({ required: false })
-  calcium?: number;
+  @ApiProperty({ required: false, nullable: true })
+  calcium: number | null;
 
-  @ApiProperty({ required: false })
-  iron?: number;
+  @ApiProperty({ required: false, nullable: true })
+  iron: number | null;
 
   @ApiProperty({ enum: ServingStatus })
   status: ServingStatus;
 
-  @ApiProperty({ required: false })
-  dataSource?: string;
+  @ApiProperty({ required: false, nullable: true })
+  dataSource: string | null;
 
   @ApiProperty()
   createdAt: string;

@@ -9,3 +9,7 @@ users:
   - email: admin@bzfit.local
     password: Admin1234!
     name: Admin User
+
+  - email: user@example.com
+    password: securePassword123
+    name: Example User
