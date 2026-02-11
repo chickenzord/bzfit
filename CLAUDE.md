@@ -15,10 +15,19 @@ Key principles:
 ## Tech Stack
 
 - **Backend**: NestJS (TypeScript) with Prisma ORM
-- **Frontend**: React + Vite
+- **Frontend**: React + Vite + TailwindCSS + Shadcn/UI
 - **Database**: SQLite (dev) / PostgreSQL (production)
 - **Auth**: JWT for frontend, API Keys for external systems/MCP servers
 - **Deployment**: Single Docker image serving both frontend (/) and API (/api/v1/*)
+
+## UI Implementation
+
+See **`UI_GUIDELINES.md`** for complete frontend standards:
+- **TailwindCSS** (required) + **Shadcn/UI** components
+- **Lucide React** for icons (no embedded SVG)
+- **Mobile-first responsive** design
+- **Dark mode** support from day 1
+- Minimalist design with vibrant accent colors
 
 ## Common Commands
 
