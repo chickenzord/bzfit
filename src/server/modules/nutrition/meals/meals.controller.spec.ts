@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MealsController } from './meals.controller';
 import { MealsService } from './meals.service';
-import { JwtAuthGuard } from '../auth/guards';
+import { JwtAuthGuard } from '../../auth/guards';
 import { NotFoundException } from '@nestjs/common';
-import { MealResponseDto } from '../../../shared/dto';
+import { MealResponseDto } from '../../../../shared/dto';
 
 describe('MealsController', () => {
   let controller: MealsController;

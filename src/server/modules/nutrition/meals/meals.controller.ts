@@ -1,11 +1,11 @@
 import { Controller, Get, Query, Param, UseGuards, Request } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { MealsService } from './meals.service';
-import { JwtAuthGuard } from '../auth/guards';
-import { MealResponseDto } from '../../../shared/dto';
+import { JwtAuthGuard } from '../../auth/guards';
+import { MealResponseDto } from '../../../../shared/dto';
 
-@ApiTags('meals')
-@Controller('meals')
+@ApiTags('nutrition')
+@Controller('nutrition/meals')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class MealsController {

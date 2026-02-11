@@ -1,11 +1,11 @@
 import { Controller, Get, Query, Param, UseGuards, ParseIntPipe, DefaultValuePipe } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { FoodsService } from './foods.service';
-import { JwtAuthGuard } from '../auth/guards';
-import { FoodResponseDto, ServingResponseDto, PaginatedResponseDto } from '../../../shared/dto';
+import { JwtAuthGuard } from '../../auth/guards';
+import { FoodResponseDto, PaginatedResponseDto } from '../../../../shared/dto';
 
-@ApiTags('foods')
-@Controller('foods')
+@ApiTags('catalog')
+@Controller('catalog/foods')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class FoodsController {
@@ -37,21 +37,5 @@ export class FoodsController {
   @ApiResponse({ status: 404, description: 'Food not found' })
   async findOne(@Param('id') id: string) {
     return this.foodsService.findOne(id);
-  }
-}
-
-@ApiTags('servings')
-@Controller('servings')
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
-export class ServingsController {
-  constructor(private foodsService: FoodsService) {}
-
-  @Get(':id')
-  @ApiOperation({ summary: 'Get serving by ID' })
-  @ApiResponse({ status: 200, description: 'Serving details', type: ServingResponseDto })
-  @ApiResponse({ status: 404, description: 'Serving not found' })
-  async findOne(@Param('id') id: string) {
-    return this.foodsService.findServing(id);
   }
 }

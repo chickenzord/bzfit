@@ -1,15 +1,15 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
-import { FoodsModule } from './modules/foods/foods.module';
-import { MealsModule } from './modules/meals/meals.module';
+import { CatalogModule } from './modules/catalog/catalog.module';
+import { NutritionModule } from './modules/nutrition/nutrition.module';
 
 @Module({
   imports: [
     PrismaModule,
     AuthModule,
-    FoodsModule,
-    MealsModule,
+    CatalogModule,
+    NutritionModule,
   ],
   controllers: [],
   providers: [],

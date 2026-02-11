@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { MealResponseDto, MealItemResponseDto, NutritionTotalsDto } from '../../../shared/dto';
+import { PrismaService } from '../../../prisma/prisma.service';
+import { MealResponseDto, MealItemResponseDto, NutritionTotalsDto } from '../../../../shared/dto';
 
 @Injectable()
 export class MealsService {

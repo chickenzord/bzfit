@@ -61,8 +61,11 @@ docker run -p 3000:3000 bzfit  # Run container
 src/
 ├── server/              # NestJS backend (API at /api/v1/*)
 │   ├── modules/
-│   │   ├── foods/       # Food CRUD, search, quick-add
-│   │   ├── meals/       # Meal logging, item management
+│   │   ├── catalog/     # Food catalog namespace
+│   │   │   ├── foods/   # Food CRUD, search
+│   │   │   └── servings/ # Serving CRUD
+│   │   ├── nutrition/   # Nutrition tracking namespace
+│   │   │   └── meals/   # Meal logging, daily summary
 │   │   └── auth/        # JWT + API key authentication
 │   └── prisma/          # Prisma service wrapper
 ├── client/              # React + Vite (served at /)
@@ -125,15 +128,22 @@ Frontend is built as static files and served by NestJS:
 
 ## API Patterns
 
-All endpoints at `/api/v1/*`. Auto-generated OpenAPI docs at `/api/docs`.
+All endpoints namespaced at `/api/v1/*`. Auto-generated OpenAPI docs at `/api/docs`.
 
-Key endpoints:
-- `GET /foods/search?q=...` - Search food catalog
-- `POST /foods/quick-add` - Add food + serving + log to meal in one call
-- `POST /meals` - Create meal with items
-- `POST /meals/{id}/items` - Add item to existing meal
-- `GET /foods/needs-review` - List items requiring nutrition data
-- `PATCH /servings/{id}` - Update nutrition + status
+**Catalog namespace** (`/api/v1/catalog/*`) - Food database:
+- `GET /catalog/foods` - List all foods
+- `GET /catalog/foods/search?q=...` - Search food catalog
+- `GET /catalog/foods/{id}` - Get food details
+- `GET /catalog/servings/{id}` - Get serving details
+- `GET /catalog/needs-review` - List items requiring nutrition data
+- `PATCH /catalog/servings/{id}` - Update nutrition + status
+
+**Nutrition namespace** (`/api/v1/nutrition/*`) - Meal logging:
+- `POST /nutrition/quick-add` - Add food + serving + log to meal in one call
+- `GET /nutrition/meals` - List meals
+- `GET /nutrition/meals/daily-summary?date=...` - Daily totals
+- `POST /nutrition/meals` - Create meal with items
+- `POST /nutrition/meals/{id}/items` - Add item to existing meal
 
 Use `class-validator` decorators (`@IsNotEmpty()`, `@Min(0)`, etc.) in DTOs.
 

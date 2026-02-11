@@ -276,10 +276,10 @@ Found in catalog?
 ### Key API Endpoints
 ```typescript
 // Search foods
-GET /api/v1/foods/search?q=nasi+goreng
+GET /api/v1/catalog/foods/search?q=nasi+goreng
 
 // Quick add (food not found)
-POST /api/v1/foods/quick-add
+POST /api/v1/nutrition/quick-add
 {
   name: "nasi goreng spesial",
   variant: "extra pedas",
@@ -289,7 +289,7 @@ POST /api/v1/foods/quick-add
 }
 
 // Log existing food to meal
-POST /api/v1/meals
+POST /api/v1/nutrition/meals
 {
   date: "2025-02-06",
   mealType: "BREAKFAST",
@@ -300,7 +300,7 @@ POST /api/v1/meals
 }
 
 // Add item to existing meal
-POST /api/v1/meals/{mealId}/items
+POST /api/v1/nutrition/meals/{mealId}/items
 {
   foodId: "uuid",
   servingId: "uuid",
@@ -328,10 +328,10 @@ Allow users to complete nutrition data for foods added via "Quick Add".
 ### API Endpoints
 ```typescript
 // Get items needing review
-GET /api/v1/foods/needs-review
+GET /api/v1/catalog/needs-review
 
 // Update serving nutrition
-PATCH /api/v1/servings/{servingId}
+PATCH /api/v1/catalog/servings/{servingId}
 {
   calories: 450,
   protein: 15,
@@ -341,7 +341,7 @@ PATCH /api/v1/servings/{servingId}
 }
 
 // Add additional serving to existing food
-POST /api/v1/foods/{foodId}/servings
+POST /api/v1/catalog/foods/{foodId}/servings
 {
   name: "1 cup equivalent",
   size: 30,
