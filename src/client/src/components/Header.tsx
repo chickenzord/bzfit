@@ -1,7 +1,16 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function Header() {
+  const { isAuthenticated, logoutUser } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logoutUser();
+    navigate('/login');
+  };
+
   return (
     <header style={{
       display: 'flex',
@@ -15,19 +24,24 @@ export default function Header() {
         <Link to="/" style={{ textDecoration: 'none', color: '#333' }}>BzFit</Link>
       </div>
       <nav>
-        <Link to="/meals" style={{ margin: '0 1rem', textDecoration: 'none', color: '#555' }}>Meals</Link>
-        <Link to="/settings" style={{ margin: '0 1rem', textDecoration: 'none', color: '#555' }}>Settings</Link>
-        <button style={{
-          marginLeft: '1rem',
-          padding: '0.5rem 1rem',
-          backgroundColor: '#007bff',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer'
-        }}>
-          Logout
-        </button>
+        {isAuthenticated ? (
+          <>
+            <Link to="/meals" style={{ margin: '0 1rem', textDecoration: 'none', color: '#555' }}>Meals</Link>
+            <button onClick={handleLogout} style={{
+              marginLeft: '1rem',
+              padding: '0.5rem 1rem',
+              backgroundColor: '#dc3545', // Red color for logout
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}>
+              Logout
+            </button>
+          </>
+        ) : (
+          <Link to="/login" style={{ margin: '0 1rem', textDecoration: 'none', color: '#555' }}>Login</Link>
+        )}
       </nav>
     </header>
   );
