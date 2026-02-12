@@ -1,6 +1,8 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { Button } from '../../../shared/components/ui/button'; // Assuming Button component will be in ui
+import { cn } from '../../shared/lib/utils'; // Import cn
 
 export default function Header() {
   const { isAuthenticated, logoutUser } = useAuth();
@@ -12,35 +14,21 @@ export default function Header() {
   };
 
   return (
-    <header style={{
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: '1rem 2rem',
-      backgroundColor: '#f8f8f8',
-      borderBottom: '1px solid #eee'
-    }}>
-      <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
-        <Link to="/" style={{ textDecoration: 'none', color: '#333' }}>BzFit</Link>
+    <header className="flex items-center justify-between px-4 py-3 bg-background border-b shadow-sm">
+      <div className="text-xl font-bold">
+        <Link to="/" className="text-foreground no-underline">BzFit</Link>
       </div>
-      <nav>
+      <nav className="flex items-center space-x-4">
         {isAuthenticated ? (
           <>
-            <Link to="/meals" style={{ margin: '0 1rem', textDecoration: 'none', color: '#555' }}>Meals</Link>
-            <button onClick={handleLogout} style={{
-              marginLeft: '1rem',
-              padding: '0.5rem 1rem',
-              backgroundColor: '#dc3545', // Red color for logout
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer'
-            }}>
+            <Link to="/meals" className="text-muted-foreground hover:text-foreground no-underline">Meals</Link>
+            {/* The Settings link is removed as per the previous instruction, keep it out */}
+            <Button onClick={handleLogout} variant="destructive" size="sm">
               Logout
-            </button>
+            </Button>
           </>
         ) : (
-          <Link to="/login" style={{ margin: '0 1rem', textDecoration: 'none', color: '#555' }}>Login</Link>
+          <Link to="/login" className="text-muted-foreground hover:text-foreground no-underline">Login</Link>
         )}
       </nav>
     </header>

@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
+import { Input } from '../../../shared/components/ui/input';
+import { Button } from '../../../shared/components/ui/button';
+import { Label } from '../../../shared/components/ui/label';
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
@@ -28,60 +31,52 @@ export default function RegisterPage() {
   };
 
   return (
-    <div>
-      <h1>Register</h1>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}>
-        <div>
-          <label htmlFor="name" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Name:</label>
-          <input
+    <div className="space-y-4">
+      <h1 className="text-2xl font-semibold">Register</h1>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid gap-2 text-left">
+          <Label htmlFor="name">Name</Label>
+          <Input
             type="text"
             id="name"
+            placeholder="John Doe"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            style={{ width: '100%', padding: '0.75rem', border: '1px solid #ccc', borderRadius: '4px', boxSizing: 'border-box' }}
           />
         </div>
-        <div>
-          <label htmlFor="email" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Email:</label>
-          <input
+        <div className="grid gap-2 text-left">
+          <Label htmlFor="email">Email</Label>
+          <Input
             type="email"
             id="email"
+            placeholder="m@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            style={{ width: '100%', padding: '0.75rem', border: '1px solid #ccc', borderRadius: '4px', boxSizing: 'border-box' }}
           />
         </div>
-        <div>
-          <label htmlFor="password" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Password:</label>
-          <input
+        <div className="grid gap-2 text-left">
+          <Label htmlFor="password">Password</Label>
+          <Input
             type="password"
             id="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            style={{ width: '100%', padding: '0.75rem', border: '1px solid #ccc', borderRadius: '4px', boxSizing: 'border-box' }}
           />
         </div>
-        {error && <p style={{ color: 'red', marginBottom: '1rem' }}>{error}</p>}
-        <button
-          type="submit"
-          style={{
-            padding: '0.75rem 1.5rem',
-            backgroundColor: '#28a745',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '1rem'
-          }}
-        >
+        {error && <p className="text-destructive text-sm">{error}</p>}
+        <Button type="submit" className="w-full">
           Register
-        </button>
+        </Button>
       </form>
-      <p style={{ marginTop: '1.5rem', fontSize: '0.9rem' }}>
-        Already have an account? <Link to="/login" style={{ color: '#007bff', textDecoration: 'none' }}>Login here</Link>.
+      <p className="text-sm text-muted-foreground">
+        Already have an account?{' '}
+        <Link to="/login" className="text-primary hover:underline">
+          Login here
+        </Link>
+        .
       </p>
     </div>
   );

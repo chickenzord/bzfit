@@ -7,7 +7,7 @@ export default function ProtectedRoute() {
 
   if (isLoading) {
     // Optionally render a loading spinner or placeholder while checking auth status
-    return <div>Loading authentication...</div>;
+    return <div className="flex items-center justify-center min-h-screen text-lg text-muted-foreground">Loading authentication...</div>;
   }
 
   if (!isAuthenticated) {

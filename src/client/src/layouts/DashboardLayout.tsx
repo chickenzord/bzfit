@@ -6,11 +6,11 @@ import Navbar from '../components/Navbar';
 
 export default function DashboardLayout() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <div className="flex flex-col min-h-screen w-full">
       <Header />
-      <div style={{ display: 'flex', flexGrow: 1 }}>
+      <div className="flex flex-1">
         <Navbar />
-        <main style={{ flexGrow: 1, padding: '2rem' }}>
+        <main className="flex-1 p-6 bg-background">
           <Outlet /> {/* Renders the child route components */}
         </main>
       </div>

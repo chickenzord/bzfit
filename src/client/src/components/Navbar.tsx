@@ -1,29 +1,27 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { cn } from '../../shared/lib/utils'; // Import cn
 
 export default function Navbar() {
+  const navLinkClass = "block px-4 py-2 text-foreground hover:bg-muted-foreground/10 rounded-md transition-colors";
+
   return (
-    <nav style={{
-      padding: '1rem 0',
-      borderRight: '1px solid #eee',
-      width: '200px',
-      backgroundColor: '#f4f4f4'
-    }}>
-      <ul style={{ listStyle: 'none', padding: 0 }}>
-        <li style={{ marginBottom: '0.5rem' }}>
-          <Link to="/dashboard" style={{ display: 'block', padding: '0.5rem 2rem', textDecoration: 'none', color: '#333' }}>Dashboard</Link>
+    <nav className="p-4 border-r bg-card h-full">
+      <ul className="space-y-1">
+        <li>
+          <Link to="/dashboard" className={navLinkClass}>Dashboard</Link>
         </li>
-        <li style={{ marginBottom: '0.5rem' }}>
-          <Link to="/meals" style={{ display: 'block', padding: '0.5rem 2rem', textDecoration: 'none', color: '#333' }}>Meals</Link>
+        <li>
+          <Link to="/meals" className={navLinkClass}>Meals</Link>
         </li>
-        <li style={{ marginBottom: '0.5rem' }}>
-          <Link to="/foods" style={{ display: 'block', padding: '0.5rem 2rem', textDecoration: 'none', color: '#333' }}>Foods</Link>
+        <li>
+          <Link to="/foods" className={navLinkClass}>Foods</Link>
         </li>
-        <li style={{ marginBottom: '0.5rem' }}>
-          <Link to="/goals" style={{ display: 'block', padding: '0.5rem 2rem', textDecoration: 'none', color: '#333' }}>Goals</Link>
+        <li>
+          <Link to="/goals" className={navLinkClass}>Goals</Link>
         </li>
-        <li style={{ marginBottom: '0.5rem' }}>
-          <Link to="/settings" style={{ display: 'block', padding: '0.5rem 2rem', textDecoration: 'none', color: '#333' }}>Settings</Link>
+        <li>
+          <Link to="/settings" className={navLinkClass}>Settings</Link>
         </li>
       </ul>
     </nav>
