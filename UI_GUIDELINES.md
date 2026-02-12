@@ -94,7 +94,7 @@ npx shadcn@latest add input
   - Header with logo, navigation, user menu
   - Main content area (scrollable)
   - Optional footer
-- **Responsive**: Hamburger menu on mobile, sidebar on desktop
+- **Responsive**: Hamburger menu on mobile (feels like native mobile app), sidebar on desktop
 - **Dark mode**: Toggle in user menu
 
 #### AuthLayout
