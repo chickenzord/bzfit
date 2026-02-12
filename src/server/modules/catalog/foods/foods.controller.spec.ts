@@ -2,8 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { FoodsController } from './foods.controller';
 import { FoodsService } from './foods.service';
 import { JwtAuthGuard } from '../../auth/guards';
-import { NotFoundException } from '@nestjs/common';
-import { FoodResponseDto } from '../../../../shared/dto';
+import { NotFoundException, HttpStatus } from '@nestjs/common';
+import { FoodResponseDto, CreateFoodDto, UpdateFoodDto } from '../../../../shared/dto';
+import { ServingStatus } from '@prisma/client';
 
 describe('FoodsController', () => {
   let controller: FoodsController;
@@ -36,7 +37,7 @@ describe('FoodsController', () => {
         vitaminC: null,
         calcium: null,
         iron: null,
-        status: 'VERIFIED',
+        status: ServingStatus.VERIFIED,
         dataSource: 'USER_ENTERED',
         createdAt: '2024-01-01T00:00:00.000Z',
         updatedAt: '2024-01-01T00:00:00.000Z',
@@ -60,7 +61,9 @@ describe('FoodsController', () => {
     findAll: jest.fn(),
     findOne: jest.fn(),
     search: jest.fn(),
-    findServing: jest.fn(),
+    createFood: jest.fn(),
+    updateFood: jest.fn(),
+    removeFood: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -87,6 +90,76 @@ describe('FoodsController', () => {
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
+  });
+
+  describe('create', () => {
+    const createDto: CreateFoodDto = {
+      name: 'New Food',
+      variant: 'Spicy',
+      brand: 'TestCo',
+    };
+
+    it('should create a new food', async () => {
+      mockFoodsService.createFood.mockResolvedValue(mockFoodResponse);
+
+      const result = await controller.create(createDto);
+
+      expect(result).toEqual(mockFoodResponse);
+      expect(service.createFood).toHaveBeenCalledWith(createDto);
+      expect(service.createFood).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('update', () => {
+    const updateDto: UpdateFoodDto = {
+      name: 'Updated Food',
+      variant: 'Sweet',
+    };
+
+    it('should update an existing food', async () => {
+      const updatedFood = { ...mockFoodResponse, name: 'Updated Food', variant: 'Sweet' };
+      mockFoodsService.updateFood.mockResolvedValue(updatedFood);
+
+      const result = await controller.update('food-1', updateDto);
+
+      expect(result).toEqual(updatedFood);
+      expect(service.updateFood).toHaveBeenCalledWith('food-1', updateDto);
+      expect(service.updateFood).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw NotFoundException if food does not exist', async () => {
+      mockFoodsService.updateFood.mockRejectedValue(
+        new NotFoundException('Food with ID invalid-id not found'),
+      );
+
+      await expect(controller.update('invalid-id', updateDto)).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(service.updateFood).toHaveBeenCalledWith('invalid-id', updateDto);
+    });
+  });
+
+  describe('remove', () => {
+    it('should delete a food', async () => {
+      mockFoodsService.removeFood.mockResolvedValue({ id: 'food-1' });
+
+      const result = await controller.remove('food-1');
+
+      expect(result).toEqual({ id: 'food-1' });
+      expect(service.removeFood).toHaveBeenCalledWith('food-1');
+      expect(service.removeFood).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw NotFoundException if food does not exist', async () => {
+      mockFoodsService.removeFood.mockRejectedValue(
+        new NotFoundException('Food with ID invalid-id not found'),
+      );
+
+      await expect(controller.remove('invalid-id')).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(service.removeFood).toHaveBeenCalledWith('invalid-id');
+    });
   });
 
   describe('findAll', () => {

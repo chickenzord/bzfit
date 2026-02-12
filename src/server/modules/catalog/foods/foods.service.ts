@@ -1,10 +1,71 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { FoodResponseDto, ServingResponseDto } from '../../../../shared/dto';
+import { FoodResponseDto, CreateFoodDto, UpdateFoodDto, ServingResponseDto } from '../../../../shared/dto';
 
 @Injectable()
 export class FoodsService {
   constructor(private prisma: PrismaService) {}
+
+  /**
+   * Create a new food
+   */
+  async createFood(data: CreateFoodDto): Promise<FoodResponseDto> {
+    const food = await this.prisma.food.create({
+      data: {
+        name: data.name,
+        variant: data.variant,
+        brand: data.brand,
+      },
+      include: {
+        servings: true,
+      },
+    });
+    return this.formatFoodResponse(food);
+  }
+
+  /**
+   * Update an existing food
+   */
+  async updateFood(id: string, data: UpdateFoodDto): Promise<FoodResponseDto> {
+    const existingFood = await this.prisma.food.findUnique({
+      where: { id },
+    });
+
+    if (!existingFood) {
+      throw new NotFoundException(`Food with ID ${id} not found`);
+    }
+
+    const food = await this.prisma.food.update({
+      where: { id },
+      data: {
+        name: data.name,
+        variant: data.variant,
+        brand: data.brand,
+      },
+      include: {
+        servings: true,
+      },
+    });
+    return this.formatFoodResponse(food);
+  }
+
+  /**
+   * Remove a food
+   */
+  async removeFood(id: string): Promise<{ id: string }> {
+    const existingFood = await this.prisma.food.findUnique({
+      where: { id },
+    });
+
+    if (!existingFood) {
+      throw new NotFoundException(`Food with ID ${id} not found`);
+    }
+
+    await this.prisma.food.delete({
+      where: { id },
+    });
+    return { id };
+  }
 
   /**
    * List all foods with pagination
@@ -107,21 +168,6 @@ export class FoodsService {
   }
 
   /**
-   * Get serving by ID
-   */
-  async findServing(id: string): Promise<ServingResponseDto> {
-    const serving = await this.prisma.serving.findUnique({
-      where: { id },
-    });
-
-    if (!serving) {
-      throw new NotFoundException(`Serving with ID ${id} not found`);
-    }
-
-    return this.formatServingResponse(serving);
-  }
-
-  /**
    * Format food entity to response DTO
    */
   private formatFoodResponse(food: any): FoodResponseDto {
@@ -168,3 +214,6 @@ export class FoodsService {
     };
   }
 }
+
+
+
