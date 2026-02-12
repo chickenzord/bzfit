@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { Input } from '../../../shared/components/ui/input';
-import { Button } from '../../../shared/components/ui/button';
-import { Label } from '../../../shared/components/ui/label';
-import { CardHeader, CardTitle, CardDescription } from '../../../shared/components/ui/card'; // Import CardHeader and CardTitle
+import { Input } from '@shared/components/ui/input';
+import { Button } from '@shared/components/ui/button';
+import { Label } from '@shared/components/ui/label';
+import { CardHeader, CardTitle, CardDescription } from '@shared/components/ui/card';
 
+/**
+ * LoginPage - User authentication form
+ *
+ * TODO: CUSTOMIZE - Update branding, logo, and error message styling
+ */
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -31,47 +36,60 @@ export default function LoginPage() {
   };
 
   return (
-    <>
-      <CardHeader>
-        <CardTitle className="text-2xl font-semibold text-center">Login</CardTitle>
-        <CardDescription className="text-center text-muted-foreground">Enter your credentials to access your account</CardDescription>
+    <div className="space-y-6">
+      <CardHeader className="p-0 space-y-2">
+        <CardTitle className="text-2xl font-bold text-center">
+          {/* TODO: CUSTOMIZE - Replace with logo/brand name */}
+          Welcome to BzFit
+        </CardTitle>
+        <CardDescription className="text-center">
+          Sign in to track your meals and nutrition
+        </CardDescription>
       </CardHeader>
-      <div className="space-y-4">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid gap-2 text-left">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              type="email"
-              id="email"
-              placeholder="m@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            type="email"
+            id="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoComplete="email"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="password">Password</Label>
+          <Input
+            type="password"
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            autoComplete="current-password"
+          />
+        </div>
+
+        {error && (
+          <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+            {error}
           </div>
-          <div className="grid gap-2 text-left">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          {error && <p className="text-destructive text-sm">{error}</p>}
-          <Button type="submit" className="w-full">
-            Login
-          </Button>
-        </form>
-        <p className="text-sm text-muted-foreground">
-          Don't have an account?{' '}
-          <Link to="/register" className="text-primary hover:underline">
-            Register here
-          </Link>
-          .
-        </p>
+        )}
+
+        <Button type="submit" className="w-full">
+          Sign In
+        </Button>
+      </form>
+
+      <div className="text-center text-sm text-muted-foreground">
+        Don't have an account?{' '}
+        <Link to="/register" className="font-medium text-primary hover:underline">
+          Create account
+        </Link>
       </div>
-    </>
+    </div>
   );
 }

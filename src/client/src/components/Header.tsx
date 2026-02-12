@@ -1,9 +1,19 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { Button } from '../../../shared/components/ui/button'; // Assuming Button component will be in ui
-import { cn } from '../../shared/lib/utils'; // Import cn
+import { Button } from '@shared/components/ui/button';
 
+/**
+ * Header - Top navigation bar with branding and user actions
+ *
+ * Features:
+ * - App branding/logo
+ * - Conditional rendering based on auth state
+ * - Logout button for authenticated users
+ *
+ * TODO: CUSTOMIZE - Add app logo, user avatar dropdown menu, notifications
+ */
 export default function Header() {
   const { isAuthenticated, logoutUser } = useAuth();
   const navigate = useNavigate();
@@ -14,23 +24,36 @@ export default function Header() {
   };
 
   return (
-    <header className="flex items-center justify-between px-4 py-3 bg-background border-b shadow-sm">
-      <div className="text-xl font-bold">
-        <Link to="/" className="text-foreground no-underline">BzFit</Link>
-      </div>
-      <nav className="flex items-center space-x-4">
-        {isAuthenticated ? (
-          <>
-            <Link to="/meals" className="text-muted-foreground hover:text-foreground no-underline">Meals</Link>
-            {/* The Settings link is removed as per the previous instruction, keep it out */}
-            <Button onClick={handleLogout} variant="destructive" size="sm">
-              Logout
+    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex h-14 items-center justify-between px-4 md:px-6">
+        {/* Brand / Logo */}
+        <Link to="/" className="flex items-center space-x-2">
+          {/* TODO: CUSTOMIZE - Replace with actual logo */}
+          <span className="text-xl font-bold">BzFit</span>
+        </Link>
+
+        {/* User Actions */}
+        <div className="flex items-center space-x-4">
+          {isAuthenticated ? (
+            <>
+              {/* TODO: CUSTOMIZE - Add user avatar, notifications, etc. */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogout}
+                className="gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Logout</span>
+              </Button>
+            </>
+          ) : (
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/login">Login</Link>
             </Button>
-          </>
-        ) : (
-          <Link to="/login" className="text-muted-foreground hover:text-foreground no-underline">Login</Link>
-        )}
-      </nav>
+          )}
+        </div>
+      </div>
     </header>
   );
 }
