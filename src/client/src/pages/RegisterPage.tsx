@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Input } from '../../../shared/components/ui/input';
 import { Button } from '../../../shared/components/ui/button';
 import { Label } from '../../../shared/components/ui/label';
+import { CardHeader, CardTitle, CardDescription } from '../../../shared/components/ui/card'; // Import CardHeader and CardTitle
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
@@ -31,53 +32,58 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">Register</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid gap-2 text-left">
-          <Label htmlFor="name">Name</Label>
-          <Input
-            type="text"
-            id="name"
-            placeholder="John Doe"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-        </div>
-        <div className="grid gap-2 text-left">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            type="email"
-            id="email"
-            placeholder="m@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div className="grid gap-2 text-left">
-          <Label htmlFor="password">Password</Label>
-          <Input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        {error && <p className="text-destructive text-sm">{error}</p>}
-        <Button type="submit" className="w-full">
-          Register
-        </Button>
-      </form>
-      <p className="text-sm text-muted-foreground">
-        Already have an account?{' '}
-        <Link to="/login" className="text-primary hover:underline">
-          Login here
-        </Link>
-        .
-      </p>
-    </div>
+    <>
+      <CardHeader>
+        <CardTitle className="text-2xl font-semibold text-center">Register</CardTitle>
+        <CardDescription className="text-center text-muted-foreground">Create your account</CardDescription>
+      </CardHeader>
+      <div className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid gap-2 text-left">
+            <Label htmlFor="name">Name</Label>
+            <Input
+              type="text"
+              id="name"
+              placeholder="John Doe"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </div>
+          <div className="grid gap-2 text-left">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              type="email"
+              id="email"
+              placeholder="m@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div className="grid gap-2 text-left">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          {error && <p className="text-destructive text-sm">{error}</p>}
+          <Button type="submit" className="w-full">
+            Register
+          </Button>
+        </form>
+        <p className="text-sm text-muted-foreground">
+          Already have an account?{' '}
+          <Link to="/login" className="text-primary hover:underline">
+            Login here
+          </Link>
+          .
+        </p>
+      </div>
+    </>
   );
 }
