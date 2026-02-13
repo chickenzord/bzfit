@@ -165,4 +165,23 @@
       transform: translateY(0);
     }
   }
+
+  /* Hide scrollbar for date selector */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Dashboard-specific styling */
+  .dashboard-bg {
+    background-color: hsl(210 20% 98%);
+  }
+
+  .dark .dashboard-bg {
+    background-color: hsl(222 47% 11%);
+  }
 }

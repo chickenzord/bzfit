@@ -34,7 +34,8 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       await loginUser({ email, password });
-      // Redirection handled by useEffect
+      // Navigate to dashboard after successful login
+      navigate('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
     } finally {

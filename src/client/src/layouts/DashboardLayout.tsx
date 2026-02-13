@@ -55,7 +55,7 @@ export default function DashboardLayout() {
         </aside>
 
         {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto bg-background p-4 md:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto dashboard-bg p-4 md:p-6 lg:p-8">
           <Outlet /> {/* Renders child route components */}
         </main>
       </div>

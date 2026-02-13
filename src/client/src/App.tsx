@@ -4,6 +4,7 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import MealsPage from './pages/MealsPage';
 import RegisterPage from './pages/RegisterPage';
+import DashboardPage from './pages/DashboardPage';
 import DashboardLayout from './layouts/DashboardLayout';
 import AuthLayout from './layouts/AuthLayout';
 import ProtectedRoute from './components/ProtectedRoute'; // Import ProtectedRoute
@@ -11,7 +12,6 @@ import ProtectedRoute from './components/ProtectedRoute'; // Import ProtectedRou
 // Placeholder for new pages
 const FoodsPage = () => <div>Foods Page Content</div>;
 const GoalsPage = () => <div>Goals Page Content</div>;
-const DashboardPage = () => <div>Dashboard Overview</div>; // Placeholder for a dedicated dashboard page
 
 function App() {
   return (
