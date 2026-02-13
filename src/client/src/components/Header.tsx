@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { Button } from '@shared/components/ui/button';
+import { Button } from '@/components/ui/button';
 
 /**
  * Header - Top navigation bar with branding and user actions

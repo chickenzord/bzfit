@@ -1,21 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { Input } from '@shared/components/ui/input';
-import { Button } from '@shared/components/ui/button';
-import { Label } from '@shared/components/ui/label';
-import { CardHeader, CardTitle, CardDescription } from '@shared/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 /**
  * RegisterPage - New user registration form
  *
- * TODO: CUSTOMIZE - Add password strength indicator, terms acceptance
+ * Features:
+ * - Loading states during registration
+ * - Enhanced error message styling
+ * - Smooth transitions and animations
  */
 export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const { registerUser, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
@@ -28,29 +32,33 @@ export default function RegisterPage() {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError(null);
+    setIsLoading(true);
     try {
       await registerUser({ name, email, password });
       // Redirection handled by useEffect
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="space-y-6">
-      <CardHeader className="p-0 space-y-2">
-        <CardTitle className="text-2xl font-bold text-center">
-          {/* TODO: CUSTOMIZE - Replace with logo/brand name */}
+    <div className="space-y-8">
+      <div className="space-y-3 text-center">
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
           Create Account
-        </CardTitle>
-        <CardDescription className="text-center">
+        </h1>
+        <p className="text-sm text-slate-600 dark:text-slate-400">
           Start tracking your nutrition journey
-        </CardDescription>
-      </CardHeader>
+        </p>
+      </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-2">
-          <Label htmlFor="name">Full Name</Label>
+          <Label htmlFor="name" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+            Full Name
+          </Label>
           <Input
             type="text"
             id="name"
@@ -59,11 +67,14 @@ export default function RegisterPage() {
             onChange={(e) => setName(e.target.value)}
             required
             autoComplete="name"
+            className="h-11 border-slate-300 bg-white px-4 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+            Email
+          </Label>
           <Input
             type="email"
             id="email"
@@ -72,11 +83,14 @@ export default function RegisterPage() {
             onChange={(e) => setEmail(e.target.value)}
             required
             autoComplete="email"
+            className="h-11 border-slate-300 bg-white px-4 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+            Password
+          </Label>
           <Input
             type="password"
             id="password"
@@ -86,23 +100,28 @@ export default function RegisterPage() {
             required
             autoComplete="new-password"
             minLength={8}
+            className="h-11 border-slate-300 bg-white px-4 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
           />
         </div>
 
         {error && (
-          <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+          <div className="rounded-lg border-l-4 border-red-500 bg-red-50 p-4 text-sm text-red-800 dark:bg-red-900/20 dark:text-red-200">
             {error}
           </div>
         )}
 
-        <Button type="submit" className="w-full">
-          Create Account
+        <Button
+          type="submit"
+          className="h-11 w-full bg-blue-600 font-semibold text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 dark:bg-blue-500 dark:hover:bg-blue-600"
+          disabled={isLoading}
+        >
+          {isLoading ? 'Creating account...' : 'Create Account'}
         </Button>
       </form>
 
-      <div className="text-center text-sm text-muted-foreground">
+      <div className="text-center text-sm text-slate-600 dark:text-slate-400">
         Already have an account?{' '}
-        <Link to="/login" className="font-medium text-primary hover:underline">
+        <Link to="/login" className="font-semibold text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300">
           Sign in
         </Link>
       </div>

@@ -1,0 +1,10 @@
+dist
+node_modules
+coverage
+.next
+.vite
+*.config.js
+*.config.ts
+vite.config.ts
+postcss.config.js
+tailwind.config.js

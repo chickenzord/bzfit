@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, UtensilsCrossed, Apple, Target, Settings } from 'lucide-react';
-import { cn } from '@shared/lib/utils';
-import { Button } from '@shared/components/ui/button';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 interface NavbarProps {
   onNavigate?: () => void;
