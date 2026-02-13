@@ -59,20 +59,20 @@ export default function DateSelector({ selectedDate, onDateChange }: DateSelecto
   };
 
   return (
-    <div className="flex items-center gap-2 py-3">
+    <div className="flex items-center gap-1 py-2">
       {/* Previous Week Button */}
       <Button
         variant="ghost"
         size="icon"
         onClick={handlePreviousWeek}
-        className="h-10 w-10 shrink-0"
+        className="h-9 w-9 shrink-0"
         aria-label="Previous week"
       >
-        <ChevronLeft className="h-5 w-5" />
+        <ChevronLeft className="h-4 w-4" />
       </Button>
 
       {/* Week Days - Horizontal Scroll */}
-      <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+      <div className="flex gap-1 overflow-x-auto scrollbar-hide flex-1">
         {weekDates.map((date, index) => {
           const isSelected = isSameDay(date, selectedDate);
           const isToday = isSameDay(date, today);
@@ -84,19 +84,19 @@ export default function DateSelector({ selectedDate, onDateChange }: DateSelecto
               key={index}
               onClick={() => onDateChange(date)}
               className={cn(
-                'flex flex-col items-center justify-center rounded-full px-4 py-2 min-w-[60px] transition-colors',
+                'flex flex-col items-center justify-center rounded-full px-2.5 py-1.5 min-w-[48px] transition-colors shrink-0',
                 'hover:bg-accent/50',
                 isSelected && 'bg-emerald-100 dark:bg-emerald-900/30',
                 isToday && !isSelected && 'bg-emerald-50 dark:bg-emerald-900/20'
               )}
               aria-label={`Select ${dayName} ${dayNumber}`}
             >
-              <span className="text-xs font-medium text-muted-foreground">
+              <span className="text-[10px] font-medium text-muted-foreground">
                 {dayName}
               </span>
               <span
                 className={cn(
-                  'text-lg font-semibold mt-1',
+                  'text-base font-semibold mt-0.5',
                   isSelected && 'text-foreground',
                   !isSelected && 'text-muted-foreground'
                 )}
@@ -113,10 +113,10 @@ export default function DateSelector({ selectedDate, onDateChange }: DateSelecto
         variant="ghost"
         size="icon"
         onClick={handleNextWeek}
-        className="h-10 w-10 shrink-0"
+        className="h-9 w-9 shrink-0"
         aria-label="Next week"
       >
-        <ChevronRight className="h-5 w-5" />
+        <ChevronRight className="h-4 w-4" />
       </Button>
     </div>
   );

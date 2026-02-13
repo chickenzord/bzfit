@@ -40,12 +40,12 @@ export default function JournalPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-4">
       {/* Date Selector */}
       <DateSelector selectedDate={selectedDate} onDateChange={setSelectedDate} />
 
       {/* Metric Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {/* Calories Card */}
         <MetricCard
           title="Calories"
@@ -81,15 +81,15 @@ export default function JournalPage() {
       </div>
 
       {/* Meals List Placeholder */}
-      <div className="mt-8 space-y-4">
-        <div className="text-center py-12 text-muted-foreground">
+      <div className="mt-4 space-y-3">
+        <div className="text-center py-8 text-muted-foreground">
           <p>No meals logged yet</p>
-          <p className="text-sm mt-2">Start by adding what you ate below</p>
+          <p className="text-sm mt-1">Start by adding what you ate below</p>
         </div>
       </div>
 
       {/* Quick Meal Input - Fixed to Bottom */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t p-4 md:relative md:border-0 md:p-0 md:mt-8">
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t p-3 md:relative md:border-0 md:p-0 md:mt-6">
         <div className="max-w-2xl mx-auto flex items-center gap-2">
           <Input
             type="text"

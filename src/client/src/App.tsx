@@ -5,14 +5,13 @@ import LoginPage from './pages/LoginPage';
 import MealsPage from './pages/MealsPage';
 import RegisterPage from './pages/RegisterPage';
 import JournalPage from './pages/JournalPage';
+import FoodCatalogPage from './pages/FoodCatalogPage';
 import DashboardLayout from './layouts/DashboardLayout';
 import AuthLayout from './layouts/AuthLayout';
 import ProtectedRoute from './components/ProtectedRoute'; // Import ProtectedRoute
 
 // Placeholder for new pages
 const GoalsPage = () => <div className="space-y-4"><p className="text-muted-foreground">Set and track your nutrition goals</p></div>;
-const FoodsPage = () => <div className="space-y-4"><p className="text-muted-foreground">Browse and manage food catalog</p></div>;
-const NeedsReviewPage = () => <div className="space-y-4"><p className="text-muted-foreground">Foods and servings that need nutrition data verification</p></div>;
 const SettingsPage = () => <div className="space-y-4"><p className="text-muted-foreground">App settings and preferences</p></div>;
 
 function App() {
@@ -32,8 +31,7 @@ function App() {
             <Route path="/journal" element={<JournalPage />} />
             <Route path="/meals" element={<MealsPage />} />
             <Route path="/goals" element={<GoalsPage />} />
-            <Route path="/catalog/needs-review" element={<NeedsReviewPage />} />
-            <Route path="/catalog/foods" element={<FoodsPage />} />
+            <Route path="/catalog/foods" element={<FoodCatalogPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Route>
         </Route>
