@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 @plugin "tailwindcss-animate";
 
 @custom-variant dark (&:is(.dark *));
@@ -29,10 +31,6 @@
   --radius-md: 0.5rem;
   --radius-sm: 0.25rem;
 }
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 /* Custom BzFit Color Palette - Clean, modern aesthetic */
 @layer base {

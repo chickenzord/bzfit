@@ -29,24 +29,26 @@ export default function DashboardLayout() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header />
+      {/* Mobile Navigation - Sheet/Drawer */}
+      <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+        <Header
+          mobileMenuTrigger={
+            <SheetTrigger asChild className="md:hidden">
+              <Button variant="ghost" size="icon" aria-label="Open navigation menu">
+                <Menu className="h-6 w-6" />
+              </Button>
+            </SheetTrigger>
+          }
+        />
+        <SheetContent side="left" className="w-64 p-0">
+          <SheetHeader className="p-4 border-b">
+            <SheetTitle>Menu</SheetTitle>
+          </SheetHeader>
+          <Navbar onNavigate={() => setMobileMenuOpen(false)} />
+        </SheetContent>
+      </Sheet>
 
       <div className="flex flex-1">
-        {/* Mobile Navigation - Sheet/Drawer */}
-        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-          <SheetTrigger asChild className="md:hidden fixed top-4 left-4 z-50">
-            <Button variant="ghost" size="icon" aria-label="Open navigation menu">
-              <Menu className="h-6 w-6" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-64 p-0">
-            <SheetHeader className="p-4 border-b">
-              <SheetTitle>Menu</SheetTitle>
-            </SheetHeader>
-            <Navbar onNavigate={() => setMobileMenuOpen(false)} />
-          </SheetContent>
-        </Sheet>
-
         {/* Desktop Navigation - Sidebar */}
         <aside className="hidden md:block w-64 border-r bg-card">
           <Navbar />

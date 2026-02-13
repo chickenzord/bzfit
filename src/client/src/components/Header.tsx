@@ -11,10 +11,16 @@ import { Button } from '@/components/ui/button';
  * - App branding/logo
  * - Conditional rendering based on auth state
  * - Logout button for authenticated users
+ * - Mobile menu trigger slot
  *
  * TODO: CUSTOMIZE - Add app logo, user avatar dropdown menu, notifications
  */
-export default function Header() {
+
+interface HeaderProps {
+  mobileMenuTrigger?: React.ReactNode;
+}
+
+export default function Header({ mobileMenuTrigger }: HeaderProps) {
   const { isAuthenticated, logoutUser } = useAuth();
   const navigate = useNavigate();
 
@@ -26,11 +32,17 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-14 items-center justify-between px-4 md:px-6">
-        {/* Brand / Logo */}
-        <Link to="/" className="flex items-center space-x-2">
-          {/* TODO: CUSTOMIZE - Replace with actual logo */}
-          <span className="text-xl font-bold">BzFit</span>
-        </Link>
+        {/* Left: Mobile Menu + Brand */}
+        <div className="flex items-center gap-3">
+          {/* Mobile Menu Trigger */}
+          {mobileMenuTrigger}
+
+          {/* Brand / Logo */}
+          <Link to="/" className="flex items-center space-x-2">
+            {/* TODO: CUSTOMIZE - Replace with actual logo */}
+            <span className="text-xl font-bold">BzFit</span>
+          </Link>
+        </div>
 
         {/* User Actions */}
         <div className="flex items-center space-x-4">
