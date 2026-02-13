@@ -1,5 +1,6 @@
 import React from 'react';
 import FoodCard from './FoodCard';
+import { Separator } from '@/components/ui/separator';
 
 interface Serving {
   id: string;
@@ -20,10 +21,11 @@ interface FoodListProps {
 }
 
 /**
- * FoodList - List of food cards
+ * FoodList - Flat list with subtle dividers
  *
  * Features:
- * - Grid layout
+ * - Space-efficient flat layout
+ * - Subtle separators between items
  * - Loading state
  * - Empty state
  */
@@ -46,7 +48,7 @@ export default function FoodList({ foods, onFoodClick, isLoading }: FoodListProp
   }
 
   return (
-    <div className="space-y-2">
+    <div className="divide-y divide-border">
       {foods.map((food) => (
         <FoodCard key={food.id} food={food} onClick={onFoodClick} />
       ))}
