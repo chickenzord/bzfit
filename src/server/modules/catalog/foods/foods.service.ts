@@ -183,6 +183,48 @@ export class FoodsService {
   }
 
   /**
+   * Get foods with servings that need review
+   * Returns foods ordered by recently added/used first
+   */
+  async getNeedsReview(): Promise<FoodResponseDto[]> {
+    const foods = await this.prisma.food.findMany({
+      where: {
+        servings: {
+          some: {
+            status: 'NEEDS_REVIEW',
+          },
+        },
+      },
+      include: {
+        servings: {
+          where: {
+            status: 'NEEDS_REVIEW',
+          },
+        },
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
+    });
+
+    return foods.map((f) => this.formatFoodResponse(f));
+  }
+
+  /**
+   * Count servings that need review
+   * Fast query for badge display
+   */
+  async getNeedsReviewCount(): Promise<{ count: number }> {
+    const count = await this.prisma.serving.count({
+      where: {
+        status: 'NEEDS_REVIEW',
+      },
+    });
+
+    return { count };
+  }
+
+  /**
    * Format serving entity to response DTO
    */
   private formatServingResponse(serving: any): ServingResponseDto {

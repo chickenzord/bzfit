@@ -54,6 +54,20 @@ export class FoodsController {
     return this.foodsService.search(query);
   }
 
+  @Get('needs-review')
+  @ApiOperation({ summary: 'Get foods with servings that need review' })
+  @ApiResponse({ status: HttpStatus.OK, description: 'List of foods with NEEDS_REVIEW servings', type: [FoodResponseDto] })
+  async getNeedsReview() {
+    return this.foodsService.getNeedsReview();
+  }
+
+  @Get('needs-review/count')
+  @ApiOperation({ summary: 'Get count of servings needing review' })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Count of servings with NEEDS_REVIEW status', schema: { type: 'object', properties: { count: { type: 'number' } } } })
+  async getNeedsReviewCount() {
+    return this.foodsService.getNeedsReviewCount();
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get single food by ID' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Food details with servings', type: FoodResponseDto })

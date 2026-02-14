@@ -36,6 +36,14 @@ export class ServingsController {
     return this.servingsService.removeServing(id);
   }
 
+  @Post(':id/verify')
+  @ApiOperation({ summary: 'Mark serving as verified, optionally updating nutrition data' })
+  @ApiResponse({ status: HttpStatus.OK, description: 'The serving has been verified and updated.', type: ServingResponseDto })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Serving not found' })
+  async verify(@Param('id') id: string, @Body() updateServingDto?: UpdateServingDto) {
+    return this.servingsService.verifyServing(id, updateServingDto);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get serving by ID' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Serving details', type: ServingResponseDto })
