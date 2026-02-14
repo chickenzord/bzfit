@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import {
   MealResponseDto,
@@ -7,11 +7,18 @@ import {
   CreateMealDto,
   AddMealItemDto,
   UpdateMealItemDto,
+  NutritionGoalProgressDto,
+  MacroProgressDto,
 } from '../../../../shared/dto';
+import { GoalsService } from '../goals/goals.service';
 
 @Injectable()
 export class MealsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(forwardRef(() => GoalsService))
+    private goalsService: GoalsService,
+  ) {}
 
   /**
    * List meals with optional filters
@@ -80,7 +87,7 @@ export class MealsService {
   }
 
   /**
-   * Get daily summary: all meals for a specific date with totals
+   * Get daily summary: all meals for a specific date with totals and goal progress
    */
   async getDailySummary(userId: string, date: string) {
     const targetDate = new Date(date);
@@ -113,10 +120,15 @@ export class MealsService {
     // Calculate day totals
     const dayTotals = this.calculateDayTotals(formattedMeals);
 
+    // Get active goal and calculate progress
+    const activeGoal = await this.goalsService.getActive(userId);
+    const goals = activeGoal ? this.calculateGoalProgress(dayTotals, activeGoal) : null;
+
     return {
       date,
       meals: formattedMeals,
       totals: dayTotals,
+      goals,
     };
   }
 
@@ -458,6 +470,31 @@ export class MealsService {
         );
       }
     }
+  }
+
+  /**
+   * Calculate goal vs actual progress
+   */
+  private calculateGoalProgress(totals: NutritionTotalsDto, goal: any): NutritionGoalProgressDto {
+    return {
+      calories: this.calculateMacroProgress(totals.calories, goal.caloriesTarget),
+      protein: this.calculateMacroProgress(totals.protein, goal.proteinTarget),
+      carbs: this.calculateMacroProgress(totals.carbs, goal.carbsTarget),
+      fat: this.calculateMacroProgress(totals.fat, goal.fatTarget),
+    };
+  }
+
+  /**
+   * Calculate progress for a single macro
+   */
+  private calculateMacroProgress(actual: number, target: number | null): MacroProgressDto {
+    const percentage = target && target > 0 ? Math.round((actual / target) * 1000) / 10 : null;
+
+    return {
+      target,
+      actual: Math.round(actual * 10) / 10,
+      percentage,
+    };
   }
 
   /**

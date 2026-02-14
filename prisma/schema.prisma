@@ -37,8 +37,9 @@ model User {
   passwordHash String
   name         String?
 
-  meals        Meal[]
-  apiKeys      ApiKey[]
+  meals          Meal[]
+  apiKeys        ApiKey[]
+  nutritionGoals NutritionGoal[]
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -142,4 +143,30 @@ model MealItem {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model NutritionGoal {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Macro targets (nullable = no goal set)
+  caloriesTarget Float? // kcal
+  proteinTarget  Float? // grams
+  carbsTarget    Float? // grams
+  fatTarget      Float? // grams
+
+  // Optional detailed targets
+  fiberTarget  Float? // grams
+  sugarTarget  Float? // max grams
+  sodiumTarget Float? // max mg
+
+  startDate DateTime  @default(now())
+  endDate   DateTime? // null = ongoing
+  isActive  Boolean   @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, isActive]) // One active goal per user
 }
