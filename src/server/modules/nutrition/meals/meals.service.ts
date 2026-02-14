@@ -1,6 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { MealResponseDto, MealItemResponseDto, NutritionTotalsDto } from '../../../../shared/dto';
+import {
+  MealResponseDto,
+  MealItemResponseDto,
+  NutritionTotalsDto,
+  CreateMealDto,
+  AddMealItemDto,
+  UpdateMealItemDto,
+} from '../../../../shared/dto';
 
 @Injectable()
 export class MealsService {
@@ -206,6 +213,251 @@ export class MealsService {
       }),
       { calories: 0, protein: 0, carbs: 0, fat: 0 },
     );
+  }
+
+  /**
+   * Create a new meal with optional initial items
+   */
+  async create(userId: string, createMealDto: CreateMealDto): Promise<MealResponseDto> {
+    const { date, mealType, notes, items } = createMealDto;
+
+    // Check for existing meal (unique constraint: userId, date, mealType)
+    const existing = await this.prisma.meal.findUnique({
+      where: {
+        userId_date_mealType: {
+          userId,
+          date: new Date(date),
+          mealType,
+        },
+      },
+    });
+
+    if (existing) {
+      throw new BadRequestException(
+        `Meal already exists for ${mealType} on ${date}. Use PATCH to add items to existing meal.`,
+      );
+    }
+
+    // Validate items if provided
+    if (items && items.length > 0) {
+      await this.validateMealItems(items);
+    }
+
+    // Create meal with items in a transaction
+    const meal = await this.prisma.meal.create({
+      data: {
+        userId,
+        date: new Date(date),
+        mealType,
+        notes,
+        items: items
+          ? {
+              create: items.map((item) => ({
+                foodId: item.foodId,
+                servingId: item.servingId,
+                quantity: item.quantity ?? 1.0,
+                notes: item.notes,
+                isEstimated: item.isEstimated ?? false,
+              })),
+            }
+          : undefined,
+      },
+      include: {
+        items: {
+          include: {
+            food: true,
+            serving: true,
+          },
+        },
+      },
+    });
+
+    return this.formatMealResponse(meal);
+  }
+
+  /**
+   * Update meal notes
+   */
+  async update(userId: string, id: string, notes: string): Promise<MealResponseDto> {
+    // Verify meal exists and user owns it
+    const meal = await this.prisma.meal.findFirst({
+      where: { id, userId },
+    });
+
+    if (!meal) {
+      throw new NotFoundException(`Meal with ID ${id} not found`);
+    }
+
+    const updated = await this.prisma.meal.update({
+      where: { id },
+      data: { notes },
+      include: {
+        items: {
+          include: {
+            food: true,
+            serving: true,
+          },
+        },
+      },
+    });
+
+    return this.formatMealResponse(updated);
+  }
+
+  /**
+   * Delete meal (cascade deletes items)
+   */
+  async delete(userId: string, id: string): Promise<void> {
+    // Verify meal exists and user owns it
+    const meal = await this.prisma.meal.findFirst({
+      where: { id, userId },
+    });
+
+    if (!meal) {
+      throw new NotFoundException(`Meal with ID ${id} not found`);
+    }
+
+    // Delete meal (items cascade automatically)
+    await this.prisma.meal.delete({
+      where: { id },
+    });
+  }
+
+  /**
+   * Add item to existing meal (or create meal if it doesn't exist)
+   */
+  async addItem(userId: string, mealId: string, addItemDto: AddMealItemDto): Promise<MealResponseDto> {
+    // Verify meal exists and user owns it
+    const meal = await this.prisma.meal.findFirst({
+      where: { id: mealId, userId },
+    });
+
+    if (!meal) {
+      throw new NotFoundException(`Meal with ID ${mealId} not found`);
+    }
+
+    // Validate food and serving exist and are related
+    await this.validateMealItems([addItemDto]);
+
+    // Add item to meal
+    await this.prisma.mealItem.create({
+      data: {
+        mealId,
+        foodId: addItemDto.foodId,
+        servingId: addItemDto.servingId,
+        quantity: addItemDto.quantity ?? 1.0,
+        notes: addItemDto.notes,
+        isEstimated: addItemDto.isEstimated ?? false,
+      },
+    });
+
+    // Return updated meal with all items
+    return this.findOne(userId, mealId);
+  }
+
+  /**
+   * Update meal item (quantity, notes, isEstimated)
+   */
+  async updateItem(userId: string, itemId: string, updateItemDto: UpdateMealItemDto): Promise<MealResponseDto> {
+    // Find item and verify user owns the parent meal
+    const item = await this.prisma.mealItem.findFirst({
+      where: {
+        id: itemId,
+        meal: {
+          userId,
+        },
+      },
+      include: {
+        meal: true,
+      },
+    });
+
+    if (!item) {
+      throw new NotFoundException(`Meal item with ID ${itemId} not found`);
+    }
+
+    // Update item
+    await this.prisma.mealItem.update({
+      where: { id: itemId },
+      data: {
+        quantity: updateItemDto.quantity,
+        notes: updateItemDto.notes,
+        isEstimated: updateItemDto.isEstimated,
+      },
+    });
+
+    // Return updated meal
+    return this.findOne(userId, item.mealId);
+  }
+
+  /**
+   * Delete meal item (auto-delete meal if no items remain)
+   */
+  async deleteItem(userId: string, itemId: string): Promise<void> {
+    // Find item and verify user owns the parent meal
+    const item = await this.prisma.mealItem.findFirst({
+      where: {
+        id: itemId,
+        meal: {
+          userId,
+        },
+      },
+      include: {
+        meal: {
+          include: {
+            items: true,
+          },
+        },
+      },
+    });
+
+    if (!item) {
+      throw new NotFoundException(`Meal item with ID ${itemId} not found`);
+    }
+
+    // Delete the item
+    await this.prisma.mealItem.delete({
+      where: { id: itemId },
+    });
+
+    // Auto-delete meal if no items remain
+    if (item.meal.items.length === 1) {
+      // This was the last item
+      await this.prisma.meal.delete({
+        where: { id: item.mealId },
+      });
+    }
+  }
+
+  /**
+   * Validate that food and serving exist and serving belongs to food
+   */
+  private async validateMealItems(items: AddMealItemDto[]): Promise<void> {
+    for (const item of items) {
+      // Check food exists
+      const food = await this.prisma.food.findUnique({
+        where: { id: item.foodId },
+      });
+
+      if (!food) {
+        throw new BadRequestException(`Food with ID ${item.foodId} not found`);
+      }
+
+      // Check serving exists and belongs to food
+      const serving = await this.prisma.serving.findUnique({
+        where: { id: item.servingId },
+      });
+
+      if (!serving) {
+        throw new BadRequestException(`Serving with ID ${item.servingId} not found`);
+      }
+
+      if (serving.foodId !== item.foodId) {
+        throw new BadRequestException(
+          `Serving ${item.servingId} does not belong to food ${item.foodId}`,
+        );
+      }
+    }
   }
 
   /**

@@ -1,8 +1,8 @@
-import { Controller, Get, Query, Param, UseGuards, Request } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import { Controller, Get, Post, Patch, Delete, Query, Param, Body, UseGuards, Request, HttpCode } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiQuery, ApiBody } from '@nestjs/swagger';
 import { MealsService } from './meals.service';
 import { JwtAuthGuard } from '../../auth/guards';
-import { MealResponseDto } from '../../../../shared/dto';
+import { MealResponseDto, CreateMealDto, AddMealItemDto, UpdateMealItemDto } from '../../../../shared/dto';
 
 @ApiTags('nutrition')
 @Controller('nutrition/meals')
@@ -41,5 +41,50 @@ export class MealsController {
   @ApiResponse({ status: 404, description: 'Meal not found' })
   async findOne(@Request() req, @Param('id') id: string) {
     return this.mealsService.findOne(req.user.id, id);
+  }
+
+  @Post()
+  @ApiOperation({ summary: 'Create a new meal with optional initial items' })
+  @ApiBody({ type: CreateMealDto })
+  @ApiResponse({ status: 201, description: 'Meal created successfully', type: MealResponseDto })
+  @ApiResponse({ status: 400, description: 'Meal already exists for this date and mealType' })
+  async create(@Request() req, @Body() createMealDto: CreateMealDto) {
+    return this.mealsService.create(req.user.id, createMealDto);
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update meal notes' })
+  @ApiBody({ schema: { type: 'object', properties: { notes: { type: 'string' } } } })
+  @ApiResponse({ status: 200, description: 'Meal updated successfully', type: MealResponseDto })
+  @ApiResponse({ status: 404, description: 'Meal not found' })
+  async update(
+    @Request() req,
+    @Param('id') id: string,
+    @Body('notes') notes: string,
+  ) {
+    return this.mealsService.update(req.user.id, id, notes);
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  @ApiOperation({ summary: 'Delete meal (cascade deletes all items)' })
+  @ApiResponse({ status: 204, description: 'Meal deleted successfully' })
+  @ApiResponse({ status: 404, description: 'Meal not found' })
+  async delete(@Request() req, @Param('id') id: string) {
+    await this.mealsService.delete(req.user.id, id);
+  }
+
+  @Post(':mealId/items')
+  @ApiOperation({ summary: 'Add item to existing meal' })
+  @ApiBody({ type: AddMealItemDto })
+  @ApiResponse({ status: 201, description: 'Item added successfully', type: MealResponseDto })
+  @ApiResponse({ status: 404, description: 'Meal not found' })
+  @ApiResponse({ status: 400, description: 'Invalid food or serving ID' })
+  async addItem(
+    @Request() req,
+    @Param('mealId') mealId: string,
+    @Body() addItemDto: AddMealItemDto,
+  ) {
+    return this.mealsService.addItem(req.user.id, mealId, addItemDto);
   }
 }
