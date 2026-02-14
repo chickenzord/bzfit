@@ -42,7 +42,7 @@ export default function DashboardLayout() {
         />
         <SheetContent side="left" className="w-64 p-0">
           <SheetHeader className="p-4 border-b">
-            <SheetTitle>Menu</SheetTitle>
+            <SheetTitle className="text-xl font-bold">BzFit</SheetTitle>
           </SheetHeader>
           <Navbar onNavigate={() => setMobileMenuOpen(false)} />
         </SheetContent>
@@ -60,7 +60,10 @@ export default function DashboardLayout() {
         </main>
       </div>
 
-      <Footer />
+      {/* Footer - Hidden on mobile */}
+      <div className="hidden md:block">
+        <Footer />
+      </div>
     </div>
   );
 }

@@ -4,14 +4,16 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import MealsPage from './pages/MealsPage';
 import RegisterPage from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
+import JournalPage from './pages/JournalPage';
 import DashboardLayout from './layouts/DashboardLayout';
 import AuthLayout from './layouts/AuthLayout';
 import ProtectedRoute from './components/ProtectedRoute'; // Import ProtectedRoute
 
 // Placeholder for new pages
-const FoodsPage = () => <div>Foods Page Content</div>;
-const GoalsPage = () => <div>Goals Page Content</div>;
+const GoalsPage = () => <div className="space-y-4"><p className="text-muted-foreground">Set and track your nutrition goals</p></div>;
+const FoodsPage = () => <div className="space-y-4"><p className="text-muted-foreground">Browse and manage food catalog</p></div>;
+const NeedsReviewPage = () => <div className="space-y-4"><p className="text-muted-foreground">Foods and servings that need nutrition data verification</p></div>;
+const SettingsPage = () => <div className="space-y-4"><p className="text-muted-foreground">App settings and preferences</p></div>;
 
 function App() {
   return (
@@ -27,11 +29,12 @@ function App() {
         <Route element={<ProtectedRoute />}> {/* Wrap protected routes with ProtectedRoute */}
           <Route element={<DashboardLayout />}>
             <Route path="/" element={<HomePage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/journal" element={<JournalPage />} />
             <Route path="/meals" element={<MealsPage />} />
-            <Route path="/foods" element={<FoodsPage />} />
             <Route path="/goals" element={<GoalsPage />} />
-            {/* Add other authenticated routes here */}
+            <Route path="/catalog/needs-review" element={<NeedsReviewPage />} />
+            <Route path="/catalog/foods" element={<FoodsPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
           </Route>
         </Route>
       </Routes>

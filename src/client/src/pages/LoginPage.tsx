@@ -34,8 +34,8 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       await loginUser({ email, password });
-      // Navigate to dashboard after successful login
-      navigate('/dashboard');
+      // Navigate to journal after successful login
+      navigate('/journal');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
     } finally {

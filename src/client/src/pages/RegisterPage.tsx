@@ -35,8 +35,8 @@ export default function RegisterPage() {
     setIsLoading(true);
     try {
       await registerUser({ name, email, password });
-      // Navigate to dashboard after successful registration
-      navigate('/dashboard');
+      // Navigate to journal after successful registration
+      navigate('/journal');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {

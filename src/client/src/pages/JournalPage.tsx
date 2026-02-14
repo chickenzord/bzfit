@@ -6,16 +6,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 /**
- * DashboardPage - Main dashboard with date selector and nutrition metrics
+ * JournalPage - Daily meal journal with date selector and nutrition metrics
  *
  * Features:
  * - Horizontal week date selector
  * - Calorie tracking card (Food, Exercise, Remaining)
  * - Macros tracking card (Carbs, Protein, Fat)
  * - Quick meal logging input
+ * - Chronological view of daily logs
  * - Matches reference design (ui_meal_dashboard.jpeg)
  */
-export default function DashboardPage() {
+export default function JournalPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [mealInput, setMealInput] = useState('');
 
@@ -81,7 +82,6 @@ export default function DashboardPage() {
 
       {/* Meals List Placeholder */}
       <div className="mt-8 space-y-4">
-        <h2 className="text-lg font-semibold text-foreground">Today's Meals</h2>
         <div className="text-center py-12 text-muted-foreground">
           <p>No meals logged yet</p>
           <p className="text-sm mt-2">Start by adding what you ate below</p>
