@@ -2,7 +2,7 @@ import { Controller, Get, Post, Patch, Delete, Query, Param, Body, UseGuards, Re
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiQuery, ApiBody } from '@nestjs/swagger';
 import { MealsService } from './meals.service';
 import { JwtAuthGuard } from '../../auth/guards';
-import { MealResponseDto, CreateMealDto, AddMealItemDto, UpdateMealItemDto } from '../../../../shared/dto';
+import { MealResponseDto, CreateMealDto, AddMealItemDto, UpdateMealItemDto, QuickAddDto } from '../../../../shared/dto';
 
 @ApiTags('nutrition')
 @Controller('nutrition/meals')
@@ -41,6 +41,21 @@ export class MealsController {
   @ApiResponse({ status: 404, description: 'Meal not found' })
   async findOne(@Request() req, @Param('id') id: string) {
     return this.mealsService.findOne(req.user.id, id);
+  }
+
+  @Post('quick-add')
+  @ApiOperation({
+    summary: 'Quick-add: Create food + serving + log to meal in one call',
+    description:
+      'Used when user searches but doesn\'t find a food and wants to log it immediately. ' +
+      'Creates food (or reuses existing), creates serving with NEEDS_REVIEW status, ' +
+      'finds or creates meal, and adds item with isEstimated=true. All in one atomic transaction.',
+  })
+  @ApiBody({ type: QuickAddDto })
+  @ApiResponse({ status: 201, description: 'Food created and logged successfully', type: MealResponseDto })
+  @ApiResponse({ status: 400, description: 'Invalid input (bad date format, invalid mealType, or negative serving size)' })
+  async quickAdd(@Request() req, @Body() quickAddDto: QuickAddDto) {
+    return this.mealsService.quickAdd(req.user.id, quickAddDto);
   }
 
   @Post()

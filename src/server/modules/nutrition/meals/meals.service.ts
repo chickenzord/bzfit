@@ -9,8 +9,10 @@ import {
   UpdateMealItemDto,
   NutritionGoalProgressDto,
   MacroProgressDto,
+  QuickAddDto,
 } from '../../../../shared/dto';
 import { GoalsService } from '../goals/goals.service';
+import { ServingStatus } from '@prisma/client';
 
 @Injectable()
 export class MealsService {
@@ -285,6 +287,105 @@ export class MealsService {
     });
 
     return this.formatMealResponse(meal);
+  }
+
+  /**
+   * Quick-add: Create food + serving + log to meal in one atomic operation
+   * Used when user searches but doesn't find a food and wants to log it immediately
+   */
+  async quickAdd(userId: string, quickAddDto: QuickAddDto): Promise<MealResponseDto> {
+    const { food: foodDto, servingSize, servingUnit, quantity, mealType, date, notes } = quickAddDto;
+
+    // Validate inputs
+    if (servingSize <= 0) {
+      throw new BadRequestException('Serving size must be positive');
+    }
+
+    // Use transaction to ensure atomic operation
+    return await this.prisma.$transaction(async (tx) => {
+      // Step 1: Find or create Food (idempotent - reuse if exists)
+      // Search for exact match: same name, variant, and brand (case-sensitive for SQLite compatibility)
+      let food = await tx.food.findFirst({
+        where: {
+          name: foodDto.name,
+          variant: foodDto.variant || null,
+          brand: foodDto.brand || null,
+        },
+      });
+
+      if (!food) {
+        // Create new food
+        food = await tx.food.create({
+          data: {
+            name: foodDto.name,
+            variant: foodDto.variant,
+            brand: foodDto.brand,
+          },
+        });
+      }
+
+      // Step 2: Create Serving with NEEDS_REVIEW status, no nutrition data
+      const serving = await tx.serving.create({
+        data: {
+          foodId: food.id,
+          name: null, // Auto-generated from size + unit
+          size: servingSize,
+          unit: servingUnit,
+          isDefault: false,
+          status: ServingStatus.NEEDS_REVIEW,
+          // No nutrition data - will be filled in later during review
+        },
+      });
+
+      // Step 3: Find or create Meal for (userId, date, mealType)
+      const targetDate = new Date(date);
+      let meal = await tx.meal.findUnique({
+        where: {
+          userId_date_mealType: {
+            userId,
+            date: targetDate,
+            mealType,
+          },
+        },
+      });
+
+      if (!meal) {
+        meal = await tx.meal.create({
+          data: {
+            userId,
+            date: targetDate,
+            mealType,
+          },
+        });
+      }
+
+      // Step 4: Create MealItem with isEstimated: true
+      await tx.mealItem.create({
+        data: {
+          mealId: meal.id,
+          foodId: food.id,
+          servingId: serving.id,
+          quantity: quantity ?? 1.0,
+          notes,
+          isEstimated: true, // Always mark as estimated for quick-add
+        },
+      });
+
+      // Step 5: Return full MealResponseDto
+      const fullMeal = await tx.meal.findUnique({
+        where: { id: meal.id },
+        include: {
+          items: {
+            include: {
+              food: true,
+              serving: true,
+            },
+          },
+        },
+      });
+
+      return this.formatMealResponse(fullMeal);
+    });
   }
 
   /**
