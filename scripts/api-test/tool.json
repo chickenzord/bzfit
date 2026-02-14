@@ -1,0 +1,116 @@
+{
+  "name": "bzfit-api-test",
+  "version": "1.0.0",
+  "description": "API testing tool for BzFit using curl and fixture users",
+  "type": "bash-script",
+  "executable": "./test-api",
+  "usage": {
+    "synopsis": "./test-api COMMAND [ARGS...]",
+    "commands": {
+      "login": {
+        "description": "Get JWT token from API",
+        "args": ["[email]", "[password]"],
+        "defaults": ["demo@bzfit.local", "Demo1234!"],
+        "example": "./test-api login"
+      },
+      "logout": {
+        "description": "Clear stored JWT token",
+        "args": [],
+        "example": "./test-api logout"
+      },
+      "quick-add": {
+        "description": "Quick-add food to meal in one atomic operation",
+        "args": ["name", "[variant]", "[brand]", "size", "unit", "meal_type", "[date]", "[quantity]"],
+        "example": "./test-api quick-add \"Nasi Goreng\" \"Seafood\" \"Warung\" 250 g LUNCH"
+      },
+      "search": {
+        "description": "Search foods by name/brand/variant",
+        "args": ["query"],
+        "example": "./test-api search \"chicken\""
+      },
+      "daily-summary": {
+        "description": "Get daily meal summary with nutrition totals",
+        "args": ["[date]"],
+        "defaults": ["today"],
+        "example": "./test-api daily-summary 2026-02-14"
+      },
+      "list-meals": {
+        "description": "List meals, optionally filtered by date",
+        "args": ["[date]"],
+        "example": "./test-api list-meals"
+      },
+      "create-meal": {
+        "description": "Create a new meal",
+        "args": ["meal_type", "[date]"],
+        "defaults": [null, "today"],
+        "example": "./test-api create-meal BREAKFAST"
+      },
+      "curl": {
+        "description": "Make authenticated raw API request",
+        "args": ["method", "path", "[json_data]"],
+        "example": "./test-api curl GET /api/v1/catalog/foods"
+      }
+    }
+  },
+  "environment": {
+    "BZFIT_API_URL": {
+      "description": "API base URL",
+      "default": "http://localhost:3001",
+      "required": false
+    }
+  },
+  "prerequisites": {
+    "commands": [
+      {
+        "name": "Load fixtures",
+        "command": "npm run fixtures:load",
+        "description": "Creates test users and sample food data",
+        "required": true,
+        "frequency": "once"
+      },
+      {
+        "name": "Start dev server",
+        "command": "npm run dev:server",
+        "description": "Starts the API server on port 3001",
+        "required": true,
+        "frequency": "each-session"
+      }
+    ]
+  },
+  "fixtures": {
+    "users": [
+      {
+        "email": "demo@bzfit.local",
+        "password": "Demo1234!",
+        "name": "Demo User",
+        "purpose": "Default test user"
+      },
+      {
+        "email": "admin@bzfit.local",
+        "password": "Admin1234!",
+        "name": "Admin User",
+        "purpose": "Admin operations testing"
+      },
+      {
+        "email": "user@example.com",
+        "password": "securePassword123",
+        "name": "Example User",
+        "purpose": "Alternative test user"
+      }
+    ]
+  },
+  "ai_agents": {
+    "claude": {
+      "compatible": true,
+      "notes": "Can invoke via bash or as subprocess"
+    },
+    "gemini": {
+      "compatible": true,
+      "notes": "Can invoke via bash subprocess"
+    },
+    "openai": {
+      "compatible": true,
+      "notes": "Can invoke via bash subprocess if code interpreter enabled"
+    }
+  }
+}
