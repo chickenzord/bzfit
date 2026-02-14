@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { Flame, PieChart, Bookmark, Image as ImageIcon, Camera } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Flame, PieChart, Bookmark, Image as ImageIcon, Camera, Share2, ChevronDown } from 'lucide-react';
 import DateSelector from '@/components/DateSelector';
 import MetricCard from '@/components/MetricCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useHeader } from '@/layouts/DashboardLayout';
 
 /**
  * JournalPage - Daily meal journal with date selector and nutrition metrics
@@ -17,8 +18,32 @@ import { Input } from '@/components/ui/input';
  * - Matches reference design (ui_meal_dashboard.jpeg)
  */
 export default function JournalPage() {
+  const header = useHeader();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [mealInput, setMealInput] = useState('');
+
+  // Configure header
+  useEffect(() => {
+    header.setHeaderConfig({
+      title: 'Today',
+      showBack: false,
+      showSearch: true,
+      searchPlaceholder: 'Search meals...',
+      onSearch: (query) => console.log('Search:', query),
+      actions: [
+        {
+          icon: Share2,
+          label: 'Share',
+          onClick: () => console.log('Share journal'),
+        },
+        {
+          icon: Camera,
+          label: 'Add Photo',
+          onClick: () => console.log('Add photo'),
+        },
+      ],
+    });
+  }, []);
 
   // TODO: Replace with real data from API
   const calorieData = {

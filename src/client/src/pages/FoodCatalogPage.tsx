@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
-import FoodSearchBar from '@/components/food/FoodSearchBar';
+import { Plus, Filter } from 'lucide-react';
+import { useHeader } from '@/layouts/DashboardLayout';
 import FoodList from '@/components/food/FoodList';
 import FoodDetails from '@/components/food/FoodDetails';
 import FoodForm from '@/components/food/FoodForm';
@@ -40,6 +40,7 @@ interface Food {
  * - Create/Edit forms
  */
 export default function FoodCatalogPage() {
+  const header = useHeader();
   const [foods, setFoods] = useState<Food[]>([]);
   const [filteredFoods, setFilteredFoods] = useState<Food[]>([]);
   const [selectedFoodId, setSelectedFoodId] = useState<string | null>(null);
@@ -52,6 +53,50 @@ export default function FoodCatalogPage() {
   const [editingFoodId, setEditingFoodId] = useState<string | null>(null);
   const [editingServingId, setEditingServingId] = useState<string | null>(null);
   const [addingServingToFoodId, setAddingServingToFoodId] = useState<string | null>(null);
+
+  // Configure header for list view
+  useEffect(() => {
+    if (!selectedFoodId) {
+      header.setHeaderConfig({
+        title: 'Foods',
+        showBack: false,
+        showSearch: true,
+        searchPlaceholder: 'Search foods...',
+        onSearch: handleSearch,
+        actions: [
+          {
+            icon: Plus,
+            label: 'Add Food',
+            onClick: handleAddFood,
+          },
+          {
+            icon: Filter,
+            label: 'Filter',
+            onClick: () => console.log('Filter clicked'),
+          },
+        ],
+      });
+    }
+  }, [selectedFoodId]);
+
+  // Configure header for detail view
+  useEffect(() => {
+    if (selectedFoodId) {
+      const food = foods.find((f) => f.id === selectedFoodId);
+      header.setHeaderConfig({
+        title: food?.name || 'Food Details',
+        showBack: true,
+        showSearch: false,
+        actions: [
+          {
+            icon: Plus,
+            label: 'Add Serving',
+            onClick: () => handleAddServing(selectedFoodId),
+          },
+        ],
+      });
+    }
+  }, [selectedFoodId, foods]);
 
   // Mock data - TODO: Replace with API calls
   useEffect(() => {
@@ -162,6 +207,7 @@ export default function FoodCatalogPage() {
 
   const handleBackToList = () => {
     setSelectedFoodId(null);
+    header.setHeaderConfig({ showBack: false });
   };
 
   const handleAddFood = () => {
@@ -224,23 +270,12 @@ export default function FoodCatalogPage() {
     : null;
 
   return (
-    <div className="max-w-2xl mx-auto space-y-4">
+    <div className="max-w-2xl mx-auto">
       {!selectedFoodId ? (
         <>
-          {/* Search and Add Button */}
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <FoodSearchBar onSearch={handleSearch} />
-            </div>
-            <Button onClick={handleAddFood}>
-              <Plus className="h-4 w-4 mr-1" />
-              Add
-            </Button>
-          </div>
-
           {/* Results Count */}
           {searchQuery && (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground mb-3">
               {filteredFoods.length} result{filteredFoods.length !== 1 ? 's' : ''}{' '}
               for "{searchQuery}"
             </p>

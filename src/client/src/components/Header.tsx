@@ -1,103 +1,167 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Bell, Share2, ChevronDown } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import React, { useState } from 'react';
+import { ArrowLeft, Search, MoreVertical, Bell, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 /**
- * Header - Top navigation bar with page titles and user actions
+ * Header - Mobile-first app header
  *
  * Features:
- * - Mobile menu trigger (hamburger)
- * - Center page title (dynamic based on route)
- * - Date selector for Journal page
- * - Notifications CTA (top right)
- * - Share action (Journal only)
- *
- * Matches reference design: ui_meal_dashboard.jpeg
+ * - Left: Hamburger (top level) or Back button (detail view)
+ * - Center: Page title
+ * - Right: Search, 3-dots menu, notifications (customizable per page)
+ * - Expandable search overlay
  */
 
-interface HeaderProps {
-  mobileMenuTrigger?: React.ReactNode;
+interface HeaderAction {
+  icon: React.ElementType;
+  label: string;
+  onClick: () => void;
+  badge?: number;
 }
 
-export default function Header({ mobileMenuTrigger }: HeaderProps) {
-  const { isAuthenticated } = useAuth();
-  const location = useLocation();
+interface HeaderProps {
+  // Navigation
+  leftButton?: React.ReactNode; // Hamburger or back button from layout
+  title?: string;
 
-  // Determine page title based on route
-  const getPageTitle = (): { title: string; hasDropdown: boolean } => {
-    if (location.pathname === '/journal') {
-      return { title: 'Today', hasDropdown: true };
-    }
-    if (location.pathname === '/meals') {
-      return { title: 'Meals', hasDropdown: false };
-    }
-    if (location.pathname === '/goals') {
-      return { title: 'Goals', hasDropdown: false };
-    }
-    if (location.pathname === '/catalog/foods') {
-      return { title: 'Foods', hasDropdown: false };
-    }
-    if (location.pathname === '/settings') {
-      return { title: 'Settings', hasDropdown: false };
-    }
-    return { title: '', hasDropdown: false };
+  // Search
+  showSearch?: boolean;
+  searchPlaceholder?: string;
+  onSearch?: (query: string) => void;
+
+  // Actions
+  actions?: HeaderAction[];
+  showNotifications?: boolean;
+  notificationCount?: number;
+}
+
+export default function Header({
+  leftButton,
+  title,
+  showSearch,
+  searchPlaceholder = 'Search...',
+  onSearch,
+  actions,
+  showNotifications = true,
+  notificationCount,
+}: HeaderProps) {
+  const [searchExpanded, setSearchExpanded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSearch?.(searchQuery);
   };
 
-  const { title, hasDropdown } = getPageTitle();
-  const isJournal = location.pathname === '/journal';
-  const showPageTitle = title !== '';
+  const handleSearchClose = () => {
+    setSearchExpanded(false);
+    setSearchQuery('');
+    onSearch?.('');
+  };
 
-  return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex h-14 items-center justify-between px-4 md:px-6">
-        {/* Left: Mobile Menu */}
-        <div className="flex items-center gap-3">
-          {mobileMenuTrigger}
-          {!showPageTitle && (
-            <Link to="/" className="flex items-center space-x-2 md:block hidden">
-              <span className="text-xl font-bold">BzFit</span>
-            </Link>
+  // Search overlay mode
+  if (searchExpanded) {
+    return (
+      <header className="sticky top-0 z-40 w-full border-b bg-background">
+        <div className="flex h-14 items-center gap-2 px-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleSearchClose}
+            aria-label="Close search"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <form onSubmit={handleSearchSubmit} className="flex-1">
+            <Input
+              type="search"
+              placeholder={searchPlaceholder}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-9"
+              autoFocus
+            />
+          </form>
+          {searchQuery && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleSearchClose}
+              aria-label="Clear search"
+            >
+              <X className="h-5 w-5" />
+            </Button>
           )}
         </div>
+      </header>
+    );
+  }
 
-        {/* Center: Page Title */}
-        {showPageTitle && (
-          <div className="absolute left-1/2 transform -translate-x-1/2">
-            {hasDropdown ? (
-              <Button variant="ghost" className="gap-2 text-lg font-semibold">
-                {title}
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            ) : (
-              <h1 className="text-lg font-semibold">{title}</h1>
-            )}
-          </div>
+  // Normal header mode
+  return (
+    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex h-14 items-center justify-between px-4">
+        {/* Left: Navigation button */}
+        <div className="flex items-center">
+          {leftButton}
+        </div>
+
+        {/* Center: Title */}
+        {title && (
+          <h1 className="absolute left-1/2 transform -translate-x-1/2 text-lg font-semibold truncate max-w-[50%]">
+            {title}
+          </h1>
         )}
 
-        {/* Right: Action Icons */}
+        {/* Right: Actions */}
         <div className="flex items-center gap-1">
-          {isAuthenticated ? (
-            <>
-              {/* Notifications CTA - Always visible when authenticated */}
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-[10px] font-bold flex items-center justify-center text-destructive-foreground">
-                  3
-                </span>
-              </Button>
+          {/* Search icon */}
+          {showSearch && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSearchExpanded(true)}
+              aria-label="Search"
+            >
+              <Search className="h-5 w-5" />
+            </Button>
+          )}
 
-              {/* Share (Journal only) */}
-              {isJournal && (
-                <Button variant="ghost" size="icon">
-                  <Share2 className="h-5 w-5" />
+          {/* Custom actions via 3-dots menu */}
+          {actions && actions.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" aria-label="More actions">
+                  <MoreVertical className="h-5 w-5" />
                 </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {actions.map((action, index) => (
+                  <DropdownMenuItem key={index} onClick={action.onClick}>
+                    <action.icon className="h-4 w-4 mr-2" />
+                    {action.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+
+          {/* Notifications */}
+          {showNotifications && (
+            <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
+              <Bell className="h-5 w-5" />
+              {notificationCount && notificationCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-[10px] font-bold flex items-center justify-center text-destructive-foreground">
+                  {notificationCount > 9 ? '9+' : notificationCount}
+                </span>
               )}
-            </>
-          ) : (
-            <Button asChild variant="ghost" size="sm">
-              <Link to="/login">Login</Link>
             </Button>
           )}
         </div>
