@@ -4,8 +4,9 @@ import { router } from "expo-router";
 import { useAuth } from "../../lib/auth";
 import { ApiError } from "../../lib/api";
 
-export default function LoginScreen() {
-  const { login } = useAuth();
+export default function RegisterScreen() {
+  const { register } = useAuth();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -15,10 +16,11 @@ export default function LoginScreen() {
     if (!email.trim()) return "Email is required";
     if (!email.includes("@")) return "Enter a valid email";
     if (!password) return "Password is required";
+    if (password.length < 8) return "Password must be at least 8 characters";
     return null;
   }
 
-  async function handleLogin() {
+  async function handleRegister() {
     const validationError = validate();
     if (validationError) {
       setError(validationError);
@@ -27,11 +29,11 @@ export default function LoginScreen() {
     setError(null);
     setIsLoading(true);
     try {
-      await login(email.trim(), password);
+      await register(email.trim(), password, name.trim() || undefined);
       router.replace("/(tabs)");
     } catch (e) {
-      if (e instanceof ApiError && e.status === 401) {
-        setError("Invalid email or password");
+      if (e instanceof ApiError && e.status === 409) {
+        setError("An account with this email already exists");
       } else {
         setError("Something went wrong. Please try again.");
       }
@@ -46,7 +48,7 @@ export default function LoginScreen() {
         BzFit
       </Text>
       <Text className="text-slate-400 text-center mb-10">
-        Track your nutrition, embrace imperfections
+        Create your account
       </Text>
 
       <View className="gap-4">
@@ -56,6 +58,14 @@ export default function LoginScreen() {
           </View>
         )}
 
+        <TextInput
+          placeholder="Name (optional)"
+          placeholderTextColor="#64748b"
+          autoCapitalize="words"
+          value={name}
+          onChangeText={setName}
+          className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white text-base"
+        />
         <TextInput
           placeholder="Email"
           placeholderTextColor="#64748b"
@@ -67,7 +77,7 @@ export default function LoginScreen() {
           className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white text-base"
         />
         <TextInput
-          placeholder="Password"
+          placeholder="Password (min 8 characters)"
           placeholderTextColor="#64748b"
           secureTextEntry
           value={password}
@@ -76,7 +86,7 @@ export default function LoginScreen() {
         />
 
         <Pressable
-          onPress={handleLogin}
+          onPress={handleRegister}
           disabled={isLoading}
           className="bg-blue-600 rounded-xl py-4 mt-2 active:bg-blue-700 disabled:opacity-50"
         >
@@ -84,15 +94,15 @@ export default function LoginScreen() {
             <ActivityIndicator color="#fff" />
           ) : (
             <Text className="text-white text-center font-semibold text-base">
-              Sign In
+              Create Account
             </Text>
           )}
         </Pressable>
 
-        <Pressable onPress={() => router.push("/(auth)/register")}>
+        <Pressable onPress={() => router.back()}>
           <Text className="text-slate-400 text-center text-sm">
-            No account?{" "}
-            <Text className="text-blue-400 font-medium">Create one</Text>
+            Already have an account?{" "}
+            <Text className="text-blue-400 font-medium">Sign in</Text>
           </Text>
         </Pressable>
       </View>
