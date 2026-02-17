@@ -11,6 +11,7 @@
     "build:shared": "pnpm --filter @bzfit/shared build",
     "build:server": "pnpm --filter @bzfit/shared build && pnpm --filter @bzfit/server build",
     "start:prod": "node packages/server/dist/main.js",
+    "seed:meals": "ts-node --transpile-only --skip-project --compiler-options '{\"module\":\"commonjs\"}' scripts/seed-dev-meals.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
