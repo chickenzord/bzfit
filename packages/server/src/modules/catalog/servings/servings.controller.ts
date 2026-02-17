@@ -1,19 +1,19 @@
 import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards';
-import { ServingResponseDto, CreateServingDto, UpdateServingDto } from '@bzfit/shared';
-import { ServingsService } from './servings.service'; // Import ServingsService
+import { CreateServingDto, UpdateServingDto } from './dto';
+import { ServingsService } from './servings.service';
 
 @ApiTags('catalog')
 @Controller('catalog/servings')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class ServingsController {
-  constructor(private servingsService: ServingsService) {} // Inject ServingsService
+  constructor(private servingsService: ServingsService) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a new serving' })
-  @ApiResponse({ status: HttpStatus.CREATED, description: 'The serving has been successfully created.', type: ServingResponseDto })
+  @ApiResponse({ status: HttpStatus.CREATED, description: 'The serving has been successfully created.' })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Food not found' })
   async create(@Body() createServingDto: CreateServingDto) {
     const { foodId } = createServingDto;
@@ -22,7 +22,7 @@ export class ServingsController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update an existing serving' })
-  @ApiResponse({ status: HttpStatus.OK, description: 'The serving has been successfully updated.', type: ServingResponseDto })
+  @ApiResponse({ status: HttpStatus.OK, description: 'The serving has been successfully updated.' })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Serving not found' })
   async update(@Param('id') id: string, @Body() updateServingDto: UpdateServingDto) {
     return this.servingsService.updateServing(id, updateServingDto);
@@ -38,7 +38,7 @@ export class ServingsController {
 
   @Post(':id/verify')
   @ApiOperation({ summary: 'Mark serving as verified, optionally updating nutrition data' })
-  @ApiResponse({ status: HttpStatus.OK, description: 'The serving has been verified and updated.', type: ServingResponseDto })
+  @ApiResponse({ status: HttpStatus.OK, description: 'The serving has been verified and updated.' })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Serving not found' })
   async verify(@Param('id') id: string, @Body() updateServingDto?: UpdateServingDto) {
     return this.servingsService.verifyServing(id, updateServingDto);
@@ -46,7 +46,7 @@ export class ServingsController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get serving by ID' })
-  @ApiResponse({ status: HttpStatus.OK, description: 'Serving details', type: ServingResponseDto })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Serving details' })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Serving not found' })
   async findOne(@Param('id') id: string) {
     return this.servingsService.findOne(id);

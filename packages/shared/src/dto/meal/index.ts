@@ -1,3 +1,3 @@
-export * from './create-meal.dto';
-export * from './add-meal-item.dto';
-export * from './update-meal-item.dto';
+export * from './create-meal.schema';
+export * from './add-meal-item.schema';
+export * from './update-meal-item.schema';

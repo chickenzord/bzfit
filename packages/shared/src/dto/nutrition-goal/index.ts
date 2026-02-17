@@ -1,3 +1,3 @@
-export * from './create-goal.dto';
-export * from './update-goal.dto';
-export * from './goal-response.dto';
+export * from './create-goal.schema';
+export * from './update-goal.schema';
+export * from './goal-response.schema';

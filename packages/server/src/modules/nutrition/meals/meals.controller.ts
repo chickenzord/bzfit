@@ -2,7 +2,7 @@ import { Controller, Get, Post, Patch, Delete, Query, Param, Body, UseGuards, Re
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiQuery, ApiBody } from '@nestjs/swagger';
 import { MealsService } from './meals.service';
 import { JwtAuthGuard } from '../../auth/guards';
-import { MealResponseDto, CreateMealDto, AddMealItemDto, UpdateMealItemDto, QuickAddDto } from '@bzfit/shared';
+import { CreateMealDto, AddMealItemDto, UpdateMealItemDto, QuickAddDto } from './dto';
 
 @ApiTags('nutrition')
 @Controller('nutrition/meals')
@@ -15,7 +15,7 @@ export class MealsController {
   @ApiOperation({ summary: 'List meals with optional filters' })
   @ApiQuery({ name: 'date', required: false, type: String, description: 'Filter by date (YYYY-MM-DD)' })
   @ApiQuery({ name: 'mealType', required: false, enum: ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK'], description: 'Filter by meal type' })
-  @ApiResponse({ status: 200, description: 'List of meals', type: [MealResponseDto] })
+  @ApiResponse({ status: 200, description: 'List of meals' })
   async findAll(
     @Request() req,
     @Query('date') date?: string,
@@ -37,7 +37,7 @@ export class MealsController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get single meal by ID' })
-  @ApiResponse({ status: 200, description: 'Meal details with items and nutrition', type: MealResponseDto })
+  @ApiResponse({ status: 200, description: 'Meal details with items and nutrition' })
   @ApiResponse({ status: 404, description: 'Meal not found' })
   async findOne(@Request() req, @Param('id') id: string) {
     return this.mealsService.findOne(req.user.id, id);
@@ -52,7 +52,7 @@ export class MealsController {
       'finds or creates meal, and adds item with isEstimated=true. All in one atomic transaction.',
   })
   @ApiBody({ type: QuickAddDto })
-  @ApiResponse({ status: 201, description: 'Food created and logged successfully', type: MealResponseDto })
+  @ApiResponse({ status: 201, description: 'Food created and logged successfully' })
   @ApiResponse({ status: 400, description: 'Invalid input (bad date format, invalid mealType, or negative serving size)' })
   async quickAdd(@Request() req, @Body() quickAddDto: QuickAddDto) {
     return this.mealsService.quickAdd(req.user.id, quickAddDto);
@@ -61,7 +61,7 @@ export class MealsController {
   @Post()
   @ApiOperation({ summary: 'Create a new meal with optional initial items' })
   @ApiBody({ type: CreateMealDto })
-  @ApiResponse({ status: 201, description: 'Meal created successfully', type: MealResponseDto })
+  @ApiResponse({ status: 201, description: 'Meal created successfully' })
   @ApiResponse({ status: 400, description: 'Meal already exists for this date and mealType' })
   async create(@Request() req, @Body() createMealDto: CreateMealDto) {
     return this.mealsService.create(req.user.id, createMealDto);
@@ -70,7 +70,7 @@ export class MealsController {
   @Patch(':id')
   @ApiOperation({ summary: 'Update meal notes' })
   @ApiBody({ schema: { type: 'object', properties: { notes: { type: 'string' } } } })
-  @ApiResponse({ status: 200, description: 'Meal updated successfully', type: MealResponseDto })
+  @ApiResponse({ status: 200, description: 'Meal updated successfully' })
   @ApiResponse({ status: 404, description: 'Meal not found' })
   async update(
     @Request() req,
@@ -92,7 +92,7 @@ export class MealsController {
   @Post(':mealId/items')
   @ApiOperation({ summary: 'Add item to existing meal' })
   @ApiBody({ type: AddMealItemDto })
-  @ApiResponse({ status: 201, description: 'Item added successfully', type: MealResponseDto })
+  @ApiResponse({ status: 201, description: 'Item added successfully' })
   @ApiResponse({ status: 404, description: 'Meal not found' })
   @ApiResponse({ status: 400, description: 'Invalid food or serving ID' })
   async addItem(

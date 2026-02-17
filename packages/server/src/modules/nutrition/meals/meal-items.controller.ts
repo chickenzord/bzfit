@@ -2,7 +2,7 @@ import { Controller, Patch, Delete, Param, Body, UseGuards, Request, HttpCode } 
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { MealsService } from './meals.service';
 import { JwtAuthGuard } from '../../auth/guards';
-import { MealResponseDto, UpdateMealItemDto } from '@bzfit/shared';
+import { UpdateMealItemDto } from './dto';
 
 @ApiTags('nutrition')
 @Controller('nutrition/meal-items')
@@ -14,7 +14,7 @@ export class MealItemsController {
   @Patch(':id')
   @ApiOperation({ summary: 'Update meal item (quantity, notes, isEstimated)' })
   @ApiBody({ type: UpdateMealItemDto })
-  @ApiResponse({ status: 200, description: 'Item updated successfully', type: MealResponseDto })
+  @ApiResponse({ status: 200, description: 'Item updated successfully' })
   @ApiResponse({ status: 404, description: 'Meal item not found' })
   async update(
     @Request() req,

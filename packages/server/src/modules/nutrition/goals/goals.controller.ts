@@ -2,7 +2,7 @@ import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards, Request, 
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { GoalsService } from './goals.service';
 import { JwtAuthGuard } from '../../auth/guards';
-import { CreateGoalDto, UpdateGoalDto, GoalResponseDto } from '@bzfit/shared';
+import { CreateGoalDto, UpdateGoalDto } from './dto';
 
 @ApiTags('nutrition')
 @Controller('nutrition/goals')
@@ -13,14 +13,14 @@ export class GoalsController {
 
   @Get()
   @ApiOperation({ summary: 'Get active nutrition goal' })
-  @ApiResponse({ status: 200, description: 'Active goal or null', type: GoalResponseDto })
+  @ApiResponse({ status: 200, description: 'Active goal or null' })
   async getActive(@Request() req) {
     return this.goalsService.getActive(req.user.id);
   }
 
   @Get('history')
   @ApiOperation({ summary: 'Get history of past goals' })
-  @ApiResponse({ status: 200, description: 'List of inactive goals', type: [GoalResponseDto] })
+  @ApiResponse({ status: 200, description: 'List of inactive goals' })
   async getHistory(@Request() req) {
     return this.goalsService.getHistory(req.user.id);
   }
@@ -28,7 +28,7 @@ export class GoalsController {
   @Post()
   @ApiOperation({ summary: 'Create or update goal (deactivates old, creates new)' })
   @ApiBody({ type: CreateGoalDto })
-  @ApiResponse({ status: 201, description: 'Goal created successfully', type: GoalResponseDto })
+  @ApiResponse({ status: 201, description: 'Goal created successfully' })
   @ApiResponse({ status: 400, description: 'At least one target must be set' })
   async create(@Request() req, @Body() createGoalDto: CreateGoalDto) {
     return this.goalsService.createOrUpdate(req.user.id, createGoalDto);
@@ -37,7 +37,7 @@ export class GoalsController {
   @Patch(':id')
   @ApiOperation({ summary: 'Update active goal' })
   @ApiBody({ type: UpdateGoalDto })
-  @ApiResponse({ status: 200, description: 'Goal updated successfully', type: GoalResponseDto })
+  @ApiResponse({ status: 200, description: 'Goal updated successfully' })
   @ApiResponse({ status: 404, description: 'Active goal not found' })
   async update(
     @Request() req,

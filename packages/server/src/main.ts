@@ -1,8 +1,10 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { ZodValidationPipe, patchNestJsSwagger } from 'nestjs-zod';
+
+patchNestJsSwagger();
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -10,14 +12,8 @@ async function bootstrap() {
   // Enable CORS for development
   app.enableCors();
 
-  // Global validation pipe
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      transform: true,
-      forbidNonWhitelisted: true,
-    }),
-  );
+  // Global Zod validation pipe
+  app.useGlobalPipes(new ZodValidationPipe());
 
   // API prefix
   app.setGlobalPrefix('api/v1');
