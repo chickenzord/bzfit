@@ -1,2 +1,2 @@
-export * from './dto';
-export * from './entities';
+export * from './dto/index';
+export * from './entities/index';

@@ -1,14 +1,14 @@
 // Auth DTOs
-export * from './auth';
+export * from './auth/index';
 
 // Food DTOs
-export * from './food';
+export * from './food/index';
 
 // Meal DTOs
-export * from './meal';
+export * from './meal/index';
 
 // Nutrition Goal DTOs
-export * from './nutrition-goal';
+export * from './nutrition-goal/index';
 
 // Common response types
-export * from './common';
+export * from './common/index';
