@@ -4,31 +4,30 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**BzFit** is a self-hosted calorie tracking application built as a NestJS + React monorepo using **pnpm workspaces**. The core philosophy is "embrace imperfections" - allowing quick, flexible meal logging with deferred nutrition data entry.
+**BzFit** is a self-hosted calorie tracking application built as a NestJS + Expo monorepo using **pnpm workspaces**. The core philosophy is "embrace imperfections" - allowing quick, flexible meal logging with deferred nutrition data entry.
 
 Key principles:
 - **Search-first workflow**: Log meals quickly, fill in nutrition details later
 - **Food-Serving separation**: One food can have multiple serving sizes
 - **Status tracking**: Foods/servings marked as VERIFIED, NEEDS_REVIEW, or USER_CREATED
-- **Single Docker deployment**: Frontend served by NestJS backend
+- **API-first**: Backend serves JSON only; mobile app is the primary UI
 
 ## Tech Stack
 
 - **Package Manager**: pnpm with workspaces
 - **Backend**: NestJS (TypeScript) with Prisma ORM (`@bzfit/server`)
-- **Frontend**: React + Vite + TailwindCSS + Shadcn/UI (`@bzfit/client`)
 - **Mobile**: Expo + React Native + NativeWind (`@bzfit/app`)
 - **Shared**: TypeScript DTOs and entities (`@bzfit/shared`)
 - **Database**: SQLite (dev) / PostgreSQL (production)
-- **Auth**: JWT for frontend, API Keys for external systems/MCP servers
-- **Deployment**: Single Docker image serving both frontend (/) and API (/api/v1/*)
+- **Auth**: JWT for app, API Keys for external systems/MCP servers
+- **Deployment**: Docker image for backend API only
 
 ## UI Implementation
 
-See **`UI_GUIDELINES.md`** for complete frontend standards:
-- **TailwindCSS** (required) + **Shadcn/UI** components
-- **Lucide React** for icons (no embedded SVG)
-- **Mobile-first responsive** design
+Mobile app uses NativeWind (TailwindCSS for React Native):
+- **NativeWind v4** for styling
+- **Expo Router** for navigation
+- **@expo/vector-icons** (Ionicons) for icons
 - **Dark mode** support from day 1
 - Minimalist design with vibrant accent colors
 
@@ -36,9 +35,9 @@ See **`UI_GUIDELINES.md`** for complete frontend standards:
 
 ```bash
 # Development
-pnpm run dev                   # Run both frontend (5173) and backend (3001)
+pnpm run dev                   # Run backend (3001)
 pnpm run dev:server            # Backend only
-pnpm run dev:client            # Frontend only
+pnpm run dev:app               # Expo app (Metro bundler)
 
 # Database
 pnpm prisma generate           # Generate Prisma client types
@@ -47,8 +46,7 @@ pnpm prisma migrate deploy     # Apply migrations (production)
 pnpm prisma studio             # Visual DB editor
 
 # Build
-pnpm run build                 # Build both server and client
-pnpm run build:client          # Vite build → packages/client/dist
+pnpm run build                 # Build server
 pnpm run build:server          # NestJS build → packages/server/dist
 
 # Production
@@ -84,13 +82,6 @@ bzfit/
 │   │       │   ├── nutrition/ # Meal logging, goals
 │   │       │   └── auth/      # JWT + API key auth
 │   │       └── prisma/        # Prisma service wrapper
-│   ├── client/                # @bzfit/client - React + Vite
-│   │   ├── package.json
-│   │   ├── vite.config.ts
-│   │   └── src/
-│   │       ├── components/
-│   │       ├── pages/
-│   │       └── api/           # Type-safe API client
 │   └── app/                   # @bzfit/app - Expo mobile
 │       ├── package.json
 │       └── app/               # Expo Router pages
@@ -130,7 +121,7 @@ bzfit/
 5. User reviews later via `/api/v1/foods/needs-review` endpoint
 
 ### Authentication
-- **Frontend (React)**: JWT in localStorage, sent as `Authorization: Bearer {token}`
+- **Mobile app**: JWT in expo-secure-store (native) / localStorage (web), sent as `Authorization: Bearer {token}`
 - **External systems**: API keys as query param `?api_key=xxx` or header `Authorization: ApiKey xxx`
 - **Scopes**: Array like `["read:meals", "write:foods"]` for permission control
 - **NestJS guards**: `@UseGuards(JwtAuthGuard)` for frontend, custom Passport strategy for API keys
@@ -141,11 +132,9 @@ Prisma handles SQLite ↔ PostgreSQL switching via `DATABASE_URL` env var. Use:
 - `postgresql://...` for production
 - Migrations work across both databases
 
-### Single Docker Deployment
-Frontend is built as static files and served by NestJS:
-- Static files: `app.useStaticAssets(join(__dirname, '..', '..', 'client', 'dist'))`
+### Docker Deployment
+Backend serves the API only:
 - API routes: `/api/v1/*`
-- Frontend routes: All others (React Router handles client-side routing)
 - Startup: `pnpm prisma migrate deploy && node packages/server/dist/main.js`
 
 ## API Patterns
@@ -172,7 +161,6 @@ Use `class-validator` decorators (`@IsNotEmpty()`, `@Min(0)`, etc.) in DTOs.
 ## Testing Strategy
 
 - **Backend**: Jest for unit tests, e2e tests with separate test database
-- **Frontend**: Vitest + React Testing Library
 - **Prisma tests**: Override `DATABASE_URL` to use test database, reset between tests
 
 ## Evolving Specification
@@ -191,4 +179,3 @@ Not implemented yet (future):
 - Recipe builder
 - Meal templates
 - Nutrition goals
-- PWA/mobile app

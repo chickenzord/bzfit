@@ -2,7 +2,6 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
@@ -22,12 +21,6 @@ async function bootstrap() {
 
   // API prefix
   app.setGlobalPrefix('api/v1');
-
-  // Serve static files (built React app in production)
-  if (process.env.NODE_ENV === 'production') {
-    app.useStaticAssets(join(__dirname, '..', '..', 'client', 'dist'));
-    app.setBaseViewsDir(join(__dirname, '..', '..', 'client', 'dist'));
-  }
 
   // Swagger documentation
   const config = new DocumentBuilder()
