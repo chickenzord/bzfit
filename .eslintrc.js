@@ -2,7 +2,10 @@ module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
   parserOptions: {
-    project: ['./tsconfig.json', './src/client/tsconfig.json'],
+    project: [
+      './packages/server/tsconfig.json',
+      './packages/client/tsconfig.json',
+    ],
     tsconfigRootDir: __dirname,
     sourceType: 'module',
   },
@@ -22,6 +25,7 @@ module.exports = {
     'coverage',
     '*.config.js',
     '*.config.ts',
+    '*.config.mjs',
   ],
   rules: {
     '@typescript-eslint/interface-name-prefix': 'off',
@@ -39,9 +43,9 @@ module.exports = {
   overrides: [
     // Client-specific rules (React/Vite)
     {
-      files: ['src/client/**/*.{ts,tsx}'],
+      files: ['packages/client/**/*.{ts,tsx}'],
       parserOptions: {
-        project: './src/client/tsconfig.json',
+        project: './packages/client/tsconfig.json',
         ecmaFeatures: {
           jsx: true,
         },
@@ -62,9 +66,9 @@ module.exports = {
     },
     // Server-specific rules (NestJS)
     {
-      files: ['src/server/**/*.ts'],
+      files: ['packages/server/**/*.ts'],
       parserOptions: {
-        project: './tsconfig.json',
+        project: './packages/server/tsconfig.json',
       },
       rules: {
         '@typescript-eslint/no-unused-vars': [
