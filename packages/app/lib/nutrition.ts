@@ -1,0 +1,141 @@
+import { useState, useEffect, useCallback } from "react";
+import { apiFetch } from "./api";
+
+export type NutritionTotals = {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+};
+
+export type MealItem = {
+  id: string;
+  quantity: number;
+  isEstimated: boolean;
+  notes: string | null;
+  food: {
+    id: string;
+    name: string;
+    variant: string | null;
+    brand: string | null;
+  };
+  serving: {
+    id: string;
+    name: string | null;
+    size: number;
+    unit: string;
+    calories: number | null;
+  };
+  nutrition: {
+    calories?: number;
+    protein?: number;
+    carbs?: number;
+    fat?: number;
+  };
+};
+
+export type Meal = {
+  id: string;
+  mealType: "BREAKFAST" | "LUNCH" | "DINNER" | "SNACK";
+  items: MealItem[];
+  totals: NutritionTotals;
+};
+
+export type MacroProgress = {
+  target: number | null;
+  actual: number;
+  percentage: number | null;
+};
+
+export type GoalProgress = {
+  calories: MacroProgress;
+  protein: MacroProgress;
+  carbs: MacroProgress;
+  fat: MacroProgress;
+};
+
+export type DailySummary = {
+  date: string;
+  meals: Meal[];
+  totals: NutritionTotals;
+  goals: GoalProgress | null;
+};
+
+export type NutritionGoal = {
+  id: string;
+  caloriesTarget: number | null;
+  proteinTarget: number | null;
+  carbsTarget: number | null;
+  fatTarget: number | null;
+  isActive: boolean;
+};
+
+export function useDailySummary(date: string) {
+  const [data, setData] = useState<DailySummary | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await apiFetch<DailySummary>(
+        `/nutrition/meals/daily-summary?date=${date}`,
+      );
+      setData(result);
+    } catch (e: any) {
+      setError(e.message ?? "Failed to load data");
+    } finally {
+      setLoading(false);
+    }
+  }, [date]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  return { data, loading, error, refresh };
+}
+
+export function useNutritionGoal() {
+  const [goal, setGoal] = useState<NutritionGoal | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await apiFetch<NutritionGoal>("/nutrition/goals");
+      setGoal(result);
+    } catch (e: any) {
+      if (e.status === 404) {
+        setGoal(null);
+      } else {
+        setError(e.message ?? "Failed to load goal");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  const save = async (targets: {
+    caloriesTarget?: number | null;
+    proteinTarget?: number | null;
+    carbsTarget?: number | null;
+    fatTarget?: number | null;
+  }) => {
+    const result = await apiFetch<NutritionGoal>("/nutrition/goals", {
+      method: "POST",
+      body: targets,
+    });
+    setGoal(result);
+    return result;
+  };
+
+  return { goal, loading, error, refresh, save };
+}

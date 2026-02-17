@@ -1,12 +1,22 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
   FlatList,
+  Modal,
+  TextInput,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import {
+  useDailySummary,
+  useNutritionGoal,
+  type NutritionGoal,
+} from "../../../lib/nutrition";
 
 const DAY_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTH_NAMES = [
@@ -42,19 +52,190 @@ function getMonthGrid(year: number, month: number): (Date | null)[] {
   for (let d = 1; d <= daysInMonth; d++) {
     cells.push(new Date(year, month, d));
   }
-  // pad to full weeks
   while (cells.length % 7 !== 0) cells.push(null);
   return cells;
 }
 
-const MEAL_TYPES = [
-  { type: "Breakfast", icon: "sunny-outline" as const },
-  { type: "Lunch", icon: "partly-sunny-outline" as const },
-  { type: "Dinner", icon: "moon-outline" as const },
-  { type: "Snack", icon: "cafe-outline" as const },
-];
+function toDateString(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+const MEAL_TYPE_MAP = {
+  BREAKFAST: { label: "Breakfast", icon: "sunny-outline" as const },
+  LUNCH: { label: "Lunch", icon: "partly-sunny-outline" as const },
+  DINNER: { label: "Dinner", icon: "moon-outline" as const },
+  SNACK: { label: "Snack", icon: "cafe-outline" as const },
+} as const;
+
+const MEAL_TYPE_ORDER = ["BREAKFAST", "LUNCH", "DINNER", "SNACK"] as const;
 
 const ITEM_WIDTH = 48;
+
+type GoalsModalProps = {
+  visible: boolean;
+  onClose: () => void;
+};
+
+function GoalsModal({ visible, onClose }: GoalsModalProps) {
+  const { goal, loading, save } = useNutritionGoal();
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    calories: "",
+    protein: "",
+    carbs: "",
+    fat: "",
+  });
+
+  useEffect(() => {
+    if (goal) {
+      setForm({
+        calories: goal.caloriesTarget?.toString() ?? "",
+        protein: goal.proteinTarget?.toString() ?? "",
+        carbs: goal.carbsTarget?.toString() ?? "",
+        fat: goal.fatTarget?.toString() ?? "",
+      });
+    }
+  }, [goal]);
+
+  const handleClose = useCallback(() => {
+    setEditing(false);
+    onClose();
+  }, [onClose]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await save({
+        caloriesTarget: form.calories ? Number(form.calories) : null,
+        proteinTarget: form.protein ? Number(form.protein) : null,
+        carbsTarget: form.carbs ? Number(form.carbs) : null,
+        fatTarget: form.fat ? Number(form.fat) : null,
+      });
+      setEditing(false);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const goalRows: { key: keyof NutritionGoal; label: string; unit: string; color: string }[] = [
+    { key: "caloriesTarget", label: "Calories", unit: "kcal", color: "text-white" },
+    { key: "proteinTarget", label: "Protein", unit: "g", color: "text-blue-400" },
+    { key: "carbsTarget", label: "Carbs", unit: "g", color: "text-amber-400" },
+    { key: "fatTarget", label: "Fat", unit: "g", color: "text-rose-400" },
+  ];
+
+  const formFields: { key: keyof typeof form; label: string; unit: string }[] = [
+    { key: "calories", label: "Calories", unit: "kcal" },
+    { key: "protein", label: "Protein", unit: "g" },
+    { key: "carbs", label: "Carbs", unit: "g" },
+    { key: "fat", label: "Fat", unit: "g" },
+  ];
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={handleClose}
+    >
+      <View className="flex-1 justify-end bg-black/60">
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
+          <View className="bg-slate-900 rounded-t-3xl p-6 border-t border-slate-800">
+            <View className="flex-row items-center justify-between mb-6">
+              <Text className="text-white text-xl font-bold">
+                Nutrition Goals
+              </Text>
+              <TouchableOpacity onPress={handleClose}>
+                <Ionicons name="close" size={24} color="#94a3b8" />
+              </TouchableOpacity>
+            </View>
+
+            {loading ? (
+              <ActivityIndicator color="#3b82f6" className="my-8" />
+            ) : editing ? (
+              <>
+                {formFields.map(({ key, label, unit }) => (
+                  <View
+                    key={key}
+                    className="flex-row items-center justify-between mb-4"
+                  >
+                    <Text className="text-slate-400 text-sm">{label}</Text>
+                    <View className="flex-row items-center gap-2">
+                      <TextInput
+                        value={form[key]}
+                        onChangeText={(v) =>
+                          setForm((f) => ({ ...f, [key]: v }))
+                        }
+                        keyboardType="numeric"
+                        placeholder="—"
+                        placeholderTextColor="#475569"
+                        style={{ color: "white", textAlign: "right", minWidth: 64 }}
+                      />
+                      <Text className="text-slate-500 text-sm w-8">{unit}</Text>
+                    </View>
+                  </View>
+                ))}
+                <View className="flex-row gap-3 mt-2">
+                  <TouchableOpacity
+                    onPress={() => setEditing(false)}
+                    className="flex-1 py-3 rounded-xl border border-slate-700 items-center"
+                  >
+                    <Text className="text-slate-400">Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={handleSave}
+                    disabled={saving}
+                    className="flex-1 py-3 rounded-xl bg-blue-500 items-center"
+                  >
+                    {saving ? (
+                      <ActivityIndicator size="small" color="white" />
+                    ) : (
+                      <Text className="text-white font-semibold">Save</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </>
+            ) : (
+              <>
+                {!goal && (
+                  <Text className="text-slate-500 text-sm mb-4">
+                    No goals set yet. Tap "Edit Goals" to add your daily targets.
+                  </Text>
+                )}
+                {goalRows.map(({ key, label, unit, color }) => {
+                  const value = goal ? (goal[key] as number | null) : null;
+                  return (
+                    <View
+                      key={key}
+                      className="flex-row items-center justify-between mb-4"
+                    >
+                      <Text className="text-slate-400 text-sm">{label}</Text>
+                      <Text className={`text-lg font-semibold ${color}`}>
+                        {value != null ? `${value} ${unit}` : "—"}
+                      </Text>
+                    </View>
+                  );
+                })}
+                <TouchableOpacity
+                  onPress={() => setEditing(true)}
+                  className="mt-2 py-3 rounded-xl border border-slate-700 items-center"
+                >
+                  <Text className="text-slate-300">Edit Goals</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </KeyboardAvoidingView>
+      </View>
+    </Modal>
+  );
+}
 
 export default function JournalScreen() {
   const today = new Date();
@@ -64,6 +245,7 @@ export default function JournalScreen() {
     year: today.getFullYear(),
     month: today.getMonth(),
   });
+  const [goalsVisible, setGoalsVisible] = useState(false);
 
   const days = generateDays(today, 91); // 45 days each side
   const flatListRef = useRef<FlatList<Date>>(null);
@@ -80,6 +262,14 @@ export default function JournalScreen() {
       }, 50);
     }
   }, []);
+
+  const dateStr = toDateString(selectedDate);
+  const { data: summary, loading } = useDailySummary(dateStr);
+
+  const totals = summary?.totals ?? { calories: 0, protein: 0, carbs: 0, fat: 0 };
+  const goals = summary?.goals;
+  const caloriesTarget = goals?.calories?.target ?? null;
+  const caloriesPercent = Math.min(goals?.calories?.percentage ?? 0, 100);
 
   function selectDate(date: Date) {
     setSelectedDate(date);
@@ -111,9 +301,14 @@ export default function JournalScreen() {
               BzFit
             </Text>
           </View>
-          <TouchableOpacity>
-            <Ionicons name="add-circle-outline" size={28} color="#3b82f6" />
-          </TouchableOpacity>
+          <View className="flex-row items-center gap-3">
+            <TouchableOpacity onPress={() => setGoalsVisible(true)}>
+              <Ionicons name="flag-outline" size={24} color="#64748b" />
+            </TouchableOpacity>
+            <TouchableOpacity>
+              <Ionicons name="add-circle-outline" size={28} color="#3b82f6" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Month label + expand toggle */}
@@ -251,61 +446,146 @@ export default function JournalScreen() {
 
       {/* Daily content */}
       <View className="px-4 pt-4 pb-10">
-        <Text className="text-slate-400 text-sm mb-4">{selectedLabel}</Text>
+        <View className="flex-row items-center justify-between mb-4">
+          <Text className="text-slate-400 text-sm">{selectedLabel}</Text>
+          {loading && <ActivityIndicator size="small" color="#3b82f6" />}
+        </View>
 
-        {/* Calories card */}
-        <View className="bg-slate-900 rounded-2xl p-5 mb-4 border border-slate-800">
+        {/* Calories card — tappable to open goals */}
+        <TouchableOpacity
+          onPress={() => setGoalsVisible(true)}
+          className="bg-slate-900 rounded-2xl p-5 mb-4 border border-slate-800 active:opacity-70"
+        >
           <Text className="text-slate-400 text-sm mb-2">Calories</Text>
           <View className="flex-row items-end gap-2">
-            <Text className="text-white text-4xl font-bold">0</Text>
-            <Text className="text-slate-500 text-lg mb-1">/ 2,000 kcal</Text>
+            <Text className="text-white text-4xl font-bold">
+              {Math.round(totals.calories)}
+            </Text>
+            <Text className="text-slate-500 text-lg mb-1">
+              {caloriesTarget != null
+                ? `/ ${caloriesTarget.toLocaleString()} kcal`
+                : "kcal"}
+            </Text>
           </View>
           <View className="h-2 bg-slate-800 rounded-full mt-4">
-            <View className="h-2 bg-blue-500 rounded-full w-0" />
+            <View
+              className="h-2 bg-blue-500 rounded-full"
+              style={{ width: `${caloriesPercent}%` }}
+            />
           </View>
-        </View>
+        </TouchableOpacity>
 
         {/* Macros */}
         <View className="flex-row gap-3 mb-5">
           {[
-            { label: "Protein", value: "0g", color: "text-blue-400" },
-            { label: "Carbs", value: "0g", color: "text-amber-400" },
-            { label: "Fat", value: "0g", color: "text-rose-400" },
-          ].map(({ label, value, color }) => (
+            {
+              label: "Protein",
+              value: Math.round(totals.protein),
+              target: goals?.protein?.target,
+              color: "text-blue-400",
+            },
+            {
+              label: "Carbs",
+              value: Math.round(totals.carbs),
+              target: goals?.carbs?.target,
+              color: "text-amber-400",
+            },
+            {
+              label: "Fat",
+              value: Math.round(totals.fat),
+              target: goals?.fat?.target,
+              color: "text-rose-400",
+            },
+          ].map(({ label, value, target, color }) => (
             <View
               key={label}
               className="flex-1 bg-slate-900 rounded-xl p-4 border border-slate-800"
             >
               <Text className="text-slate-400 text-xs mb-1">{label}</Text>
-              <Text className={`text-xl font-bold ${color}`}>{value}</Text>
+              <Text className={`text-xl font-bold ${color}`}>{value}g</Text>
+              {target != null && (
+                <Text className="text-slate-600 text-xs mt-0.5">
+                  / {target}g
+                </Text>
+              )}
             </View>
           ))}
         </View>
 
         {/* Meals by type */}
-        {MEAL_TYPES.map(({ type, icon }) => (
-          <View
-            key={type}
-            className="bg-slate-900 rounded-xl p-4 mb-3 border border-slate-800"
-          >
-            <View className="flex-row justify-between items-center">
-              <View className="flex-row items-center gap-2">
-                <Ionicons name={icon} size={16} color="#64748b" />
-                <Text className="text-white text-base font-semibold">
-                  {type}
-                </Text>
+        {MEAL_TYPE_ORDER.map((mealType) => {
+          const { label, icon } = MEAL_TYPE_MAP[mealType];
+          const meal = summary?.meals.find((m) => m.mealType === mealType);
+          const mealKcal = meal ? Math.round(meal.totals.calories) : 0;
+
+          return (
+            <View
+              key={mealType}
+              className="bg-slate-900 rounded-xl p-4 mb-3 border border-slate-800"
+            >
+              <View className="flex-row justify-between items-center">
+                <View className="flex-row items-center gap-2">
+                  <Ionicons name={icon} size={16} color="#64748b" />
+                  <Text className="text-white text-base font-semibold">
+                    {label}
+                  </Text>
+                </View>
+                <View className="flex-row items-center gap-3">
+                  <Text className="text-slate-500 text-sm">{mealKcal} kcal</Text>
+                  <TouchableOpacity>
+                    <Ionicons name="add" size={20} color="#3b82f6" />
+                  </TouchableOpacity>
+                </View>
               </View>
-              <View className="flex-row items-center gap-3">
-                <Text className="text-slate-500 text-sm">0 kcal</Text>
-                <TouchableOpacity>
-                  <Ionicons name="add" size={20} color="#3b82f6" />
-                </TouchableOpacity>
-              </View>
+
+              {meal && meal.items.length > 0 ? (
+                meal.items.map((item) => {
+                  const foodName = [item.food.name, item.food.variant]
+                    .filter(Boolean)
+                    .join(" · ");
+                  const servingLabel = `${item.quantity}× ${item.serving.size}${item.serving.unit}`;
+                  const itemKcal = Math.round(item.nutrition.calories ?? 0);
+
+                  return (
+                    <View
+                      key={item.id}
+                      className="flex-row justify-between items-center mt-2 pt-2 border-t border-slate-800"
+                    >
+                      <View className="flex-1 mr-3">
+                        <Text className="text-white text-sm" numberOfLines={1}>
+                          {foodName}
+                        </Text>
+                        <Text className="text-slate-500 text-xs mt-0.5">
+                          {servingLabel}
+                        </Text>
+                      </View>
+                      <View className="flex-row items-center gap-1.5">
+                        {item.isEstimated && (
+                          <Ionicons
+                            name="alert-circle-outline"
+                            size={13}
+                            color="#f59e0b"
+                          />
+                        )}
+                        <Text className="text-slate-400 text-sm">
+                          {itemKcal} kcal
+                        </Text>
+                      </View>
+                    </View>
+                  );
+                })
+              ) : (
+                <Text className="text-slate-600 text-sm mt-2">No items yet</Text>
+              )}
             </View>
-            <Text className="text-slate-600 text-sm mt-2">No items yet</Text>
-          </View>
-        ))}
+          );
+        })}
       </View>
+
+      <GoalsModal
+        visible={goalsVisible}
+        onClose={() => setGoalsVisible(false)}
+      />
     </ScrollView>
   );
 }
