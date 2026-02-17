@@ -7,8 +7,9 @@ const monorepoRoot = path.resolve(__dirname, "../..");
 
 const config = getDefaultConfig(projectRoot);
 
-// Watch shared types from monorepo
-config.watchFolders = [path.resolve(monorepoRoot, "packages/shared")];
+// Watch the entire monorepo root so Metro can access pnpm's .pnpm store
+// (pnpm symlinks packages to node_modules/.pnpm/ at the root, outside projectRoot)
+config.watchFolders = [monorepoRoot];
 
 // Resolve modules from both app and monorepo root
 config.resolver.nodeModulesPaths = [

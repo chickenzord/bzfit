@@ -7,6 +7,7 @@
     "dev": "pnpm --filter @bzfit/server dev & pnpm --filter @bzfit/client dev",
     "dev:server": "pnpm --filter @bzfit/server dev",
     "dev:client": "pnpm --filter @bzfit/client dev",
+    "dev:app": "pnpm --filter @bzfit/app dev",
     "build": "pnpm --filter @bzfit/server build && pnpm --filter @bzfit/client build",
     "build:client": "pnpm --filter @bzfit/client build",
     "build:server": "pnpm --filter @bzfit/server build",
