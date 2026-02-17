@@ -1,10 +1,7 @@
-import { Platform } from "react-native";
 import { getToken } from "./storage";
 
 const API_BASE =
-  Platform.OS === "web"
-    ? "/api/v1" // proxied in dev, same-origin in prod
-    : process.env.EXPO_PUBLIC_API_URL ?? "http://10.0.2.2:3001/api/v1"; // Android emulator
+  (process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3001") + "/api/v1";
 
 type RequestOptions = {
   method?: string;
