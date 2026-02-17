@@ -1,7 +1,12 @@
-import { getToken } from "./storage";
+import { getToken, getCustomApiUrl } from "./storage";
 
-const API_BASE =
+const DEFAULT_API_BASE =
   (process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3001") + "/api/v1";
+
+async function getApiBase(): Promise<string> {
+  const custom = await getCustomApiUrl();
+  return custom ? custom.replace(/\/$/, "") + "/api/v1" : DEFAULT_API_BASE;
+}
 
 type RequestOptions = {
   method?: string;
@@ -13,10 +18,10 @@ export async function apiFetch<T = unknown>(
   path: string,
   options: RequestOptions = {},
 ): Promise<T> {
-  const token = await getToken();
+  const [token, apiBase] = await Promise.all([getToken(), getApiBase()]);
   const { method = "GET", body, headers = {} } = options;
 
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetch(`${apiBase}${path}`, {
     method,
     headers: {
       "Content-Type": "application/json",

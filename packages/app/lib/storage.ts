@@ -1,6 +1,7 @@
 import { Platform } from "react-native";
 
 const WEB_TOKEN_KEY = "bzfit_token";
+const WEB_API_URL_KEY = "bzfit_api_url";
 
 async function getSecureStore() {
   if (Platform.OS === "web") return null;
@@ -31,4 +32,30 @@ export async function removeToken(): Promise<void> {
   }
   const SecureStore = await getSecureStore();
   await SecureStore?.deleteItemAsync("token");
+}
+
+export async function getCustomApiUrl(): Promise<string | null> {
+  if (Platform.OS === "web") {
+    return localStorage.getItem(WEB_API_URL_KEY);
+  }
+  const SecureStore = await getSecureStore();
+  return SecureStore?.getItemAsync("api_url") ?? null;
+}
+
+export async function setCustomApiUrl(url: string): Promise<void> {
+  if (Platform.OS === "web") {
+    localStorage.setItem(WEB_API_URL_KEY, url);
+    return;
+  }
+  const SecureStore = await getSecureStore();
+  await SecureStore?.setItemAsync("api_url", url);
+}
+
+export async function removeCustomApiUrl(): Promise<void> {
+  if (Platform.OS === "web") {
+    localStorage.removeItem(WEB_API_URL_KEY);
+    return;
+  }
+  const SecureStore = await getSecureStore();
+  await SecureStore?.deleteItemAsync("api_url");
 }
