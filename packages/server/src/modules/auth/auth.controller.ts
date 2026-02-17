@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Delete, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Get, Delete, Body, Param, UseGuards, Request, HttpCode } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RegisterDto, LoginDto, CreateApiKeyDto } from './dto';
@@ -23,6 +23,17 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Get current authenticated user' })
+  @ApiResponse({ status: 200, description: 'Current user info' })
+  @ApiResponse({ status: 401, description: 'Not authenticated' })
+  async getMe(@Request() req) {
+    return { user: req.user };
   }
 
   @Post('api-keys')

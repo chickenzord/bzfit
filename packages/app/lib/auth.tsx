@@ -40,7 +40,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       apiFetch<{ user: User }>("/auth/me")
         .then((res) => setUser(res.user))
-        .catch(() => removeToken())
+        .catch((err) => {
+          if (err instanceof ApiError && err.status === 401) {
+            removeToken();
+          }
+        })
         .finally(() => setIsLoading(false));
     });
   }, []);
