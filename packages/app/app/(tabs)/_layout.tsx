@@ -19,12 +19,12 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
-        name="nutrition"
+        name="journal"
         options={{
-          title: "Nutrition",
+          title: "Journal",
           headerShown: false,
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="flame-outline" size={size} color={color} />
+            <Ionicons name="calendar-outline" size={size} color={color} />
           ),
         }}
       />
@@ -34,7 +34,7 @@ export default function TabsLayout() {
           title: "Catalog",
           headerShown: false,
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="search-outline" size={size} color={color} />
+            <Ionicons name="grid-outline" size={size} color={color} />
           ),
         }}
       />
@@ -49,9 +49,7 @@ export default function TabsLayout() {
       />
       <Tabs.Screen
         name="index"
-        options={{
-          href: null,
-        }}
+        options={{ href: null }}
       />
     </Tabs>
   );
