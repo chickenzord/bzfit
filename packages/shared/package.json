@@ -5,8 +5,9 @@
   "main": "dist/index.js",
   "types": "src/index.ts",
   "scripts": {
-    "build": "tsc || true",
-    "build:watch": "tsc --watch || true"
+    "build": "rm -rf dist && tsc",
+    "build:watch": "tsc --watch",
+    "lint": "eslint \"src/**/*.ts\""
   },
   "dependencies": {
     "@prisma/client": "^6.19.2",

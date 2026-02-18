@@ -8,7 +8,6 @@
     "dev:server": "concurrently --kill-others --names shared,server \"pnpm --filter @bzfit/shared build:watch\" \"pnpm --filter @bzfit/server dev\"",
     "dev:app": "pnpm --filter @bzfit/app web",
     "build": "pnpm --filter @bzfit/shared build && pnpm --filter @bzfit/server build",
-    "build:shared": "pnpm --filter @bzfit/shared build",
     "build:server": "pnpm --filter @bzfit/shared build && pnpm --filter @bzfit/server build",
     "start:prod": "node packages/server/dist/main.js",
     "seed:meals": "ts-node --transpile-only --skip-project --compiler-options '{\"module\":\"commonjs\"}' scripts/seed-dev-meals.ts",

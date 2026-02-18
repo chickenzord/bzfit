@@ -4,7 +4,8 @@ module.exports = {
   parserOptions: {
     project: [
       './packages/server/tsconfig.json',
-      './packages/client/tsconfig.json',
+      './packages/shared/tsconfig.json',
+      './packages/app/tsconfig.json',
     ],
     tsconfigRootDir: __dirname,
     sourceType: 'module',
@@ -41,17 +42,17 @@ module.exports = {
     ],
   },
   overrides: [
-    // Client-specific rules (React/Vite)
+    // App-specific rules (Expo/React Native)
     {
-      files: ['packages/client/**/*.{ts,tsx}'],
+      files: ['packages/app/**/*.{ts,tsx}'],
       parserOptions: {
-        project: './packages/client/tsconfig.json',
+        project: './packages/app/tsconfig.json',
         ecmaFeatures: {
           jsx: true,
         },
       },
       env: {
-        browser: true,
+        browser: false,
         es2021: true,
       },
       rules: {
