@@ -4,11 +4,12 @@
   "description": "Self-hosted calorie tracking application",
   "private": true,
   "scripts": {
-    "dev": "pnpm --filter @bzfit/server dev",
-    "dev:server": "pnpm --filter @bzfit/server dev",
-    "dev:app": "pnpm --filter @bzfit/app dev",
-    "build": "pnpm --filter @bzfit/server build",
-    "build:server": "pnpm --filter @bzfit/server build",
+    "dev": "concurrently --kill-others --names shared,server,app \"pnpm --filter @bzfit/shared build:watch\" \"pnpm --filter @bzfit/server dev\" \"pnpm --filter @bzfit/app web\"",
+    "dev:server": "concurrently --kill-others --names shared,server \"pnpm --filter @bzfit/shared build:watch\" \"pnpm --filter @bzfit/server dev\"",
+    "dev:app": "pnpm --filter @bzfit/app web",
+    "build": "pnpm --filter @bzfit/shared build && pnpm --filter @bzfit/server build",
+    "build:shared": "pnpm --filter @bzfit/shared build",
+    "build:server": "pnpm --filter @bzfit/shared build && pnpm --filter @bzfit/server build",
     "start:prod": "node packages/server/dist/main.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
@@ -22,6 +23,7 @@
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.55.0",
     "@typescript-eslint/parser": "^8.55.0",
+    "concurrently": "^9.2.1",
     "eslint": "^8.57.1",
     "prettier": "^3.8.1",
     "prisma": "^6.19.2",
@@ -31,6 +33,7 @@
     "onlyBuiltDependencies": [
       "@prisma/client",
       "@prisma/engines",
+      "@swc/core",
       "prisma",
       "bcrypt",
       "esbuild",

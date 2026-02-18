@@ -2,9 +2,12 @@
   "name": "@bzfit/shared",
   "version": "0.1.0",
   "private": true,
-  "type": "commonjs",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
   "types": "src/index.ts",
+  "scripts": {
+    "build": "tsc || true",
+    "build:watch": "tsc --watch || true"
+  },
   "dependencies": {
     "@prisma/client": "^6.19.2",
     "class-transformer": "^0.5.1",

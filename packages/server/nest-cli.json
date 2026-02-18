@@ -3,9 +3,9 @@
   "collection": "@nestjs/schematics",
   "sourceRoot": "src",
   "compilerOptions": {
+    "builder": "swc",
     "deleteOutDir": true,
     "tsConfigPath": "tsconfig.build.json",
-    "webpack": false,
     "assets": ["**/*.prisma"],
     "watchAssets": true
   }
