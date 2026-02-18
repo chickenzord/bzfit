@@ -1,6 +1,10 @@
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
+import { Pressable } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function CatalogLayout() {
+  const router = useRouter();
+
   return (
     <Stack
       screenOptions={{
@@ -10,6 +14,17 @@ export default function CatalogLayout() {
       }}
     >
       <Stack.Screen name="index" options={{ title: "Food Catalog" }} />
+      <Stack.Screen
+        name="foods/[id]"
+        options={{
+          title: "Food Details",
+          headerLeft: () => (
+            <Pressable onPress={() => router.back()}>
+              <Ionicons name="chevron-back" size={24} color="#f8fafc" />
+            </Pressable>
+          ),
+        }}
+      />
     </Stack>
   );
 }

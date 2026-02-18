@@ -1,9 +1,8 @@
-import { useEffect, useState, useCallback } from "react";
-import { View, Text, TextInput, ActivityIndicator, FlatList, Pressable } from "react-native";
+import { useEffect, useState } from "react";
+import { View, Text, FlatList, ActivityIndicator, Pressable } from "react-native";
 import { Link } from "expo-router";
-import { useDebounce } from "@uidotdev/usehooks";
 
-import { ApiError, apiFetch } from "../../../lib/api";
+import { ApiError, apiFetch } from "../../../../lib/api";
 
 interface Food {
   id: string;
@@ -15,27 +14,19 @@ interface Food {
   fat: number;
 }
 
-export default function CatalogScreen() {
-  const [searchQuery, setSearchQuery] = useState("");
+export default function FoodsScreen() {
   const [foods, setFoods] = useState<Food[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const debouncedSearchQuery = useDebounce(searchQuery, 500);
   useEffect(() => {
     const fetchFoods = async () => {
-      if (!debouncedSearchQuery) {
-        setFoods([]);
-        return;
-      }
-
       setLoading(true);
       setError(null);
       try {
-        const data = await apiFetch<Food[]>(
-          `/catalog/foods/search?q=${debouncedSearchQuery}`,
-        );
-        setFoods(data);
+        // Assuming the API has a /catalog/foods endpoint to list all foods
+        const data = await apiFetch<{ data: Food[] }>("/catalog/foods");
+        setFoods(data.data);
       } catch (err) {
         if (err instanceof ApiError) {
           setError(err.message);
@@ -48,21 +39,10 @@ export default function CatalogScreen() {
     };
 
     fetchFoods();
-  }, [debouncedSearchQuery]);
+  }, []);
 
   return (
     <View className="flex-1 bg-slate-950 px-4 py-6">
-      {/* Search bar */}
-      <View className="bg-slate-900 rounded-xl border border-slate-800 px-4 py-3 mb-6">
-        <TextInput
-          placeholder="Search foods..."
-          placeholderTextColor="#64748b"
-          className="text-white text-base"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-      </View>
-
       {loading && <ActivityIndicator className="my-4" size="large" color="#e2e8f0" />}
 
       {error && (
@@ -71,20 +51,11 @@ export default function CatalogScreen() {
         </View>
       )}
 
-      {!loading && !error && foods && foods.length === 0 && debouncedSearchQuery.length > 0 && (
+      {!loading && !error && foods.length === 0 && (
         <View className="flex-1 items-center justify-center pb-20">
-          <Text className="text-slate-500 text-lg mb-2">No results found</Text>
+          <Text className="text-slate-500 text-lg mb-2">No foods found</Text>
           <Text className="text-slate-600 text-sm text-center px-8">
-            Try a different search query.
-          </Text>
-        </View>
-      )}
-
-      {!loading && !error && foods && foods.length === 0 && debouncedSearchQuery.length === 0 && (
-        <View className="flex-1 items-center justify-center pb-20">
-          <Text className="text-slate-500 text-lg mb-2">No foods yet</Text>
-          <Text className="text-slate-600 text-sm text-center px-8">
-            Search for a food or quick-add a new one to get started
+            There are no foods in the catalog yet.
           </Text>
         </View>
       )}
