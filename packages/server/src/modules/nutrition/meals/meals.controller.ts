@@ -2,7 +2,7 @@ import { Controller, Get, Post, Patch, Delete, Query, Param, Body, UseGuards, Re
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiQuery, ApiBody } from '@nestjs/swagger';
 import { MealsService } from './meals.service';
 import { JwtAuthGuard } from '../../auth/guards';
-import { CreateMealDto, AddMealItemDto, UpdateMealItemDto, QuickAddDto } from './dto';
+import { CreateMealDto, AddMealItemDto, QuickAddDto } from './dto';
 
 @ApiTags('nutrition')
 @Controller('nutrition/meals')

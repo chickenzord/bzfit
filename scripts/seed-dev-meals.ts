@@ -125,7 +125,7 @@ async function main() {
   console.log('🌱 BzFit dev meal seeder\n');
 
   // 1. Resolve user
-  const user = await prisma.user.findFirst({ where: { email: 'demo@bzfit.local' } })
+  const user = await prisma.user.findFirst({ where: { email: 'user@example.com' } })
     ?? await prisma.user.findFirst();
 
   if (!user) {

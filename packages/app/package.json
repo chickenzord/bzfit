@@ -9,6 +9,7 @@
     "android": "expo run:android",
     "web": "expo start --web",
     "build:web": "expo export --platform web",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint \"app/**/*.{ts,tsx}\""
   },
   "dependencies": {

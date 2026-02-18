@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ServingsController } from './servings.controller';
 import { ServingsService } from './servings.service'; // Import ServingsService
 import { JwtAuthGuard } from '../../auth/guards';
-import { NotFoundException, HttpStatus } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 import { ServingResponseDto, CreateServingDto, UpdateServingDto } from '@bzfit/shared';
 import { ServingStatus } from '@prisma/client';
 

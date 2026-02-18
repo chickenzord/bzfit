@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { View, Text, TextInput, ActivityIndicator, FlatList, Pressable } from "react-native";
 import { Link } from "expo-router";
 import { useDebounce } from "@uidotdev/usehooks";

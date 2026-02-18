@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { FoodsController } from './foods.controller';
 import { FoodsService } from './foods.service';
 import { JwtAuthGuard } from '../../auth/guards';
-import { NotFoundException, HttpStatus } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 import { FoodResponseDto, CreateFoodDto, UpdateFoodDto } from '@bzfit/shared';
 import { ServingStatus } from '@prisma/client';
 

@@ -357,19 +357,6 @@ describe('MealsController', () => {
     });
 
     it('should require authentication for all endpoints', () => {
-      const findAllGuards = Reflect.getMetadata(
-        '__guards__',
-        MealsController.prototype.findAll,
-      );
-      const findOneGuards = Reflect.getMetadata(
-        '__guards__',
-        MealsController.prototype.findOne,
-      );
-      const getDailySummaryGuards = Reflect.getMetadata(
-        '__guards__',
-        MealsController.prototype.getDailySummary,
-      );
-
       // Guards are applied at controller level, so method-level may be undefined
       // Check that controller-level guards exist
       const controllerGuards = Reflect.getMetadata('__guards__', MealsController);

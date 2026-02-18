@@ -39,3 +39,9 @@ coverage/
 
 # Prisma
 prisma/migrations/*_migration_lock.toml
+
+# ts
+*.tsbuildinfo
+
+# Others
+/.learnings

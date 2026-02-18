@@ -17,6 +17,7 @@
     "prisma:deploy": "prisma migrate deploy",
     "test": "pnpm --filter @bzfit/server test",
     "test:watch": "pnpm --filter @bzfit/server test:watch",
+    "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r lint",
     "format": "prettier --write \"packages/**/*.{ts,tsx,css}\""
   },
