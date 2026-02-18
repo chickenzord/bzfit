@@ -4,28 +4,30 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**BzFit** is a self-hosted calorie tracking application built as a NestJS + React monorepo. The core philosophy is "embrace imperfections" - allowing quick, flexible meal logging with deferred nutrition data entry.
+**BzFit** is a self-hosted calorie tracking application built as a NestJS + Expo monorepo using **pnpm workspaces**. The core philosophy is "embrace imperfections" - allowing quick, flexible meal logging with deferred nutrition data entry.
 
 Key principles:
 - **Search-first workflow**: Log meals quickly, fill in nutrition details later
 - **Food-Serving separation**: One food can have multiple serving sizes
 - **Status tracking**: Foods/servings marked as VERIFIED, NEEDS_REVIEW, or USER_CREATED
-- **Single Docker deployment**: Frontend served by NestJS backend
+- **API-first**: Backend serves JSON only; mobile app is the primary UI
 
 ## Tech Stack
 
-- **Backend**: NestJS (TypeScript) with Prisma ORM
-- **Frontend**: React + Vite + TailwindCSS + Shadcn/UI
+- **Package Manager**: pnpm with workspaces
+- **Backend**: NestJS (TypeScript) with Prisma ORM (`@bzfit/server`)
+- **Mobile**: Expo + React Native + NativeWind (`@bzfit/app`)
+- **Shared**: TypeScript DTOs and entities (`@bzfit/shared`)
 - **Database**: SQLite (dev) / PostgreSQL (production)
-- **Auth**: JWT for frontend, API Keys for external systems/MCP servers
-- **Deployment**: Single Docker image serving both frontend (/) and API (/api/v1/*)
+- **Auth**: JWT for app, API Keys for external systems/MCP servers
+- **Deployment**: Docker image for backend API only
 
 ## UI Implementation
 
-See **`UI_GUIDELINES.md`** for complete frontend standards:
-- **TailwindCSS** (required) + **Shadcn/UI** components
-- **Lucide React** for icons (no embedded SVG)
-- **Mobile-first responsive** design
+Mobile app uses NativeWind (TailwindCSS for React Native):
+- **NativeWind v4** for styling
+- **Expo Router** for navigation
+- **@expo/vector-icons** (Ionicons) for icons
 - **Dark mode** support from day 1
 - Minimalist design with vibrant accent colors
 
@@ -33,50 +35,61 @@ See **`UI_GUIDELINES.md`** for complete frontend standards:
 
 ```bash
 # Development
-npm run dev                    # Run both frontend (5173) and backend (3001) concurrently
-npm run dev:server             # Backend only
-npm run dev:client             # Frontend only
+pnpm run dev                   # Run backend (3001)
+pnpm run dev:server            # Backend only
+pnpm run dev:app               # Expo app (Metro bundler)
 
 # Database
-npx prisma generate            # Generate Prisma client types
-npx prisma migrate dev         # Create and apply migration (dev)
-npx prisma migrate deploy      # Apply migrations (production)
-npx prisma studio              # Visual DB editor
+pnpm prisma generate           # Generate Prisma client types
+pnpm prisma migrate dev        # Create and apply migration (dev)
+pnpm prisma migrate deploy     # Apply migrations (production)
+pnpm prisma studio             # Visual DB editor
 
 # Build
-npm run build                  # Build both client and server
-npm run build:client           # Vite build → dist/client
-npm run build:server           # NestJS build → dist/server
+pnpm run build                 # Build server
+pnpm run build:server          # NestJS build → packages/server/dist
 
 # Production
-npm run start:prod             # Run production build
+pnpm run start:prod            # Run production build
 docker build -t bzfit .        # Build Docker image
 docker run -p 3000:3000 bzfit  # Run container
+
+# Install
+pnpm install                   # Install all workspace dependencies
 ```
 
 ## Architecture
 
-### Monorepo Structure
+### Monorepo Structure (pnpm workspaces)
 ```
-src/
-├── server/              # NestJS backend (API at /api/v1/*)
-│   ├── modules/
-│   │   ├── catalog/     # Food catalog namespace
-│   │   │   ├── foods/   # Food CRUD, search
-│   │   │   └── servings/ # Serving CRUD
-│   │   ├── nutrition/   # Nutrition tracking namespace
-│   │   │   └── meals/   # Meal logging, daily summary
-│   │   └── auth/        # JWT + API key authentication
-│   └── prisma/          # Prisma service wrapper
-├── client/              # React + Vite (served at /)
-│   └── src/
-│       ├── components/
-│       ├── pages/
-│       └── api/         # Type-safe API client
-└── shared/              # Shared TypeScript types
-    ├── dto/             # API request/response DTOs
-    └── entities/        # Domain models from Prisma
+bzfit/
+├── pnpm-workspace.yaml        # Workspace config
+├── package.json               # Root: scripts, shared dev deps
+├── prisma/                    # Prisma schema & migrations (root)
+├── packages/
+│   ├── shared/                # @bzfit/shared - DTOs, entities
+│   │   ├── package.json
+│   │   └── src/
+│   │       ├── dto/           # API request/response DTOs
+│   │       ├── entities/      # Domain models from Prisma
+│   │       └── index.ts       # Barrel export
+│   ├── server/                # @bzfit/server - NestJS backend
+│   │   ├── package.json
+│   │   ├── nest-cli.json
+│   │   └── src/
+│   │       ├── modules/
+│   │       │   ├── catalog/   # Food catalog (foods, servings)
+│   │       │   ├── nutrition/ # Meal logging, goals
+│   │       │   └── auth/      # JWT + API key auth
+│   │       └── prisma/        # Prisma service wrapper
+│   └── app/                   # @bzfit/app - Expo mobile
+│       ├── package.json
+│       └── app/               # Expo Router pages
 ```
+
+### Cross-package imports
+- Import shared types: `import { FoodResponseDto } from '@bzfit/shared'`
+- All packages depend on `@bzfit/shared` via `"@bzfit/shared": "workspace:*"`
 
 ### Data Model Philosophy
 
@@ -104,11 +117,11 @@ src/
 1. User searches "nasi goreng" → `GET /api/v1/foods/search?q=...`
 2. If found: Select serving → Log to meal
 3. If not found: Quick-add creates Food + Serving with `status=NEEDS_REVIEW`
-4. MealItem gets `isEstimated=true` flag → shows ⚠️ in UI
+4. MealItem gets `isEstimated=true` flag → shows warning in UI
 5. User reviews later via `/api/v1/foods/needs-review` endpoint
 
 ### Authentication
-- **Frontend (React)**: JWT in localStorage, sent as `Authorization: Bearer {token}`
+- **Mobile app**: JWT in expo-secure-store (native) / localStorage (web), sent as `Authorization: Bearer {token}`
 - **External systems**: API keys as query param `?api_key=xxx` or header `Authorization: ApiKey xxx`
 - **Scopes**: Array like `["read:meals", "write:foods"]` for permission control
 - **NestJS guards**: `@UseGuards(JwtAuthGuard)` for frontend, custom Passport strategy for API keys
@@ -119,12 +132,10 @@ Prisma handles SQLite ↔ PostgreSQL switching via `DATABASE_URL` env var. Use:
 - `postgresql://...` for production
 - Migrations work across both databases
 
-### Single Docker Deployment
-Frontend is built as static files and served by NestJS:
-- Static files: `app.useStaticAssets(join(__dirname, '..', 'client'))`
+### Docker Deployment
+Backend serves the API only:
 - API routes: `/api/v1/*`
-- Frontend routes: All others (React Router handles client-side routing)
-- Startup: `npx prisma migrate deploy && node dist/server/main.js`
+- Startup: `pnpm prisma migrate deploy && node packages/server/dist/main.js`
 
 ## API Patterns
 
@@ -150,15 +161,14 @@ Use `class-validator` decorators (`@IsNotEmpty()`, `@Min(0)`, etc.) in DTOs.
 ## Testing Strategy
 
 - **Backend**: Jest for unit tests, e2e tests with separate test database
-- **Frontend**: Vitest + React Testing Library
 - **Prisma tests**: Override `DATABASE_URL` to use test database, reset between tests
 
 ## Evolving Specification
 
 The `initial_spec.md` is the source of truth but can evolve. When requirements change:
 1. Update `initial_spec.md` first
-2. Generate migrations: `npx prisma migrate dev --name descriptive_name`
-3. Update DTOs in `src/shared/dto/`
+2. Generate migrations: `pnpm prisma migrate dev --name descriptive_name`
+3. Update DTOs in `packages/shared/src/dto/`
 4. Update API endpoints and UI accordingly
 
 ## Out of MVP Scope
@@ -169,4 +179,3 @@ Not implemented yet (future):
 - Recipe builder
 - Meal templates
 - Nutrition goals
-- PWA/mobile app

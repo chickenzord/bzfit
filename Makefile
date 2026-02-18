@@ -38,50 +38,50 @@ help:
 
 # Setup
 install:
-	npm install
+	pnpm install
 
 setup: install prisma-generate
-	@echo "✅ Setup complete! Run 'make dev' to start development."
+	@echo "Setup complete! Run 'make dev' to start development."
 
 # Development
 dev:
-	npm run dev
+	pnpm run dev
 
 dev-server:
-	npm run dev:server
+	pnpm run dev:server
 
 dev-client:
-	npm run dev:client
+	pnpm run dev:client
 
 # Database
 prisma-generate:
-	npx prisma generate
+	pnpm prisma generate
 
 prisma-migrate:
-	npx prisma migrate dev
+	pnpm prisma migrate dev
 
 prisma-studio:
-	npx prisma studio
+	pnpm prisma studio
 
 prisma-reset:
-	npx prisma migrate reset
+	pnpm prisma migrate reset
 
 prisma-deploy:
-	npx prisma migrate deploy
+	pnpm prisma migrate deploy
 
 # Build
 build:
-	npm run build
+	pnpm run build
 
 build-client:
-	npm run build:client
+	pnpm run build:client
 
 build-server:
-	npm run build:server
+	pnpm run build:server
 
 # Production
 start:
-	npm run start:prod
+	pnpm run start:prod
 
 # Docker
 docker-build:
@@ -92,20 +92,20 @@ docker-run:
 
 # Testing & Quality
 test:
-	npm test
+	pnpm run test
 
 test-watch:
-	npm run test:watch
+	pnpm run test:watch
 
 lint:
-	npm run lint
+	pnpm run lint
 
 format:
-	npm run format
+	pnpm run format
 
 # Maintenance
 clean:
-	rm -rf node_modules dist .next .turbo coverage
+	rm -rf node_modules packages/*/node_modules packages/*/dist dist coverage
 	find . -name "*.log" -type f -delete
 
 clean-all: clean
