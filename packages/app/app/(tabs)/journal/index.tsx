@@ -17,6 +17,7 @@ import {
   useNutritionGoal,
   type NutritionGoal,
 } from "../../../lib/nutrition";
+import { QuickAddModal } from "./QuickAddModal";
 
 const DAY_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTH_NAMES = [
@@ -246,6 +247,10 @@ export default function JournalScreen() {
     month: today.getMonth(),
   });
   const [goalsVisible, setGoalsVisible] = useState(false);
+  const [quickAddVisible, setQuickAddVisible] = useState(false);
+  const [quickAddMealType, setQuickAddMealType] = useState<
+    "BREAKFAST" | "LUNCH" | "DINNER" | "SNACK" | undefined
+  >(undefined);
 
   const days = generateDays(today, 91); // 45 days each side
   const flatListRef = useRef<FlatList<Date>>(null);
@@ -264,7 +269,7 @@ export default function JournalScreen() {
   }, []);
 
   const dateStr = toDateString(selectedDate);
-  const { data: summary, loading } = useDailySummary(dateStr);
+  const { data: summary, loading, refresh } = useDailySummary(dateStr);
 
   const totals = summary?.totals ?? { calories: 0, protein: 0, carbs: 0, fat: 0 };
   const goals = summary?.goals;
@@ -305,7 +310,12 @@ export default function JournalScreen() {
             <TouchableOpacity onPress={() => setGoalsVisible(true)}>
               <Ionicons name="flag-outline" size={24} color="#64748b" />
             </TouchableOpacity>
-            <TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                setQuickAddMealType(undefined);
+                setQuickAddVisible(true);
+              }}
+            >
               <Ionicons name="add-circle-outline" size={28} color="#3b82f6" />
             </TouchableOpacity>
           </View>
@@ -532,7 +542,12 @@ export default function JournalScreen() {
                 </View>
                 <View className="flex-row items-center gap-3">
                   <Text className="text-slate-500 text-sm">{mealKcal} kcal</Text>
-                  <TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setQuickAddMealType(mealType);
+                      setQuickAddVisible(true);
+                    }}
+                  >
                     <Ionicons name="add" size={20} color="#3b82f6" />
                   </TouchableOpacity>
                 </View>
@@ -543,7 +558,8 @@ export default function JournalScreen() {
                   const foodName = [item.food.name, item.food.variant]
                     .filter(Boolean)
                     .join(" · ");
-                  const servingLabel = `${item.quantity}× ${item.serving.size}${item.serving.unit}`;
+                  const totalServing = +(item.quantity * item.serving.size).toFixed(1);
+                  const servingLabel = `${totalServing}${item.serving.unit}`;
                   const itemKcal = Math.round(item.nutrition.calories ?? 0);
 
                   return (
@@ -582,6 +598,14 @@ export default function JournalScreen() {
         })}
       </View>
 
+      <QuickAddModal
+        visible={quickAddVisible}
+        onClose={() => setQuickAddVisible(false)}
+        onSuccess={refresh}
+        date={dateStr}
+        defaultMealType={quickAddMealType}
+        summary={summary}
+      />
       <GoalsModal
         visible={goalsVisible}
         onClose={() => setGoalsVisible(false)}

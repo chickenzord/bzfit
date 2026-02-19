@@ -139,3 +139,53 @@ export function useNutritionGoal() {
 
   return { goal, loading, error, refresh, save };
 }
+
+export async function quickAdd(dto: {
+  food: { name: string; variant?: string; brand?: string };
+  servingSize: number;
+  servingUnit: string;
+  quantity?: number;
+  mealType: string;
+  date: string;
+}) {
+  return apiFetch("/nutrition/meals/quick-add", { method: "POST", body: dto });
+}
+
+export async function logMealItem(params: {
+  mealId: string;
+  foodId: string;
+  servingId: string;
+  quantity: number;
+}) {
+  return apiFetch(`/nutrition/meals/${params.mealId}/items`, {
+    method: "POST",
+    body: {
+      foodId: params.foodId,
+      servingId: params.servingId,
+      quantity: params.quantity,
+    },
+  });
+}
+
+export async function createMealWithItem(params: {
+  date: string;
+  mealType: string;
+  foodId: string;
+  servingId: string;
+  quantity: number;
+}) {
+  return apiFetch("/nutrition/meals", {
+    method: "POST",
+    body: {
+      date: params.date,
+      mealType: params.mealType,
+      items: [
+        {
+          foodId: params.foodId,
+          servingId: params.servingId,
+          quantity: params.quantity,
+        },
+      ],
+    },
+  });
+}
