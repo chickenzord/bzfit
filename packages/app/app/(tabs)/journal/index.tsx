@@ -254,7 +254,9 @@ export default function JournalScreen() {
     "BREAKFAST" | "LUNCH" | "DINNER" | "SNACK" | undefined
   >(undefined);
 
-  const days = generateDays(today, 91); // 45 days each side
+  const maxDate = new Date(today);
+  maxDate.setDate(today.getDate() + 1); // 1 day ahead as timezone buffer
+  const days = generateDays(today, 91).filter((d) => d <= maxDate);
   const flatListRef = useRef<FlatList<Date>>(null);
 
   useEffect(() => {
@@ -426,6 +428,7 @@ export default function JournalScreen() {
                   date ? (
                     <TouchableOpacity
                       key={ci}
+                      disabled={date > maxDate}
                       onPress={() => {
                         selectDate(date);
                         setExpanded(false);
@@ -436,7 +439,9 @@ export default function JournalScreen() {
                     >
                       <Text
                         className={`text-sm font-medium ${
-                          isSameDay(date, selectedDate)
+                          date > maxDate
+                            ? "text-slate-700"
+                            : isSameDay(date, selectedDate)
                             ? "text-white"
                             : isSameDay(date, today)
                             ? "text-blue-400"

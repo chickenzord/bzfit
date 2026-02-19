@@ -81,7 +81,7 @@ export class FoodsService {
           servings: true,
         },
         orderBy: {
-          createdAt: 'desc',
+          name: 'asc',
         },
       }),
       this.prisma.food.count(),

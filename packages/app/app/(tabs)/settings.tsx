@@ -45,18 +45,17 @@ export default function SettingsScreen() {
       </View>
 
       <View className="bg-slate-900 rounded-xl p-4 border border-slate-800 mb-3">
-        <Text className="text-white text-base font-medium mb-3">Server</Text>
+        <Text className="text-white text-base font-medium mb-3">About</Text>
+        <View className="flex-row justify-between items-center mb-2">
+          <Text className="text-slate-400 text-sm">Version</Text>
+          <Text className="text-slate-300 text-sm">BzFit v0.1.0</Text>
+        </View>
         <View className="flex-row justify-between items-start">
-          <Text className="text-slate-500 text-xs uppercase tracking-wide">URL</Text>
+          <Text className="text-slate-400 text-sm">Server URL</Text>
           <Text className="text-slate-300 text-sm text-right flex-shrink ml-4" numberOfLines={2}>
             {serverUrl ?? "—"}
           </Text>
         </View>
-      </View>
-
-      <View className="bg-slate-900 rounded-xl p-4 border border-slate-800 mb-3">
-        <Text className="text-white text-base font-medium">About</Text>
-        <Text className="text-slate-400 text-sm mt-1">BzFit v0.1.0</Text>
       </View>
 
       <View className="mt-auto">
