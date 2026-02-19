@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import {
   useDailySummary,
@@ -239,6 +240,7 @@ function GoalsModal({ visible, onClose }: GoalsModalProps) {
 }
 
 export default function JournalScreen() {
+  const insets = useSafeAreaInsets();
   const today = new Date();
   const [selectedDate, setSelectedDate] = useState(today);
   const [expanded, setExpanded] = useState(false);
@@ -295,7 +297,7 @@ export default function JournalScreen() {
   return (
     <ScrollView className="flex-1 bg-slate-950" stickyHeaderIndices={[0]}>
       {/* Sticky header: branding + calendar */}
-      <View className="bg-slate-950 pt-14 pb-3 border-b border-slate-800">
+      <View className="bg-slate-950 pb-3 border-b border-slate-800" style={{ paddingTop: insets.top + 12 }}>
         {/* Branding row */}
         <View className="flex-row items-center justify-between px-4 mb-4">
           <View className="flex-row items-center gap-2">
