@@ -1,110 +1,171 @@
-import { useEffect, useState } from "react";
-import { View, Text, TextInput, ActivityIndicator, FlatList, Pressable } from "react-native";
+import { useEffect, useState, useCallback } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+} from "react-native";
 import { Link } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { useDebounce } from "@uidotdev/usehooks";
-
 import { ApiError, apiFetch } from "../../../lib/api";
+
+interface Serving {
+  id: string;
+  status: "VERIFIED" | "NEEDS_REVIEW" | "USER_CREATED";
+}
 
 interface Food {
   id: string;
   name: string;
+  variant: string | null;
   brand: string | null;
-  calories: number;
-  proteins: number;
-  carbohydrates: number;
-  fat: number;
+  servings: Serving[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+function needsReview(food: Food): boolean {
+  return food.servings.some((s) => s.status === "NEEDS_REVIEW");
 }
 
 export default function CatalogScreen() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [foods, setFoods] = useState<Food[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [allFoods, setAllFoods] = useState<Food[]>([]);
+  const [searchResults, setSearchResults] = useState<Food[]>([]);
+  const [loadingAll, setLoadingAll] = useState(true);
+  const [loadingSearch, setLoadingSearch] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+  const debouncedQuery = useDebounce(searchQuery, 400);
+  const isSearching = debouncedQuery.trim().length > 0;
+
+  // Load all foods on mount
+  const loadAll = useCallback(async () => {
+    setLoadingAll(true);
+    setError(null);
+    try {
+      const res = await apiFetch<{ data: Food[] }>("/catalog/foods");
+      setAllFoods(res.data);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Failed to load foods.");
+    } finally {
+      setLoadingAll(false);
+    }
+  }, []);
+
   useEffect(() => {
-    const fetchFoods = async () => {
-      if (!debouncedSearchQuery) {
-        setFoods([]);
-        return;
-      }
+    loadAll();
+  }, [loadAll]);
 
-      setLoading(true);
-      setError(null);
-      try {
-        const data = await apiFetch<Food[]>(
-          `/catalog/foods/search?q=${debouncedSearchQuery}`,
-        );
-        setFoods(data);
-      } catch (err) {
-        if (err instanceof ApiError) {
-          setError(err.message);
-        } else {
-          setError("An unexpected error occurred.");
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Search when query changes
+  useEffect(() => {
+    if (!isSearching) {
+      setSearchResults([]);
+      return;
+    }
+    setLoadingSearch(true);
+    apiFetch<Food[]>(`/catalog/foods/search?q=${encodeURIComponent(debouncedQuery)}`)
+      .then(setSearchResults)
+      .catch((err) =>
+        setError(err instanceof ApiError ? err.message : "Search failed.")
+      )
+      .finally(() => setLoadingSearch(false));
+  }, [debouncedQuery, isSearching]);
 
-    fetchFoods();
-  }, [debouncedSearchQuery]);
+  const foods = isSearching ? searchResults : allFoods;
+  const loading = isSearching ? loadingSearch : loadingAll;
+
+  function renderItem({ item }: { item: Food }) {
+    const displayName = [item.name, item.variant].filter(Boolean).join(" · ");
+    const review = needsReview(item);
+
+    return (
+      <Link href={`/catalog/foods/${item.id}`} asChild>
+        <Pressable className="bg-slate-900 p-4 rounded-xl mb-3 border border-slate-800 active:opacity-70">
+          <View className="flex-row items-start justify-between">
+            <View className="flex-1 mr-2">
+              <Text className="text-white text-base font-semibold" numberOfLines={1}>
+                {displayName}
+              </Text>
+              {item.brand && (
+                <Text className="text-slate-500 text-xs mt-0.5" numberOfLines={1}>
+                  {item.brand}
+                </Text>
+              )}
+            </View>
+            {review && (
+              <View className="flex-row items-center gap-1 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
+                <Ionicons name="alert-circle-outline" size={11} color="#f59e0b" />
+                <Text className="text-amber-500 text-xs">Review</Text>
+              </View>
+            )}
+          </View>
+        </Pressable>
+      </Link>
+    );
+  }
 
   return (
-    <View className="flex-1 bg-slate-950 px-4 py-6">
+    <View className="flex-1 bg-slate-950 px-4 pt-4">
       {/* Search bar */}
-      <View className="bg-slate-900 rounded-xl border border-slate-800 px-4 py-3 mb-6">
+      <View className="bg-slate-900 rounded-xl border border-slate-800 px-4 py-3 mb-4 flex-row items-center gap-2">
+        <Ionicons name="search-outline" size={16} color="#64748b" />
         <TextInput
           placeholder="Search foods..."
           placeholderTextColor="#64748b"
-          className="text-white text-base"
+          className="flex-1 text-white text-base"
           value={searchQuery}
           onChangeText={setSearchQuery}
+          returnKeyType="search"
         />
+        {searchQuery.length > 0 && (
+          <Pressable onPress={() => setSearchQuery("")}>
+            <Ionicons name="close-circle" size={16} color="#64748b" />
+          </Pressable>
+        )}
       </View>
 
-      {loading && <ActivityIndicator className="my-4" size="large" color="#e2e8f0" />}
+      {loading && (
+        <ActivityIndicator className="my-8" size="large" color="#3b82f6" />
+      )}
 
-      {error && (
+      {!loading && error && (
         <View className="flex-1 items-center justify-center pb-20">
-          <Text className="text-red-500 text-lg mb-2">Error: {error}</Text>
+          <Text className="text-red-400 text-base mb-2">{error}</Text>
+          <Pressable onPress={loadAll} className="mt-2">
+            <Text className="text-blue-400 text-sm">Retry</Text>
+          </Pressable>
         </View>
       )}
 
-      {!loading && !error && foods && foods.length === 0 && debouncedSearchQuery.length > 0 && (
+      {!loading && !error && foods.length === 0 && (
         <View className="flex-1 items-center justify-center pb-20">
-          <Text className="text-slate-500 text-lg mb-2">No results found</Text>
-          <Text className="text-slate-600 text-sm text-center px-8">
-            Try a different search query.
-          </Text>
+          {isSearching ? (
+            <>
+              <Text className="text-slate-500 text-base">No results for "{debouncedQuery}"</Text>
+              <Text className="text-slate-600 text-sm mt-1">Try a different search term.</Text>
+            </>
+          ) : (
+            <>
+              <Text className="text-slate-500 text-base">No foods yet</Text>
+              <Text className="text-slate-600 text-sm mt-1 text-center px-8">
+                Search for a food or quick-add a new one to get started.
+              </Text>
+            </>
+          )}
         </View>
       )}
 
-      {!loading && !error && foods && foods.length === 0 && debouncedSearchQuery.length === 0 && (
-        <View className="flex-1 items-center justify-center pb-20">
-          <Text className="text-slate-500 text-lg mb-2">No foods yet</Text>
-          <Text className="text-slate-600 text-sm text-center px-8">
-            Search for a food or quick-add a new one to get started
-          </Text>
-        </View>
-      )}
-
-      {!loading && !error && foods && foods.length > 0 && (
+      {!loading && !error && foods.length > 0 && (
         <FlatList
           data={foods}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <Link href={`/catalog/foods/${item.id}`} asChild>
-              <Pressable className="bg-slate-800 p-4 rounded-xl mb-3">
-                <Text className="text-white text-lg font-semibold">{item.name}</Text>
-                {item.brand && <Text className="text-slate-400 text-sm">{item.brand}</Text>}
-                <View className="flex-row justify-between mt-2">
-                  <Text className="text-slate-300">Calories: {item.calories}</Text>
-                  <Text className="text-slate-300">Protein: {item.proteins}g</Text>
-                </View>
-              </Pressable>
-            </Link>
-          )}
+          renderItem={renderItem}
+          contentContainerStyle={{ paddingBottom: 24 }}
+          showsVerticalScrollIndicator={false}
         />
       )}
     </View>
