@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { MealsController } from './meals.controller';
 import { MealsService } from './meals.service';
 import { JwtAuthGuard } from '../../auth/guards';
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { MealResponseDto } from '@bzfit/shared';
 
 describe('MealsController', () => {
@@ -75,6 +75,10 @@ describe('MealsController', () => {
     findAll: jest.fn(),
     findOne: jest.fn(),
     getDailySummary: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    addItem: jest.fn(),
   };
 
   const mockRequest = {
@@ -348,6 +352,175 @@ describe('MealsController', () => {
     });
   });
 
+  describe('create', () => {
+    const createDto = {
+      date: '2024-01-01',
+      mealType: 'LUNCH' as const,
+      notes: "Today's lunch",
+    };
+
+    it('should create a meal without items', async () => {
+      const created = { ...mockMealResponse, mealType: 'LUNCH', items: [], totals: { calories: 0, protein: 0, carbs: 0, fat: 0 } };
+      mockMealsService.create.mockResolvedValue(created);
+
+      const result = await controller.create(mockRequest, createDto as any);
+
+      expect(result).toEqual(created);
+      expect(service.create).toHaveBeenCalledWith('user-1', createDto);
+    });
+
+    it('should create a meal with initial items', async () => {
+      const dtoWithItems = {
+        ...createDto,
+        items: [{ foodId: 'food-1', servingId: 'serving-1', quantity: 1 }],
+      };
+      mockMealsService.create.mockResolvedValue(mockMealResponse);
+
+      const result = await controller.create(mockRequest, dtoWithItems as any);
+
+      expect(result).toEqual(mockMealResponse);
+      expect(service.create).toHaveBeenCalledWith('user-1', dtoWithItems);
+      expect(result.items.length).toBeGreaterThan(0);
+    });
+
+    it('should throw BadRequestException when duplicate meal exists for same date and mealType', async () => {
+      mockMealsService.create.mockRejectedValue(
+        new BadRequestException('Meal already exists for LUNCH on 2024-01-01.'),
+      );
+
+      await expect(controller.create(mockRequest, createDto as any)).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(service.create).toHaveBeenCalledWith('user-1', createDto);
+    });
+
+    it('should use user ID from authenticated request', async () => {
+      mockMealsService.create.mockResolvedValue(mockMealResponse);
+
+      await controller.create(mockRequest, createDto as any);
+
+      expect(service.create).toHaveBeenCalledWith(mockRequest.user.id, createDto);
+    });
+  });
+
+  describe('update', () => {
+    it('should update meal notes', async () => {
+      const updated = { ...mockMealResponse, notes: 'Updated notes' };
+      mockMealsService.update.mockResolvedValue(updated);
+
+      const result = await controller.update(mockRequest, 'meal-1', 'Updated notes');
+
+      expect(result.notes).toBe('Updated notes');
+      expect(service.update).toHaveBeenCalledWith('user-1', 'meal-1', 'Updated notes');
+    });
+
+    it('should throw NotFoundException when meal does not exist', async () => {
+      mockMealsService.update.mockRejectedValue(
+        new NotFoundException('Meal with ID invalid-id not found'),
+      );
+
+      await expect(
+        controller.update(mockRequest, 'invalid-id', 'notes'),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should use user ID from authenticated request', async () => {
+      mockMealsService.update.mockResolvedValue(mockMealResponse);
+
+      await controller.update(mockRequest, 'meal-1', 'notes');
+
+      expect(service.update).toHaveBeenCalledWith(mockRequest.user.id, 'meal-1', 'notes');
+    });
+  });
+
+  describe('delete', () => {
+    it('should delete meal and cascade delete its items', async () => {
+      mockMealsService.delete.mockResolvedValue(undefined);
+
+      await controller.delete(mockRequest, 'meal-1');
+
+      expect(service.delete).toHaveBeenCalledWith('user-1', 'meal-1');
+      expect(service.delete).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw NotFoundException when meal does not exist', async () => {
+      mockMealsService.delete.mockRejectedValue(
+        new NotFoundException('Meal with ID invalid-id not found'),
+      );
+
+      await expect(controller.delete(mockRequest, 'invalid-id')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('should use user ID from authenticated request', async () => {
+      mockMealsService.delete.mockResolvedValue(undefined);
+
+      await controller.delete(mockRequest, 'meal-1');
+
+      expect(service.delete).toHaveBeenCalledWith(mockRequest.user.id, 'meal-1');
+    });
+  });
+
+  describe('addItem', () => {
+    const addItemDto = {
+      foodId: '11111111-1111-1111-1111-111111111111',
+      servingId: '22222222-2222-2222-2222-222222222222',
+      quantity: 1.5,
+    };
+
+    it('should add item to existing meal', async () => {
+      const mealWithNewItem = {
+        ...mockMealResponse,
+        items: [...mockMealResponse.items, { ...mockMealResponse.items[0], id: 'item-2', quantity: 1.5 }],
+      };
+      mockMealsService.addItem.mockResolvedValue(mealWithNewItem);
+
+      const result = await controller.addItem(mockRequest, 'meal-1', addItemDto as any);
+
+      expect(result.items.length).toBe(2);
+      expect(service.addItem).toHaveBeenCalledWith('user-1', 'meal-1', addItemDto);
+    });
+
+    it('should throw BadRequestException when foodId is invalid', async () => {
+      mockMealsService.addItem.mockRejectedValue(
+        new BadRequestException('Food with ID 11111111-1111-1111-1111-111111111111 not found'),
+      );
+
+      await expect(
+        controller.addItem(mockRequest, 'meal-1', addItemDto as any),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw BadRequestException when serving does not belong to food', async () => {
+      mockMealsService.addItem.mockRejectedValue(
+        new BadRequestException('Serving 22222222-2222-2222-2222-222222222222 does not belong to food 11111111-1111-1111-1111-111111111111'),
+      );
+
+      await expect(
+        controller.addItem(mockRequest, 'meal-1', addItemDto as any),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw NotFoundException when meal does not exist', async () => {
+      mockMealsService.addItem.mockRejectedValue(
+        new NotFoundException('Meal with ID invalid-meal not found'),
+      );
+
+      await expect(
+        controller.addItem(mockRequest, 'invalid-meal', addItemDto as any),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should use user ID from authenticated request', async () => {
+      mockMealsService.addItem.mockResolvedValue(mockMealResponse);
+
+      await controller.addItem(mockRequest, 'meal-1', addItemDto as any);
+
+      expect(service.addItem).toHaveBeenCalledWith(mockRequest.user.id, 'meal-1', addItemDto);
+    });
+  });
+
   describe('Authentication', () => {
     it('should be protected by JwtAuthGuard', () => {
       const guards = Reflect.getMetadata('__guards__', MealsController);
@@ -357,8 +530,6 @@ describe('MealsController', () => {
     });
 
     it('should require authentication for all endpoints', () => {
-      // Guards are applied at controller level, so method-level may be undefined
-      // Check that controller-level guards exist
       const controllerGuards = Reflect.getMetadata('__guards__', MealsController);
       expect(controllerGuards).toBeDefined();
     });
