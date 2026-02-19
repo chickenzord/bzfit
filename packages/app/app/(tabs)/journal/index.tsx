@@ -18,6 +18,11 @@ import {
   useNutritionGoal,
   type NutritionGoal,
 } from "../../../lib/nutrition";
+
+function formatGoalDate(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
 import { QuickAddModal } from "./QuickAddModal";
 
 const DAY_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -82,7 +87,7 @@ type GoalsModalProps = {
 };
 
 function GoalsModal({ visible, onClose }: GoalsModalProps) {
-  const { goal, loading, save } = useNutritionGoal();
+  const { goal, loading, update, saveAsNew } = useNutritionGoal();
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
@@ -108,15 +113,33 @@ function GoalsModal({ visible, onClose }: GoalsModalProps) {
     onClose();
   }, [onClose]);
 
+  function buildTargets() {
+    return {
+      ...(form.calories ? { caloriesTarget: Number(form.calories) } : {}),
+      ...(form.protein ? { proteinTarget: Number(form.protein) } : {}),
+      ...(form.carbs ? { carbsTarget: Number(form.carbs) } : {}),
+      ...(form.fat ? { fatTarget: Number(form.fat) } : {}),
+    };
+  }
+
   const handleSave = async () => {
     setSaving(true);
     try {
-      await save({
-        caloriesTarget: form.calories ? Number(form.calories) : null,
-        proteinTarget: form.protein ? Number(form.protein) : null,
-        carbsTarget: form.carbs ? Number(form.carbs) : null,
-        fatTarget: form.fat ? Number(form.fat) : null,
-      });
+      if (goal) {
+        await update(buildTargets());
+      } else {
+        await saveAsNew(buildTargets());
+      }
+      setEditing(false);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveAsNew = async () => {
+    setSaving(true);
+    try {
+      await saveAsNew(buildTargets());
       setEditing(false);
     } finally {
       setSaving(false);
@@ -149,7 +172,7 @@ function GoalsModal({ visible, onClose }: GoalsModalProps) {
           behavior={Platform.OS === "ios" ? "padding" : undefined}
         >
           <View className="bg-slate-900 rounded-t-3xl p-6 border-t border-slate-800">
-            <View className="flex-row items-center justify-between mb-6">
+            <View className="flex-row items-center justify-between mb-1">
               <Text className="text-white text-xl font-bold">
                 Nutrition Goals
               </Text>
@@ -157,6 +180,15 @@ function GoalsModal({ visible, onClose }: GoalsModalProps) {
                 <Ionicons name="close" size={24} color="#94a3b8" />
               </TouchableOpacity>
             </View>
+
+            {goal && !editing && (
+              <Text className="text-slate-500 text-xs mb-5">
+                Since {formatGoalDate(goal.startDate)}
+              </Text>
+            )}
+            {!goal && !editing && (
+              <View className="mb-5" />
+            )}
 
             {loading ? (
               <ActivityIndicator color="#3b82f6" className="my-8" />
@@ -202,12 +234,21 @@ function GoalsModal({ visible, onClose }: GoalsModalProps) {
                     )}
                   </TouchableOpacity>
                 </View>
+                {goal && (
+                  <TouchableOpacity
+                    onPress={handleSaveAsNew}
+                    disabled={saving}
+                    className="mt-3 py-3 rounded-xl border border-blue-500/30 items-center"
+                  >
+                    <Text className="text-blue-400 text-sm">Save as a New Goal</Text>
+                  </TouchableOpacity>
+                )}
               </>
             ) : (
               <>
                 {!goal && (
                   <Text className="text-slate-500 text-sm mb-4">
-                    No goals set yet. Tap "Edit Goals" to add your daily targets.
+                    No goals set yet. Tap "Set Goals" to add your daily targets.
                   </Text>
                 )}
                 {goalRows.map(({ key, label, unit, color }) => {
@@ -228,7 +269,7 @@ function GoalsModal({ visible, onClose }: GoalsModalProps) {
                   onPress={() => setEditing(true)}
                   className="mt-2 py-3 rounded-xl border border-slate-700 items-center"
                 >
-                  <Text className="text-slate-300">Edit Goals</Text>
+                  <Text className="text-slate-300">{goal ? "Edit Goals" : "Set Goals"}</Text>
                 </TouchableOpacity>
               </>
             )}

@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
-import { useAuth } from "../../lib/auth";
-import { getCustomApiUrl } from "../../lib/storage";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "../../../lib/auth";
+import { getCustomApiUrl } from "../../../lib/storage";
 
 const DEFAULT_API_BASE = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3001";
 
 export default function SettingsScreen() {
+  const router = useRouter();
   const { logout } = useAuth();
   const [loggingOut, setLoggingOut] = useState(false);
   const [serverUrl, setServerUrl] = useState<string | null>(null);
@@ -34,6 +37,17 @@ export default function SettingsScreen() {
 
   return (
     <View className="flex-1 bg-slate-950 px-4 py-6">
+      <TouchableOpacity
+        onPress={() => router.push("/settings/goals" as any)}
+        className="bg-slate-900 rounded-xl p-4 border border-slate-800 mb-3 flex-row items-center justify-between"
+      >
+        <View>
+          <Text className="text-white text-base font-medium">Nutrition Goals</Text>
+          <Text className="text-slate-400 text-sm mt-1">Manage daily targets</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color="#475569" />
+      </TouchableOpacity>
+
       <View className="bg-slate-900 rounded-xl p-4 border border-slate-800 mb-3">
         <Text className="text-white text-base font-medium">Account</Text>
         <Text className="text-slate-400 text-sm mt-1">Manage your profile</Text>

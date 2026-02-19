@@ -63,11 +63,26 @@ export type DailySummary = {
 
 export type NutritionGoal = {
   id: string;
+  userId: string;
   caloriesTarget: number | null;
   proteinTarget: number | null;
   carbsTarget: number | null;
   fatTarget: number | null;
-  isActive: boolean;
+  fiberTarget: number | null;
+  sugarTarget: number | null;
+  sodiumTarget: number | null;
+  startDate: string;
+  endDate: string | null;
+  isLatest: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type GoalTargets = {
+  caloriesTarget?: number;
+  proteinTarget?: number;
+  carbsTarget?: number;
+  fatTarget?: number;
 };
 
 export function useDailySummary(date: string) {
@@ -106,7 +121,7 @@ export function useNutritionGoal() {
     setLoading(true);
     setError(null);
     try {
-      const result = await apiFetch<NutritionGoal>("/nutrition/goals");
+      const result = await apiFetch<NutritionGoal | null>("/nutrition/goals");
       setGoal(result);
     } catch (e: any) {
       if (e.status === 404) {
@@ -123,12 +138,17 @@ export function useNutritionGoal() {
     refresh();
   }, [refresh]);
 
-  const save = async (targets: {
-    caloriesTarget?: number | null;
-    proteinTarget?: number | null;
-    carbsTarget?: number | null;
-    fatTarget?: number | null;
-  }) => {
+  const update = async (targets: GoalTargets) => {
+    if (!goal) throw new Error("No active goal to update");
+    const result = await apiFetch<NutritionGoal>(`/nutrition/goals/${goal.id}`, {
+      method: "PATCH",
+      body: targets,
+    });
+    setGoal(result);
+    return result;
+  };
+
+  const saveAsNew = async (targets: GoalTargets & { startDate?: string }) => {
     const result = await apiFetch<NutritionGoal>("/nutrition/goals", {
       method: "POST",
       body: targets,
@@ -137,7 +157,55 @@ export function useNutritionGoal() {
     return result;
   };
 
-  return { goal, loading, error, refresh, save };
+  return { goal, loading, error, refresh, update, saveAsNew };
+}
+
+export function useNutritionGoals() {
+  const [goals, setGoals] = useState<NutritionGoal[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await apiFetch<NutritionGoal[]>("/nutrition/goals/all");
+      setGoals(result);
+    } catch (e: any) {
+      setError(e.message ?? "Failed to load goals");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  const create = async (targets: GoalTargets & { startDate?: string }) => {
+    const result = await apiFetch<NutritionGoal>("/nutrition/goals", {
+      method: "POST",
+      body: targets,
+    });
+    await refresh();
+    return result;
+  };
+
+  const update = async (id: string, targets: GoalTargets) => {
+    const result = await apiFetch<NutritionGoal>(`/nutrition/goals/${id}`, {
+      method: "PATCH",
+      body: targets,
+    });
+    await refresh();
+    return result;
+  };
+
+  const remove = async (id: string) => {
+    await apiFetch(`/nutrition/goals/${id}`, { method: "DELETE" });
+    await refresh();
+  };
+
+  return { goals, loading, error, refresh, create, update, remove };
 }
 
 export async function quickAdd(dto: {
