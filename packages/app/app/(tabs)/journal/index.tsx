@@ -341,6 +341,7 @@ export default function JournalScreen() {
   const goals = summary?.goals;
   const caloriesTarget = goals?.calories?.target ?? null;
   const caloriesPercent = Math.min(goals?.calories?.percentage ?? 0, 100);
+  const caloriesRawPercent = Math.round(goals?.calories?.percentage ?? 0);
 
   const selectedMeal =
     summary?.meals.find((m) => m.mealType === selectedMealType) ?? null;
@@ -574,6 +575,11 @@ export default function JournalScreen() {
               style={{ width: `${caloriesPercent}%` }}
             />
           </View>
+          {caloriesTarget != null && (
+            <Text className="text-slate-500 text-xs mt-2">
+              {caloriesRawPercent}% of daily goal
+            </Text>
+          )}
         </TouchableOpacity>
 
         {/* Macros */}
@@ -583,32 +589,49 @@ export default function JournalScreen() {
               label: "Protein",
               value: Math.round(totals.protein),
               target: goals?.protein?.target,
+              percentage: Math.min(goals?.protein?.percentage ?? 0, 100),
+              exceeded: (goals?.protein?.percentage ?? 0) > 100,
+              barColor: "bg-blue-500",
               color: "text-blue-400",
             },
             {
               label: "Carbs",
               value: Math.round(totals.carbs),
               target: goals?.carbs?.target,
+              percentage: Math.min(goals?.carbs?.percentage ?? 0, 100),
+              exceeded: (goals?.carbs?.percentage ?? 0) > 100,
+              barColor: "bg-amber-500",
               color: "text-amber-400",
             },
             {
               label: "Fat",
               value: Math.round(totals.fat),
               target: goals?.fat?.target,
+              percentage: Math.min(goals?.fat?.percentage ?? 0, 100),
+              exceeded: (goals?.fat?.percentage ?? 0) > 100,
+              barColor: "bg-rose-500",
               color: "text-rose-400",
             },
-          ].map(({ label, value, target, color }) => (
+          ].map(({ label, value, target, percentage, exceeded, barColor, color }) => (
             <View
               key={label}
               className="flex-1 bg-slate-900 rounded-xl p-4 border border-slate-800"
             >
               <Text className="text-slate-400 text-xs mb-1">{label}</Text>
               <Text className={`text-xl font-bold ${color}`}>{value}g</Text>
-              {target != null && (
-                <Text className="text-slate-600 text-xs mt-0.5">
-                  / {target}g
-                </Text>
-              )}
+              {target != null ? (
+                <>
+                  <Text className="text-slate-600 text-xs mt-0.5">
+                    / {target}g
+                  </Text>
+                  <View className="h-1.5 bg-slate-800 rounded-full mt-2">
+                    <View
+                      className={`h-1.5 rounded-full ${exceeded ? "bg-orange-500" : barColor}`}
+                      style={{ width: `${percentage}%` }}
+                    />
+                  </View>
+                </>
+              ) : null}
             </View>
           ))}
         </View>
