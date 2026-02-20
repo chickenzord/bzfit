@@ -13,15 +13,19 @@ export class MealsController {
 
   @Get()
   @ApiOperation({ summary: 'List meals with optional filters' })
-  @ApiQuery({ name: 'date', required: false, type: String, description: 'Filter by date (YYYY-MM-DD)' })
+  @ApiQuery({ name: 'date', required: false, type: String, description: 'Filter by exact date (YYYY-MM-DD). Mutually exclusive with dateFrom/dateTo.' })
+  @ApiQuery({ name: 'dateFrom', required: false, type: String, description: 'Range start date inclusive (YYYY-MM-DD)' })
+  @ApiQuery({ name: 'dateTo', required: false, type: String, description: 'Range end date inclusive (YYYY-MM-DD)' })
   @ApiQuery({ name: 'mealType', required: false, enum: ['BREAKFAST', 'LUNCH', 'DINNER', 'SNACK'], description: 'Filter by meal type' })
   @ApiResponse({ status: 200, description: 'List of meals' })
   async findAll(
     @Request() req,
     @Query('date') date?: string,
     @Query('mealType') mealType?: string,
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
   ) {
-    return this.mealsService.findAll(req.user.id, date, mealType);
+    return this.mealsService.findAll(req.user.id, date, mealType, dateFrom, dateTo);
   }
 
   @Get('daily-summary')

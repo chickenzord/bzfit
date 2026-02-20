@@ -118,7 +118,7 @@ describe('MealsController', () => {
       const result = await controller.findAll(mockRequest);
 
       expect(result).toEqual([mockMealResponse]);
-      expect(service.findAll).toHaveBeenCalledWith('user-1', undefined, undefined);
+      expect(service.findAll).toHaveBeenCalledWith('user-1', undefined, undefined, undefined, undefined);
       expect(service.findAll).toHaveBeenCalledTimes(1);
     });
 
@@ -128,7 +128,7 @@ describe('MealsController', () => {
       const result = await controller.findAll(mockRequest, '2024-01-01');
 
       expect(result).toEqual([mockMealResponse]);
-      expect(service.findAll).toHaveBeenCalledWith('user-1', '2024-01-01', undefined);
+      expect(service.findAll).toHaveBeenCalledWith('user-1', '2024-01-01', undefined, undefined, undefined);
     });
 
     it('should filter meals by meal type', async () => {
@@ -137,7 +137,7 @@ describe('MealsController', () => {
       const result = await controller.findAll(mockRequest, undefined, 'BREAKFAST');
 
       expect(result).toEqual([mockMealResponse]);
-      expect(service.findAll).toHaveBeenCalledWith('user-1', undefined, 'BREAKFAST');
+      expect(service.findAll).toHaveBeenCalledWith('user-1', undefined, 'BREAKFAST', undefined, undefined);
     });
 
     it('should filter meals by both date and meal type', async () => {
@@ -146,7 +146,7 @@ describe('MealsController', () => {
       const result = await controller.findAll(mockRequest, '2024-01-01', 'BREAKFAST');
 
       expect(result).toEqual([mockMealResponse]);
-      expect(service.findAll).toHaveBeenCalledWith('user-1', '2024-01-01', 'BREAKFAST');
+      expect(service.findAll).toHaveBeenCalledWith('user-1', '2024-01-01', 'BREAKFAST', undefined, undefined);
     });
 
     it('should return empty array when no meals found', async () => {
@@ -165,7 +165,7 @@ describe('MealsController', () => {
 
       for (const mealType of mealTypes) {
         await controller.findAll(mockRequest, undefined, mealType);
-        expect(service.findAll).toHaveBeenCalledWith('user-1', undefined, mealType);
+        expect(service.findAll).toHaveBeenCalledWith('user-1', undefined, mealType, undefined, undefined);
       }
     });
 
@@ -174,7 +174,7 @@ describe('MealsController', () => {
 
       await controller.findAll(mockRequest);
 
-      expect(service.findAll).toHaveBeenCalledWith(mockRequest.user.id, undefined, undefined);
+      expect(service.findAll).toHaveBeenCalledWith(mockRequest.user.id, undefined, undefined, undefined, undefined);
     });
 
     it('should return meals with items and totals', async () => {

@@ -91,8 +91,7 @@ export class GoalsService {
 
   /**
    * Update a goal's targets.
-   * - startDate is never updatable.
-   * - endDate is only updatable for the latest goal (null endDate).
+   * startDate is never updatable.
    */
   async update(userId: string, id: string, updateGoalDto: UpdateGoalDto): Promise<GoalResponseDto> {
     const goal = await this.prisma.nutritionGoal.findFirst({

@@ -109,6 +109,7 @@ describe('GoalsService', () => {
       expect(result!.isLatest).toBe(false);
     });
 
+
     it('should default to today when no date is provided', async () => {
       mockPrisma.nutritionGoal.findFirst
         .mockResolvedValueOnce(mockGoalJan)

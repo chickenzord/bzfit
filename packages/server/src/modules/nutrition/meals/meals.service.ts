@@ -25,19 +25,23 @@ export class MealsService {
   /**
    * List meals with optional filters
    */
-  async findAll(userId: string, date?: string, mealType?: string) {
+  async findAll(userId: string, date?: string, mealType?: string, dateFrom?: string, dateTo?: string) {
     const where: any = { userId };
 
     if (date) {
-      // Parse date and create range for the entire day
+      // Single date: create range for the entire day
       const targetDate = new Date(date);
       const nextDay = new Date(targetDate);
       nextDay.setDate(nextDay.getDate() + 1);
-
-      where.date = {
-        gte: targetDate,
-        lt: nextDay,
-      };
+      where.date = { gte: targetDate, lt: nextDay };
+    } else if (dateFrom || dateTo) {
+      where.date = {};
+      if (dateFrom) where.date.gte = new Date(dateFrom);
+      if (dateTo) {
+        const end = new Date(dateTo);
+        end.setDate(end.getDate() + 1); // inclusive end date
+        where.date.lt = end;
+      }
     }
 
     if (mealType) {
