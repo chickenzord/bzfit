@@ -16,6 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import {
   useDailySummary,
   useNutritionGoal,
+  useMealDates,
   type NutritionGoal,
 } from "../../../lib/nutrition";
 
@@ -344,6 +345,18 @@ export default function JournalScreen() {
   const selectedMeal =
     summary?.meals.find((m) => m.mealType === selectedMealType) ?? null;
 
+  // Date range for calendar dots: union of strip range and current grid month
+  const gridMonthStart = new Date(gridMonth.year, gridMonth.month, 1);
+  const gridMonthEnd = new Date(gridMonth.year, gridMonth.month + 1, 0);
+  const datesFrom = toDateString(days[0] < gridMonthStart ? days[0] : gridMonthStart);
+  const datesTo = toDateString(days[days.length - 1] > gridMonthEnd ? days[days.length - 1] : gridMonthEnd);
+  const { dates: entryDates, refresh: refreshDates } = useMealDates(datesFrom, datesTo);
+
+  function refreshAll() {
+    refresh();
+    refreshDates();
+  }
+
   function selectDate(date: Date) {
     setSelectedDate(date);
     setGridMonth({ year: date.getFullYear(), month: date.getMonth() });
@@ -459,8 +472,10 @@ export default function JournalScreen() {
                   >
                     {item.getDate()}
                   </Text>
-                  {isToday && !isSelected && (
-                    <View className="w-1 h-1 rounded-full bg-blue-400 mt-0.5" />
+                  {!isSelected && (isToday || entryDates.has(toDateString(item))) && (
+                    <View
+                      className={`w-1 h-1 rounded-full mt-0.5 ${isToday ? "bg-blue-400" : "bg-slate-400"}`}
+                    />
                   )}
                 </TouchableOpacity>
               );
@@ -514,6 +529,11 @@ export default function JournalScreen() {
                       >
                         {date.getDate()}
                       </Text>
+                      {!isSameDay(date, selectedDate) && (isSameDay(date, today) || entryDates.has(toDateString(date))) && (
+                        <View
+                          className={`w-1 h-1 rounded-full mt-0.5 ${isSameDay(date, today) ? "bg-blue-400" : "bg-slate-400"}`}
+                        />
+                      )}
                     </TouchableOpacity>
                   ) : (
                     <View key={ci} className="flex-1" />
@@ -680,12 +700,12 @@ export default function JournalScreen() {
         onClose={() => setSelectedMealType(null)}
         meal={selectedMeal}
         dateLabel={selectedLabel}
-        onItemDeleted={refresh}
+        onItemDeleted={refreshAll}
       />
       <QuickAddModal
         visible={quickAddVisible}
         onClose={() => setQuickAddVisible(false)}
-        onSuccess={refresh}
+        onSuccess={refreshAll}
         date={dateStr}
         defaultMealType={quickAddMealType}
         summary={summary}

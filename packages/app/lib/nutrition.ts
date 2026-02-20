@@ -235,6 +235,28 @@ export async function logMealItem(params: {
   });
 }
 
+export function useMealDates(from: string, to: string) {
+  const [dates, setDates] = useState<Set<string>>(new Set());
+
+  const refresh = useCallback(async () => {
+    if (!from || !to) return;
+    try {
+      const result = await apiFetch<string[]>(
+        `/nutrition/meals/dates?from=${from}&to=${to}`,
+      );
+      setDates(new Set(result));
+    } catch {
+      // silently ignore
+    }
+  }, [from, to]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  return { dates, refresh };
+}
+
 export async function deleteMealItem(itemId: string): Promise<void> {
   try {
     await apiFetch(`/nutrition/meal-items/${itemId}`, { method: "DELETE" });

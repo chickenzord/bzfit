@@ -234,6 +234,26 @@ export class MealsService {
   }
 
   /**
+   * Get list of dates (YYYY-MM-DD) that have at least one meal entry
+   */
+  async getDatesWithEntries(userId: string, from: string, to: string): Promise<string[]> {
+    const fromDate = new Date(from);
+    const toDate = new Date(to);
+    toDate.setDate(toDate.getDate() + 1); // inclusive end
+
+    const meals = await this.prisma.meal.groupBy({
+      by: ['date'],
+      where: {
+        userId,
+        date: { gte: fromDate, lt: toDate },
+      },
+      orderBy: { date: 'asc' },
+    });
+
+    return meals.map((m) => m.date.toISOString().split('T')[0]);
+  }
+
+  /**
    * Create a new meal with optional initial items
    */
   async create(userId: string, createMealDto: CreateMealDto): Promise<MealResponseDto> {

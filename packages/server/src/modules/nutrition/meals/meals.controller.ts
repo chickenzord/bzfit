@@ -39,6 +39,19 @@ export class MealsController {
     return this.mealsService.getDailySummary(req.user.id, date);
   }
 
+  @Get('dates')
+  @ApiOperation({ summary: 'Get list of dates with meal entries in range' })
+  @ApiQuery({ name: 'from', required: true, type: String, description: 'Range start date (YYYY-MM-DD)' })
+  @ApiQuery({ name: 'to', required: true, type: String, description: 'Range end date (YYYY-MM-DD)' })
+  @ApiResponse({ status: 200, description: 'Array of date strings with entries' })
+  async getDatesWithEntries(
+    @Request() req,
+    @Query('from') from: string,
+    @Query('to') to: string,
+  ) {
+    return this.mealsService.getDatesWithEntries(req.user.id, from, to);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get single meal by ID' })
   @ApiResponse({ status: 200, description: 'Meal details with items and nutrition' })
