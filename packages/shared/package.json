@@ -5,14 +5,14 @@
   "main": "dist/index.js",
   "types": "src/index.ts",
   "scripts": {
-    "build": "rm -rf dist && tsc",
+    "build": "rm -rf dist tsconfig.tsbuildinfo && tsc",
     "build:watch": "tsc --watch",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"src/**/*.ts\""
   },
   "dependencies": {
     "@prisma/client": "^6.19.2",
-    "zod": "^3.25.67"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "typescript": "^5.9.3"
