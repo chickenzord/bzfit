@@ -9,7 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter, Stack } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { apiFetch, ApiError } from "../../../../lib/api";
 
@@ -54,7 +54,7 @@ function numStr(v: number | null): string {
 }
 
 export default function ServingEditScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, isNew } = useLocalSearchParams<{ id: string; isNew?: string }>();
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
@@ -181,10 +181,12 @@ export default function ServingEditScreen() {
   }
 
   return (
-    <KeyboardAvoidingView
-      className="flex-1 bg-slate-950"
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
+    <>
+      <Stack.Screen options={{ title: isNew === "true" ? "New Serving" : "Edit Serving" }} />
+      <KeyboardAvoidingView
+        className="flex-1 bg-slate-950"
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
       <ScrollView
         contentContainerStyle={{ padding: 20, paddingBottom: 48 }}
         keyboardShouldPersistTaps="handled"
@@ -368,6 +370,7 @@ export default function ServingEditScreen() {
           )}
         </TouchableOpacity>
       </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </>
   );
 }

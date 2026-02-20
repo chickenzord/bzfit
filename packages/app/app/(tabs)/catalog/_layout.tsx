@@ -15,9 +15,20 @@ export default function CatalogLayout() {
     >
       <Stack.Screen name="index" options={{ title: "Food Catalog" }} />
       <Stack.Screen
-        name="foods/[id]"
+        name="foods/[id]/index"
         options={{
           title: "Food Details",
+          headerLeft: () => (
+            <Pressable onPress={() => router.back()}>
+              <Ionicons name="chevron-back" size={24} color="#f8fafc" />
+            </Pressable>
+          ),
+        }}
+      />
+      <Stack.Screen
+        name="foods/[id]/edit"
+        options={{
+          title: "Edit Food",
           headerLeft: () => (
             <Pressable onPress={() => router.back()}>
               <Ionicons name="chevron-back" size={24} color="#f8fafc" />
