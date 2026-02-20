@@ -10,9 +10,9 @@ export const GoalResponseSchema = z.object({
   fiberTarget: z.number().nullable().describe('Daily fiber target (grams)'),
   sugarTarget: z.number().nullable().describe('Maximum daily sugar (grams)'),
   sodiumTarget: z.number().nullable().describe('Maximum daily sodium (mg)'),
-  startDate: z.string().describe('Goal start date'),
+  startDate: z.string().describe('Goal start date (ISO 8601)'),
   endDate: z.string().nullable().describe('Goal end date (null = ongoing)'),
-  isActive: z.boolean().describe('Whether this goal is currently active'),
+  isLatest: z.boolean().describe('Whether this is the latest (most recent) goal'),
   createdAt: z.string().describe('Created timestamp'),
   updatedAt: z.string().describe('Last updated timestamp'),
 });

@@ -163,10 +163,9 @@ model NutritionGoal {
 
   startDate DateTime  @default(now())
   endDate   DateTime? // null = ongoing
-  isActive  Boolean   @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([userId, isActive]) // One active goal per user
+  @@unique([userId, startDate]) // One goal per start date per user
 }
