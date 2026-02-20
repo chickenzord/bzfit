@@ -36,9 +36,10 @@ const STATUS_LABEL: Record<Serving["status"], string> = {
 };
 
 export default function FoodDetailsScreen() {
-  const { id, editedServingId, edited } = useLocalSearchParams<{
+  const { id, editedServingId, newServingId, edited } = useLocalSearchParams<{
     id: string;
     editedServingId?: string;
+    newServingId?: string;
     edited?: string;
   }>();
   const router = useRouter();
@@ -47,6 +48,7 @@ export default function FoodDetailsScreen() {
   const [error, setError] = useState<string | null>(null);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [showEditedFlash, setShowEditedFlash] = useState(false);
+  const [showAddedFlash, setShowAddedFlash] = useState(false);
   const [menuServingId, setMenuServingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [usageCount, setUsageCount] = useState<number | null>(null);
@@ -59,6 +61,15 @@ export default function FoodDetailsScreen() {
     const t = setTimeout(() => setHighlightedId(null), 3000);
     return () => clearTimeout(t);
   }, [editedServingId]);
+
+  useEffect(() => {
+    if (!newServingId) return;
+    setHighlightedId(newServingId);
+    setShowAddedFlash(true);
+    const t1 = setTimeout(() => setHighlightedId(null), 3000);
+    const t2 = setTimeout(() => setShowAddedFlash(false), 3000);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [newServingId]);
 
   useEffect(() => {
     if (!edited) return;
@@ -216,11 +227,20 @@ export default function FoodDetailsScreen() {
         )}
 
         <FlashMessage visible={showEditedFlash} message="Food updated" />
-        <FlashMessage visible={!!highlightedId} message="Serving updated" />
+        <FlashMessage visible={showAddedFlash} message="Serving added" />
+        <FlashMessage visible={!!highlightedId && !showAddedFlash} message="Serving updated" />
 
-        <Text className="text-slate-400 text-xs uppercase tracking-wide mb-3 mt-2">
-          Servings
-        </Text>
+        <View className="flex-row items-center justify-between mb-3 mt-2">
+          <Text className="text-slate-400 text-xs uppercase tracking-wide">
+            Servings
+          </Text>
+          <TouchableOpacity
+            onPress={() => router.push(`/catalog/foods/${id}/servings/new`)}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons name="add" size={20} color="#3b82f6" />
+          </TouchableOpacity>
+        </View>
 
         {food.servings.length === 0 && (
           <Text className="text-slate-600 text-sm">No serving sizes available.</Text>
