@@ -107,10 +107,21 @@ export class ServingsService {
       throw new NotFoundException(`Serving with ID ${id} not found`);
     }
 
-    await this.prisma.serving.delete({
-      where: { id },
-    });
+    await this.prisma.mealItem.deleteMany({ where: { servingId: id } });
+    await this.prisma.serving.delete({ where: { id } });
     return { id };
+  }
+
+  /**
+   * Count meal items that reference this serving
+   */
+  async getMealItemCount(id: string): Promise<{ mealItemCount: number }> {
+    const serving = await this.prisma.serving.findUnique({ where: { id } });
+    if (!serving) {
+      throw new NotFoundException(`Serving with ID ${id} not found`);
+    }
+    const mealItemCount = await this.prisma.mealItem.count({ where: { servingId: id } });
+    return { mealItemCount };
   }
 
   /**

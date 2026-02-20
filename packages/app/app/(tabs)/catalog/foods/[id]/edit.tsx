@@ -7,11 +7,14 @@ import {
   ScrollView,
   ActivityIndicator,
   KeyboardAvoidingView,
+  Modal,
+  Pressable,
   Platform,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { apiFetch, ApiError } from "../../../../../lib/api";
+import { ConfirmModal } from "../../../../../components/ConfirmModal";
 
 interface Serving {
   id: string;
@@ -45,6 +48,12 @@ export default function FoodEditScreen() {
   const [servings, setServings] = useState<Serving[]>([]);
   const [defaultServingId, setDefaultServingId] = useState<string | null>(null);
   const [originalDefaultServingId, setOriginalDefaultServingId] = useState<string | null>(null);
+
+  const [menuServingId, setMenuServingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [usageCount, setUsageCount] = useState<number | null>(null);
+  const [usageLoading, setUsageLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -108,6 +117,32 @@ export default function FoodEditScreen() {
     }
   }
 
+  useEffect(() => {
+    if (!confirmDeleteId) { setUsageCount(null); return; }
+    setUsageLoading(true);
+    apiFetch<{ mealItemCount: number }>(`/catalog/servings/${confirmDeleteId}/usage`)
+      .then((r) => setUsageCount(r.mealItemCount))
+      .catch(() => setUsageCount(null))
+      .finally(() => setUsageLoading(false));
+  }, [confirmDeleteId]);
+
+  async function handleDeleteServing(servingId: string) {
+    setConfirmDeleteId(null);
+    setDeletingId(servingId);
+    try {
+      await apiFetch(`/catalog/servings/${servingId}`, { method: "DELETE" });
+      setServings((prev) => prev.filter((s) => s.id !== servingId));
+      if (defaultServingId === servingId) setDefaultServingId(null);
+      if (originalDefaultServingId === servingId) setOriginalDefaultServingId(null);
+    } catch (e) {
+      setSaveError(e instanceof ApiError ? e.message : "Failed to delete serving");
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  const menuServing = servings.find((s) => s.id === menuServingId) ?? null;
+  const confirmServing = servings.find((s) => s.id === confirmDeleteId) ?? null;
   const isValid = name.trim().length > 0;
 
   if (loading) {
@@ -127,154 +162,221 @@ export default function FoodEditScreen() {
   }
 
   return (
-    <KeyboardAvoidingView
-      className="flex-1 bg-slate-950"
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <ScrollView
-        contentContainerStyle={{ padding: 20, paddingBottom: 48 }}
-        keyboardShouldPersistTaps="handled"
+    <>
+      {/* Serving action menu */}
+      <Modal
+        visible={!!menuServingId}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMenuServingId(null)}
       >
-        {/* Food Info */}
-        <Text className="text-slate-400 text-xs uppercase tracking-wide mb-3">Food Info</Text>
-
-        <Text className="text-slate-500 text-xs mb-1">
-          Name <Text className="text-rose-500">*</Text>
-        </Text>
-        <View className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 mb-4">
-          <TextInput
-            value={name}
-            onChangeText={setName}
-            placeholder="e.g. French Fries"
-            placeholderTextColor="#475569"
-            style={{ color: "white" }}
-          />
-        </View>
-
-        <Text className="text-slate-500 text-xs mb-1">
-          Variant <Text className="text-slate-600">(optional)</Text>
-        </Text>
-        <View className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 mb-4">
-          <TextInput
-            value={variant}
-            onChangeText={setVariant}
-            placeholder="e.g. Curly, Waffle"
-            placeholderTextColor="#475569"
-            style={{ color: "white" }}
-          />
-        </View>
-
-        <Text className="text-slate-500 text-xs mb-1">
-          Brand <Text className="text-slate-600">(optional)</Text>
-        </Text>
-        <View className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 mb-6">
-          <TextInput
-            value={brand}
-            onChangeText={setBrand}
-            placeholder="e.g. McDonald's"
-            placeholderTextColor="#475569"
-            style={{ color: "white" }}
-          />
-        </View>
-
-        {/* Default Serving */}
-        {servings.length > 0 && (
-          <>
-            <Text className="text-slate-400 text-xs uppercase tracking-wide mb-3">Default Serving</Text>
-            <View className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden mb-6">
-              {servings.map((s, i) => {
-                const label = s.name ?? `${s.size}${s.unit}`;
-                const isSelected = defaultServingId === s.id;
-                return (
-                  <TouchableOpacity
-                    key={s.id}
-                    onPress={() => setDefaultServingId(s.id)}
-                    className={`flex-row items-center justify-between px-4 py-3 ${
-                      i > 0 ? "border-t border-slate-800" : ""
-                    }`}
-                  >
-                    <Text className={isSelected ? "text-blue-400 font-medium" : "text-white"}>
-                      {label}
-                    </Text>
-                    {isSelected && <Ionicons name="checkmark" size={18} color="#3b82f6" />}
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </>
-        )}
-
-        {/* Servings */}
-        <View className="flex-row items-center justify-between mb-3">
-          <Text className="text-slate-400 text-xs uppercase tracking-wide">Servings</Text>
-          <TouchableOpacity
-            onPress={handleAddServing}
-            disabled={addingServing}
-            className="flex-row items-center gap-1"
-          >
-            {addingServing ? (
-              <ActivityIndicator size="small" color="#3b82f6" />
-            ) : (
-              <Ionicons name="add" size={16} color="#3b82f6" />
-            )}
-            <Text className="text-blue-500 text-xs">Add Serving</Text>
-          </TouchableOpacity>
-        </View>
-
-        {servings.length === 0 && (
-          <Text className="text-slate-600 text-sm mb-4">No servings yet.</Text>
-        )}
-
-        {servings.map((s) => (
-          <View
-            key={s.id}
-            className="flex-row items-center justify-between bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 mb-2"
-          >
-            <View className="flex-1 mr-2">
-              <Text className="text-white text-sm">
-                {s.name ?? `${s.size}${s.unit}`}
-              </Text>
-              {s.name && (
-                <Text className="text-slate-500 text-xs mt-0.5">
-                  {s.size}{s.unit}
+        <Pressable
+          className="flex-1 bg-black/60 justify-end"
+          onPress={() => setMenuServingId(null)}
+        >
+          <Pressable onPress={() => {}}>
+            <View className="bg-slate-900 rounded-t-2xl px-4 pt-4 pb-8">
+              {menuServing && (
+                <Text className="text-slate-400 text-xs mb-4 px-1" numberOfLines={1}>
+                  {menuServing.name ?? `${menuServing.size}${menuServing.unit}`}
                 </Text>
               )}
+              <TouchableOpacity
+                onPress={() => {
+                  setMenuServingId(null);
+                  router.push(`/catalog/servings/${menuServingId}`);
+                }}
+                className="flex-row items-center gap-3 px-1 py-3 border-b border-slate-800"
+              >
+                <Ionicons name="pencil-outline" size={18} color="#94a3b8" />
+                <Text className="text-white text-base">Edit Serving</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  if (!menuServingId) return;
+                  setConfirmDeleteId(menuServingId);
+                  setMenuServingId(null);
+                }}
+                className="flex-row items-center gap-3 px-1 py-3"
+              >
+                <Ionicons name="trash-outline" size={18} color="#f87171" />
+                <Text className="text-red-400 text-base">Delete Serving</Text>
+              </TouchableOpacity>
             </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <ConfirmModal
+        visible={!!confirmDeleteId}
+        title="Delete Serving?"
+        message={
+          usageLoading || usageCount === null
+            ? undefined
+            : usageCount > 0
+            ? `"${confirmServing?.name ?? `${confirmServing?.size}${confirmServing?.unit}`}" has been logged ${usageCount} time${usageCount === 1 ? "" : "s"}. Those meal entries will also be deleted.`
+            : `"${confirmServing?.name ?? `${confirmServing?.size}${confirmServing?.unit}`}" has no meal entries and will be permanently removed.`
+        }
+        confirmLabel="Delete"
+        destructive
+        loading={usageLoading}
+        onConfirm={() => confirmDeleteId && handleDeleteServing(confirmDeleteId)}
+        onCancel={() => setConfirmDeleteId(null)}
+      />
+
+      <KeyboardAvoidingView
+        className="flex-1 bg-slate-950"
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={{ padding: 20, paddingBottom: 48 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Food Info */}
+          <Text className="text-slate-400 text-xs uppercase tracking-wide mb-3">Food Info</Text>
+
+          <Text className="text-slate-500 text-xs mb-1">
+            Name <Text className="text-rose-500">*</Text>
+          </Text>
+          <View className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 mb-4">
+            <TextInput
+              value={name}
+              onChangeText={setName}
+              placeholder="e.g. French Fries"
+              placeholderTextColor="#475569"
+              style={{ color: "white" }}
+            />
+          </View>
+
+          <Text className="text-slate-500 text-xs mb-1">
+            Variant <Text className="text-slate-600">(optional)</Text>
+          </Text>
+          <View className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 mb-4">
+            <TextInput
+              value={variant}
+              onChangeText={setVariant}
+              placeholder="e.g. Curly, Waffle"
+              placeholderTextColor="#475569"
+              style={{ color: "white" }}
+            />
+          </View>
+
+          <Text className="text-slate-500 text-xs mb-1">
+            Brand <Text className="text-slate-600">(optional)</Text>
+          </Text>
+          <View className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 mb-6">
+            <TextInput
+              value={brand}
+              onChangeText={setBrand}
+              placeholder="e.g. McDonald's"
+              placeholderTextColor="#475569"
+              style={{ color: "white" }}
+            />
+          </View>
+
+          {/* Default Serving */}
+          {servings.length > 0 && (
+            <>
+              <Text className="text-slate-400 text-xs uppercase tracking-wide mb-3">Default Serving</Text>
+              <View className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden mb-6">
+                {servings.map((s, i) => {
+                  const label = s.name ?? `${s.size}${s.unit}`;
+                  const isSelected = defaultServingId === s.id;
+                  return (
+                    <TouchableOpacity
+                      key={s.id}
+                      onPress={() => setDefaultServingId(s.id)}
+                      className={`flex-row items-center justify-between px-4 py-3 ${
+                        i > 0 ? "border-t border-slate-800" : ""
+                      }`}
+                    >
+                      <Text className={isSelected ? "text-blue-400 font-medium" : "text-white"}>
+                        {label}
+                      </Text>
+                      {isSelected && <Ionicons name="checkmark" size={18} color="#3b82f6" />}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </>
+          )}
+
+          {/* Servings */}
+          <View className="flex-row items-center justify-between mb-3">
+            <Text className="text-slate-400 text-xs uppercase tracking-wide">Servings</Text>
             <TouchableOpacity
-              onPress={() => router.push(`/catalog/servings/${s.id}`)}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              onPress={handleAddServing}
+              disabled={addingServing}
+              className="flex-row items-center gap-1"
             >
-              <Ionicons name="pencil-outline" size={16} color="#475569" />
+              {addingServing ? (
+                <ActivityIndicator size="small" color="#3b82f6" />
+              ) : (
+                <Ionicons name="add" size={16} color="#3b82f6" />
+              )}
+              <Text className="text-blue-500 text-xs">Add Serving</Text>
             </TouchableOpacity>
           </View>
-        ))}
 
-        {servings.length > 0 && <View className="mb-4" />}
-
-        {saveError && (
-          <View className="bg-red-950 border border-red-800 rounded-xl px-4 py-3 mb-4">
-            <Text className="text-red-400 text-sm">{saveError}</Text>
-          </View>
-        )}
-
-        <TouchableOpacity
-          onPress={handleSave}
-          disabled={!isValid || saving}
-          className={`py-4 rounded-xl items-center ${
-            !isValid || saving ? "bg-blue-500/30" : "bg-blue-500"
-          }`}
-        >
-          {saving ? (
-            <ActivityIndicator size="small" color="white" />
-          ) : (
-            <Text
-              className={`font-semibold text-base ${!isValid ? "text-slate-500" : "text-white"}`}
-            >
-              Save Changes
-            </Text>
+          {servings.length === 0 && (
+            <Text className="text-slate-600 text-sm mb-4">No servings yet.</Text>
           )}
-        </TouchableOpacity>
-      </ScrollView>
-    </KeyboardAvoidingView>
+
+          {servings.map((s) => (
+            <View
+              key={s.id}
+              className="flex-row items-center justify-between bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 mb-2"
+            >
+              <View className="flex-1 mr-2">
+                <Text className="text-white text-sm">
+                  {s.name ?? `${s.size}${s.unit}`}
+                </Text>
+                {s.name && (
+                  <Text className="text-slate-500 text-xs mt-0.5">
+                    {s.size}{s.unit}
+                  </Text>
+                )}
+              </View>
+              {deletingId === s.id ? (
+                <ActivityIndicator size="small" color="#475569" />
+              ) : (
+                <TouchableOpacity
+                  onPress={() => setMenuServingId(s.id)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons name="ellipsis-vertical" size={18} color="#475569" />
+                </TouchableOpacity>
+              )}
+            </View>
+          ))}
+
+          {servings.length > 0 && <View className="mb-4" />}
+
+          {saveError && (
+            <View className="bg-red-950 border border-red-800 rounded-xl px-4 py-3 mb-4">
+              <Text className="text-red-400 text-sm">{saveError}</Text>
+            </View>
+          )}
+
+          <TouchableOpacity
+            onPress={handleSave}
+            disabled={!isValid || saving}
+            className={`py-4 rounded-xl items-center ${
+              !isValid || saving ? "bg-blue-500/30" : "bg-blue-500"
+            }`}
+          >
+            {saving ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <Text
+                className={`font-semibold text-base ${!isValid ? "text-slate-500" : "text-white"}`}
+              >
+                Save Changes
+              </Text>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </>
   );
 }

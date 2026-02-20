@@ -44,6 +44,14 @@ export class ServingsController {
     return this.servingsService.verifyServing(id, updateServingDto);
   }
 
+  @Get(':id/usage')
+  @ApiOperation({ summary: 'Get meal item count for a serving' })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Number of meal items referencing this serving', schema: { type: 'object', properties: { mealItemCount: { type: 'number' } } } })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Serving not found' })
+  async getMealItemCount(@Param('id') id: string) {
+    return this.servingsService.getMealItemCount(id);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get serving by ID' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Serving details' })
