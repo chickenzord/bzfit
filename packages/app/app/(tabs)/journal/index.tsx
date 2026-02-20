@@ -24,6 +24,7 @@ function formatGoalDate(iso: string): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 import { QuickAddModal } from "./QuickAddModal";
+import { MealDetailModal } from "./MealDetailModal";
 
 const DAY_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTH_NAMES = [
@@ -294,6 +295,9 @@ export default function JournalScreen() {
   const [quickAddMealType, setQuickAddMealType] = useState<
     "BREAKFAST" | "LUNCH" | "DINNER" | "SNACK" | undefined
   >(undefined);
+  const [selectedMealType, setSelectedMealType] = useState<
+    "BREAKFAST" | "LUNCH" | "DINNER" | "SNACK" | null
+  >(null);
 
   const maxDate = new Date(today);
   maxDate.setDate(today.getDate() + 1); // 1 day ahead as timezone buffer
@@ -336,6 +340,9 @@ export default function JournalScreen() {
   const goals = summary?.goals;
   const caloriesTarget = goals?.calories?.target ?? null;
   const caloriesPercent = Math.min(goals?.calories?.percentage ?? 0, 100);
+
+  const selectedMeal =
+    summary?.meals.find((m) => m.mealType === selectedMealType) ?? null;
 
   function selectDate(date: Date) {
     setSelectedDate(date);
@@ -593,8 +600,14 @@ export default function JournalScreen() {
           const mealKcal = meal ? Math.round(meal.totals.calories) : 0;
 
           return (
-            <View
+            <TouchableOpacity
               key={mealType}
+              activeOpacity={meal && meal.items.length > 0 ? 0.7 : 1}
+              onPress={() => {
+                if (meal && meal.items.length > 0) {
+                  setSelectedMealType(mealType);
+                }
+              }}
               className="bg-slate-900 rounded-xl p-4 mb-3 border border-slate-800"
             >
               <View className="flex-row justify-between items-center">
@@ -657,11 +670,18 @@ export default function JournalScreen() {
               ) : (
                 <Text className="text-slate-600 text-sm mt-2">No items yet</Text>
               )}
-            </View>
+            </TouchableOpacity>
           );
         })}
       </View>
 
+      <MealDetailModal
+        visible={selectedMealType !== null}
+        onClose={() => setSelectedMealType(null)}
+        meal={selectedMeal}
+        dateLabel={selectedLabel}
+        onItemDeleted={refresh}
+      />
       <QuickAddModal
         visible={quickAddVisible}
         onClose={() => setQuickAddVisible(false)}

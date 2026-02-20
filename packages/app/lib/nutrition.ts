@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { apiFetch } from "./api";
+import { apiFetch, ApiError } from "./api";
 
 export type NutritionTotals = {
   calories: number;
@@ -233,6 +233,15 @@ export async function logMealItem(params: {
       quantity: params.quantity,
     },
   });
+}
+
+export async function deleteMealItem(itemId: string): Promise<void> {
+  try {
+    await apiFetch(`/nutrition/meal-items/${itemId}`, { method: "DELETE" });
+  } catch (e) {
+    if (e instanceof ApiError) throw e;
+    // JSON parse error on 204 No Content is expected — treat as success
+  }
 }
 
 export async function createMealWithItem(params: {
