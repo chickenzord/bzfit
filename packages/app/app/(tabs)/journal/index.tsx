@@ -313,6 +313,22 @@ export default function JournalScreen() {
     }
   }, []);
 
+  // Scroll to selected date when calendar collapses
+  useEffect(() => {
+    if (expanded) return;
+    const selectedIdx = days.findIndex((d) => isSameDay(d, selectedDate));
+    if (flatListRef.current && selectedIdx >= 0) {
+      setTimeout(() => {
+        flatListRef.current?.scrollToIndex({
+          index: selectedIdx,
+          viewPosition: 0.5,
+          animated: true,
+        });
+      }, 100);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expanded]);
+
   const dateStr = toDateString(selectedDate);
   const { data: summary, loading, refresh } = useDailySummary(dateStr);
 

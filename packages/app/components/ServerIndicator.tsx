@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -26,6 +26,7 @@ function getHostLabel(url: string): string {
   }
 }
 
+type PingStatus = "idle" | "pinging" | "ok" | "error";
 type TestStatus = "idle" | "testing" | "ok" | "error";
 
 export default function ServerIndicator() {
@@ -34,6 +35,22 @@ export default function ServerIndicator() {
   const [inputUrl, setInputUrl] = useState("");
   const [testStatus, setTestStatus] = useState<TestStatus>("idle");
   const [saving, setSaving] = useState(false);
+  const [pingStatus, setPingStatus] = useState<PingStatus>("idle");
+  const pingControllerRef = useRef<AbortController | null>(null);
+
+  const ping = useCallback(async (url: string) => {
+    pingControllerRef.current?.abort();
+    const controller = new AbortController();
+    pingControllerRef.current = controller;
+    setPingStatus("pinging");
+    try {
+      const res = await fetch(`${url}/api/v1/ping`, { signal: controller.signal });
+      const data = await res.json();
+      setPingStatus(data?.ok === true ? "ok" : "error");
+    } catch {
+      if (!controller.signal.aborted) setPingStatus("error");
+    }
+  }, []);
 
   const loadUrl = useCallback(async () => {
     const custom = await getCustomApiUrl();
@@ -43,6 +60,10 @@ export default function ServerIndicator() {
   useEffect(() => {
     loadUrl();
   }, [loadUrl]);
+
+  useEffect(() => {
+    ping(currentUrl);
+  }, [currentUrl, ping]);
 
   function openModal() {
     setInputUrl(currentUrl);
@@ -95,7 +116,15 @@ export default function ServerIndicator() {
         onPress={openModal}
         className="flex-row items-center justify-center gap-1.5 py-3"
       >
-        <View className="w-1.5 h-1.5 rounded-full bg-slate-600" />
+        <View
+          className={`w-1.5 h-1.5 rounded-full ${
+            pingStatus === "ok"
+              ? "bg-green-400"
+              : pingStatus === "error"
+              ? "bg-red-400"
+              : "bg-slate-600"
+          }`}
+        />
         <Text className="text-slate-500 text-xs">
           Using {getHostLabel(currentUrl)}
         </Text>

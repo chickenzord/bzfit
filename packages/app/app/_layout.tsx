@@ -1,20 +1,25 @@
 import "../global.css";
-import { Stack, router } from "expo-router";
+import { Stack, router, useRootNavigationState, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { AuthProvider, useAuth } from "../lib/auth";
 
 function RootNavigator() {
   const { isAuthenticated, isLoading } = useAuth();
+  const segments = useSegments();
+  const navigationState = useRootNavigationState();
 
   useEffect(() => {
+    if (!navigationState?.key) return; // navigator not mounted yet
     if (isLoading) return;
-    if (isAuthenticated) {
-      router.replace("/(tabs)");
-    } else {
+
+    const inAuthGroup = segments[0] === "(auth)";
+    if (!isAuthenticated && !inAuthGroup) {
       router.replace("/(auth)/login");
+    } else if (isAuthenticated && inAuthGroup) {
+      router.replace("/(tabs)");
     }
-  }, [isAuthenticated, isLoading]);
+  }, [isAuthenticated, isLoading, segments, navigationState?.key]);
 
   return (
     <>
