@@ -138,6 +138,7 @@ export function QuickAddModal({
   const [selectedServing, setSelectedServing] = useState<FullServing | null>(null);
   const [servingPickerOpen, setServingPickerOpen] = useState(false);
   const [quantityStr, setQuantityStr] = useState("1");
+  const [totalStr, setTotalStr] = useState("");
 
   // Submit
   const [submitting, setSubmitting] = useState(false);
@@ -165,6 +166,7 @@ export function QuickAddModal({
       setSelectedServing(null);
       setServingPickerOpen(false);
       setQuantityStr("1");
+      setTotalStr("");
       setError(null);
     }
   }, [visible, defaultMealType]);
@@ -198,6 +200,7 @@ export function QuickAddModal({
       setSelectedFood(fullFood);
       setSelectedServing(defaultServing);
       setQuantityStr("1");
+      setTotalStr(String(defaultServing.size));
       setIsNewFood(false);
       setPhase("configure");
     } catch {
@@ -215,6 +218,26 @@ export function QuickAddModal({
     setServingUnit("g");
     setPhase("configure");
   }, []);
+
+  const handleQuantityChange = useCallback((val: string) => {
+    setQuantityStr(val);
+    if (!val.endsWith(".")) {
+      const qty = parseFloat(val);
+      if (selectedServing && !isNaN(qty) && qty > 0) {
+        setTotalStr(String(+(selectedServing.size * qty).toFixed(1)));
+      }
+    }
+  }, [selectedServing]);
+
+  const handleTotalChange = useCallback((val: string) => {
+    setTotalStr(val);
+    if (!val.endsWith(".")) {
+      const total = parseFloat(val);
+      if (selectedServing && !isNaN(total) && total > 0 && selectedServing.size > 0) {
+        setQuantityStr(String(+(total / selectedServing.size).toFixed(2)));
+      }
+    }
+  }, [selectedServing]);
 
   async function handleSubmit() {
     if (!isFormValid || !mealType) return;
@@ -291,7 +314,7 @@ export function QuickAddModal({
                   </TouchableOpacity>
                 )}
                 <View>
-                  <Text className="text-white text-xl font-bold">Add Food</Text>
+                  <Text className="text-white text-xl font-bold">Quick Log</Text>
                   <Text className="text-slate-500 text-xs mt-0.5">{fullDate}</Text>
                 </View>
               </View>
@@ -514,7 +537,7 @@ export function QuickAddModal({
                         {selectedFood.servings.map((s, i) => (
                           <TouchableOpacity
                             key={s.id}
-                            onPress={() => { setSelectedServing(s); setServingPickerOpen(false); }}
+                            onPress={() => { setSelectedServing(s); setServingPickerOpen(false); setQuantityStr("1"); setTotalStr(String(s.size)); }}
                             className={`flex-row items-center justify-between px-4 py-3 ${
                               i > 0 ? "border-t border-slate-700" : ""
                             }`}
@@ -538,13 +561,15 @@ export function QuickAddModal({
 
                     {!servingPickerOpen && <View className="mb-3" />}
 
-                    <View className="flex-row gap-3 mb-4">
-                      {/* Readonly serving size */}
+                    {/* Row 1: Per serving + Quantity */}
+                    <View className="flex-row gap-3 mb-3">
+                      {/* Per serving (readonly) */}
                       <View className="flex-[2]">
-                        <Text className="text-slate-500 text-xs mb-1">Size</Text>
+                        <Text className="text-slate-500 text-xs mb-1">Per serving</Text>
                         <View className="flex-row items-center bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
                           <Text
                             style={{ color: "#94a3b8", flex: 1, paddingHorizontal: 12, paddingVertical: 12 }}
+                            numberOfLines={1}
                           >
                             {selectedServing?.size ?? "—"}
                           </Text>
@@ -562,61 +587,68 @@ export function QuickAddModal({
                           </View>
                         </View>
                       </View>
-                      {/* Multiplier */}
+                      {/* Quantity */}
                       <View className="flex-1">
-                        <Text className="text-slate-500 text-xs mb-1">Multiplier</Text>
+                        <Text className="text-slate-500 text-xs mb-1">Quantity</Text>
                         <View className="flex-row items-center bg-slate-800 border border-slate-700 rounded-xl px-3 py-3">
                           <Text className="text-slate-400 text-sm mr-1">×</Text>
                           <TextInput
                             value={quantityStr}
-                            onChangeText={setQuantityStr}
+                            onChangeText={handleQuantityChange}
                             keyboardType="decimal-pad"
                             style={{ color: "white", flex: 1 }}
                           />
                         </View>
                       </View>
                     </View>
+                    {/* Row 2: Total (editable, full width) */}
+                    <View className="mb-4">
+                      <Text className="text-slate-500 text-xs mb-1">Total</Text>
+                      <View className="flex-row items-center bg-slate-800 border border-blue-500/40 rounded-xl px-3 py-3">
+                        <TextInput
+                          value={totalStr}
+                          onChangeText={handleTotalChange}
+                          keyboardType="decimal-pad"
+                          style={{ color: "white", flex: 1, fontSize: 15 }}
+                        />
+                        {selectedServing?.unit ? (
+                          <Text style={{ color: "#94a3b8", fontSize: 14, marginLeft: 4 }}>
+                            {selectedServing.unit}
+                          </Text>
+                        ) : null}
+                      </View>
+                    </View>
                   </>
                 )}
 
-                {/* Computed total + nutrition (existing food only) */}
-                {!isNewFood && selectedServing && (() => {
+                {/* Nutrition preview (existing food only) */}
+                {!isNewFood && selectedServing?.calories != null && (() => {
                   const qty = parseFloat(quantityStr);
                   if (isNaN(qty) || qty <= 0) return null;
-                  const total = +(selectedServing.size * qty).toFixed(1);
-                  const hasNutrition = selectedServing.calories != null;
                   return (
                     <View className="bg-slate-800 rounded-xl px-4 py-3 mb-4 border border-slate-700">
                       <View className="flex-row items-center justify-between">
-                        <Text className="text-slate-400 text-sm">Total</Text>
-                        <Text className="text-white text-base font-semibold">
-                          {total} {selectedServing.unit}
+                        <Text className="text-white text-sm font-medium">
+                          {Math.round((selectedServing.calories ?? 0) * qty)} kcal
                         </Text>
-                      </View>
-                      {hasNutrition && (
-                        <View className="flex-row items-center justify-between mt-2 pt-2 border-t border-slate-700">
-                          <Text className="text-white text-sm font-medium">
-                            {Math.round((selectedServing.calories ?? 0) * qty)} kcal
-                          </Text>
-                          <View className="flex-row gap-3">
-                            {selectedServing.protein != null && (
-                              <Text className="text-blue-400 text-xs">
-                                P {Math.round(selectedServing.protein * qty)}g
-                              </Text>
-                            )}
-                            {selectedServing.carbs != null && (
-                              <Text className="text-amber-400 text-xs">
-                                C {Math.round(selectedServing.carbs * qty)}g
-                              </Text>
-                            )}
-                            {selectedServing.fat != null && (
-                              <Text className="text-rose-400 text-xs">
-                                F {Math.round(selectedServing.fat * qty)}g
-                              </Text>
-                            )}
-                          </View>
+                        <View className="flex-row gap-3">
+                          {selectedServing.protein != null && (
+                            <Text className="text-blue-400 text-xs">
+                              P {Math.round(selectedServing.protein * qty)}g
+                            </Text>
+                          )}
+                          {selectedServing.carbs != null && (
+                            <Text className="text-amber-400 text-xs">
+                              C {Math.round(selectedServing.carbs * qty)}g
+                            </Text>
+                          )}
+                          {selectedServing.fat != null && (
+                            <Text className="text-rose-400 text-xs">
+                              F {Math.round(selectedServing.fat * qty)}g
+                            </Text>
+                          )}
                         </View>
-                      )}
+                      </View>
                     </View>
                   );
                 })()}
