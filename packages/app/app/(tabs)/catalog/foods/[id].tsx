@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
-import { View, Text, ActivityIndicator, ScrollView } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { useState, useCallback, useEffect } from "react";
+import { View, Text, ActivityIndicator, ScrollView, TouchableOpacity } from "react-native";
+import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { ApiError, apiFetch } from "../../../../lib/api";
+import { FlashMessage } from "../../../../components/FlashMessage";
 
 interface Serving {
   id: string;
@@ -34,22 +35,33 @@ const STATUS_LABEL: Record<Serving["status"], string> = {
 };
 
 export default function FoodDetailsScreen() {
-  const { id } = useLocalSearchParams();
+  const { id, editedServingId } = useLocalSearchParams<{ id: string; editedServingId?: string }>();
+  const router = useRouter();
   const [food, setFood] = useState<Food | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!id) return;
-    setLoading(true);
-    setError(null);
-    apiFetch<Food>(`/catalog/foods/${id}`)
-      .then(setFood)
-      .catch((err) =>
-        setError(err instanceof ApiError ? err.message : "An unexpected error occurred.")
-      )
-      .finally(() => setLoading(false));
-  }, [id]);
+    if (!editedServingId) return;
+    setHighlightedId(editedServingId);
+    const t = setTimeout(() => setHighlightedId(null), 3000);
+    return () => clearTimeout(t);
+  }, [editedServingId]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!id) return;
+      setLoading(true);
+      setError(null);
+      apiFetch<Food>(`/catalog/foods/${id}`)
+        .then(setFood)
+        .catch((err) =>
+          setError(err instanceof ApiError ? err.message : "An unexpected error occurred.")
+        )
+        .finally(() => setLoading(false));
+    }, [id])
+  );
 
   if (loading) {
     return (
@@ -84,6 +96,8 @@ export default function FoodDetailsScreen() {
         <Text className="text-slate-400 text-sm mt-1 mb-4">{food.brand}</Text>
       )}
 
+      <FlashMessage visible={!!highlightedId} message="Serving updated" />
+
       <Text className="text-slate-400 text-xs uppercase tracking-wide mb-3 mt-2">
         Servings
       </Text>
@@ -97,7 +111,11 @@ export default function FoodDetailsScreen() {
         return (
           <View
             key={serving.id}
-            className="bg-slate-900 p-4 rounded-xl mb-3 border border-slate-800"
+            className={`p-4 rounded-xl mb-3 border ${
+              highlightedId === serving.id
+                ? "bg-green-500/5 border-green-500/40"
+                : "bg-slate-900 border-slate-800"
+            }`}
           >
             <View className="flex-row items-start justify-between mb-2">
               <View className="flex-1 mr-2">
@@ -109,12 +127,20 @@ export default function FoodDetailsScreen() {
                   {serving.isDefault && " · default"}
                 </Text>
               </View>
-              {needsReview && (
-                <View className="flex-row items-center gap-1 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
-                  <Ionicons name="alert-circle-outline" size={11} color="#f59e0b" />
-                  <Text className="text-amber-500 text-xs">{STATUS_LABEL[serving.status]}</Text>
-                </View>
-              )}
+              <View className="flex-row items-center gap-2">
+                {needsReview && (
+                  <View className="flex-row items-center gap-1 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
+                    <Ionicons name="alert-circle-outline" size={11} color="#f59e0b" />
+                    <Text className="text-amber-500 text-xs">{STATUS_LABEL[serving.status]}</Text>
+                  </View>
+                )}
+                <TouchableOpacity
+                  onPress={() => router.push(`/catalog/servings/${serving.id}`)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons name="pencil-outline" size={16} color="#475569" />
+                </TouchableOpacity>
+              </View>
             </View>
 
             <View className="flex-row flex-wrap gap-x-4 gap-y-1">

@@ -25,6 +25,17 @@ export default function CatalogLayout() {
           ),
         }}
       />
+      <Stack.Screen
+        name="servings/[id]"
+        options={{
+          title: "Edit Serving",
+          headerLeft: () => (
+            <Pressable onPress={() => router.back()}>
+              <Ionicons name="chevron-back" size={24} color="#f8fafc" />
+            </Pressable>
+          ),
+        }}
+      />
     </Stack>
   );
 }
