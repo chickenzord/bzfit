@@ -9,7 +9,7 @@ import {
   Platform,
   ActivityIndicator,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Icon, type IconName } from "../lib/icons";
 import {
   getCustomApiUrl,
   setCustomApiUrl,
@@ -128,7 +128,7 @@ export default function ServerIndicator() {
         <Text className="text-slate-500 text-xs">
           Using {getHostLabel(currentUrl)}
         </Text>
-        <Ionicons name="pencil-outline" size={11} color="#475569" />
+        <Icon name="edit" size={11} color="#475569" />
       </TouchableOpacity>
 
       <Modal
@@ -145,7 +145,7 @@ export default function ServerIndicator() {
               <View className="flex-row items-center justify-between mb-2">
                 <Text className="text-white text-xl font-bold">Server URL</Text>
                 <TouchableOpacity onPress={closeModal}>
-                  <Ionicons name="close" size={24} color="#94a3b8" />
+                  <Icon name="close" size={24} color="#94a3b8" />
                 </TouchableOpacity>
               </View>
               <Text className="text-slate-500 text-xs mb-5">
@@ -173,14 +173,14 @@ export default function ServerIndicator() {
                     <ActivityIndicator size="small" color="#3b82f6" />
                   )}
                   {testStatus === "ok" && (
-                    <Ionicons
-                      name="checkmark-circle"
+                    <Icon
+                      name="check-circle"
                       size={16}
                       color="#22c55e"
                     />
                   )}
                   {testStatus === "error" && (
-                    <Ionicons name="alert-circle" size={16} color="#ef4444" />
+                    <Icon name="alert-circle" size={16} color="#ef4444" />
                   )}
                   <Text
                     className={`text-sm ${

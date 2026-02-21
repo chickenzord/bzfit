@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
   Dimensions,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Icon, type IconName } from "../../../lib/icons";
 import { useDebounce } from "@uidotdev/usehooks";
 import { apiFetch } from "../../../lib/api";
 import {
@@ -310,7 +310,7 @@ export function QuickAddModal({
               <View className="flex-row items-center gap-3 flex-1">
                 {phase === "configure" && (
                   <TouchableOpacity onPress={() => setPhase("search")}>
-                    <Ionicons name="arrow-back" size={22} color="#94a3b8" />
+                    <Icon name="arrow-left" size={22} color="#94a3b8" />
                   </TouchableOpacity>
                 )}
                 <View>
@@ -319,7 +319,7 @@ export function QuickAddModal({
                 </View>
               </View>
               <TouchableOpacity onPress={onClose}>
-                <Ionicons name="close" size={24} color="#94a3b8" />
+                <Icon name="close" size={24} color="#94a3b8" />
               </TouchableOpacity>
             </View>
 
@@ -327,7 +327,7 @@ export function QuickAddModal({
               <View className="px-6 pb-8">
                 {/* Search input */}
                 <View className="bg-slate-800 rounded-xl border border-slate-700 px-4 py-3 flex-row items-center gap-2 mb-4">
-                  <Ionicons name="search-outline" size={16} color="#64748b" />
+                  <Icon name="search" size={16} color="#64748b" />
                   <TextInput
                     autoFocus
                     placeholder="Search or type a food name..."
@@ -339,7 +339,7 @@ export function QuickAddModal({
                   />
                   {query.length > 0 && (
                     <TouchableOpacity onPress={() => setQuery("")}>
-                      <Ionicons name="close-circle" size={16} color="#64748b" />
+                      <Icon name="close-circle" size={16} color="#64748b" />
                     </TouchableOpacity>
                   )}
                 </View>
@@ -354,7 +354,7 @@ export function QuickAddModal({
                     onPress={handleSelectQuickAdd}
                     className="flex-row items-center gap-3 bg-blue-500/10 border border-blue-500/20 rounded-xl px-4 py-3 mb-3"
                   >
-                    <Ionicons name="add-circle-outline" size={20} color="#3b82f6" />
+                    <Icon name="plus-circle" size={20} color="#3b82f6" />
                     <Text className="text-blue-400 text-base flex-1" numberOfLines={1}>
                       Quick-add "{query.trim()}"
                     </Text>
@@ -387,7 +387,7 @@ export function QuickAddModal({
                               <Text className="text-slate-500 text-xs mt-0.5">{food.brand}</Text>
                             )}
                           </View>
-                          <Ionicons name="chevron-forward" size={16} color="#475569" />
+                          <Icon name="chevron-right" size={16} color="#475569" />
                         </TouchableOpacity>
                       );
                     })}
@@ -424,7 +424,7 @@ export function QuickAddModal({
                 </Text>
                 {isNewFood && (
                   <View className="flex-row items-center gap-1 mb-4">
-                    <Ionicons name="alert-circle-outline" size={12} color="#f59e0b" />
+                    <Icon name="alert-circle" size={12} color="#f59e0b" />
                     <Text className="text-amber-500 text-xs">
                       Nutrition will be estimated — review later
                     </Text>
@@ -442,7 +442,7 @@ export function QuickAddModal({
                   <Text className={mealType ? "text-white text-base" : "text-slate-500 text-base"}>
                     {mealType ? MEAL_TYPE_LABEL[mealType] : "Select meal type"}
                   </Text>
-                  <Ionicons
+                  <Icon
                     name={mealTypeOpen ? "chevron-up" : "chevron-down"}
                     size={18}
                     color="#64748b"
@@ -469,7 +469,7 @@ export function QuickAddModal({
                           {MEAL_TYPE_LABEL[type]}
                         </Text>
                         {mealType === type && (
-                          <Ionicons name="checkmark" size={18} color="#3b82f6" />
+                          <Icon name="check" size={18} color="#3b82f6" />
                         )}
                       </TouchableOpacity>
                     ))}
@@ -525,7 +525,7 @@ export function QuickAddModal({
                           ? servingOptionLabel(selectedServing)
                           : "Select serving"}
                       </Text>
-                      <Ionicons
+                      <Icon
                         name={servingPickerOpen ? "chevron-up" : "chevron-down"}
                         size={18}
                         color="#64748b"
@@ -552,7 +552,7 @@ export function QuickAddModal({
                               {servingOptionLabel(s)}
                             </Text>
                             {selectedServing?.id === s.id && (
-                              <Ionicons name="checkmark" size={18} color="#3b82f6" />
+                              <Icon name="check" size={18} color="#3b82f6" />
                             )}
                           </TouchableOpacity>
                         ))}

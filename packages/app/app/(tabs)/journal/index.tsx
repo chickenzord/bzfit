@@ -12,7 +12,7 @@ import {
   Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+import { Icon, type IconName } from "../../../lib/icons";
 import {
   useDailySummary,
   useNutritionGoal,
@@ -73,10 +73,10 @@ function toDateString(d: Date): string {
 }
 
 const MEAL_TYPE_MAP = {
-  BREAKFAST: { label: "Breakfast", icon: "sunny-outline" as const },
-  LUNCH: { label: "Lunch", icon: "partly-sunny-outline" as const },
-  DINNER: { label: "Dinner", icon: "moon-outline" as const },
-  SNACK: { label: "Snack", icon: "cafe-outline" as const },
+  BREAKFAST: { label: "Breakfast", icon: "meal-breakfast" as const },
+  LUNCH: { label: "Lunch", icon: "meal-lunch" as const },
+  DINNER: { label: "Dinner", icon: "meal-dinner" as const },
+  SNACK: { label: "Snack", icon: "meal-snack" as const },
 } as const;
 
 const MEAL_TYPE_ORDER = ["BREAKFAST", "LUNCH", "DINNER", "SNACK"] as const;
@@ -179,7 +179,7 @@ function GoalsModal({ visible, onClose }: GoalsModalProps) {
                 Nutrition Goals
               </Text>
               <TouchableOpacity onPress={handleClose}>
-                <Ionicons name="close" size={24} color="#94a3b8" />
+                <Icon name="close" size={24} color="#94a3b8" />
               </TouchableOpacity>
             </View>
 
@@ -398,7 +398,7 @@ export default function JournalScreen() {
         <View className="flex-row items-center justify-between px-4 mb-4">
           <View className="flex-row items-center gap-2">
             <View className="w-7 h-7 bg-blue-500 rounded-lg items-center justify-center">
-              <Ionicons name="flame" size={16} color="white" />
+              <Icon name="flame" size={16} color="white" />
             </View>
             <Text className="text-white text-xl font-bold tracking-tight">
               BzFit
@@ -406,7 +406,7 @@ export default function JournalScreen() {
           </View>
           <View className="flex-row items-center gap-3">
             <TouchableOpacity onPress={() => setGoalsVisible(true)}>
-              <Ionicons name="flag-outline" size={24} color="#64748b" />
+              <Icon name="flag" size={24} color="#64748b" />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => {
@@ -414,7 +414,7 @@ export default function JournalScreen() {
                 setQuickAddVisible(true);
               }}
             >
-              <Ionicons name="add-circle-outline" size={28} color="#3b82f6" />
+              <Icon name="plus-circle" size={28} color="#3b82f6" />
             </TouchableOpacity>
           </View>
         </View>
@@ -424,13 +424,13 @@ export default function JournalScreen() {
           {expanded ? (
             <View className="flex-row items-center gap-3">
               <TouchableOpacity onPress={() => shiftGridMonth(-1)}>
-                <Ionicons name="chevron-back" size={18} color="#94a3b8" />
+                <Icon name="chevron-left" size={18} color="#94a3b8" />
               </TouchableOpacity>
               <Text className="text-white font-semibold text-base">
                 {MONTH_NAMES[gridMonth.month]} {gridMonth.year}
               </Text>
               <TouchableOpacity onPress={() => shiftGridMonth(1)}>
-                <Ionicons name="chevron-forward" size={18} color="#94a3b8" />
+                <Icon name="chevron-right" size={18} color="#94a3b8" />
               </TouchableOpacity>
             </View>
           ) : (
@@ -442,7 +442,7 @@ export default function JournalScreen() {
             onPress={() => setExpanded((v) => !v)}
             className="flex-row items-center gap-1 py-1 px-2"
           >
-            <Ionicons
+            <Icon
               name={expanded ? "chevron-up" : "chevron-down"}
               size={16}
               color="#64748b"
@@ -678,7 +678,7 @@ export default function JournalScreen() {
             >
               <View className="flex-row justify-between items-center">
                 <View className="flex-row items-center gap-2">
-                  <Ionicons name={icon} size={16} color="#64748b" />
+                  <Icon name={icon} size={16} color="#64748b" />
                   <Text className="text-white text-base font-semibold">
                     {label}
                   </Text>
@@ -691,7 +691,7 @@ export default function JournalScreen() {
                       setQuickAddVisible(true);
                     }}
                   >
-                    <Ionicons name="add" size={20} color="#3b82f6" />
+                    <Icon name="plus" size={20} color="#3b82f6" />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -720,8 +720,8 @@ export default function JournalScreen() {
                       </View>
                       <View className="flex-row items-center gap-1.5">
                         {item.isEstimated && (
-                          <Ionicons
-                            name="alert-circle-outline"
+                          <Icon
+                            name="alert-circle"
                             size={13}
                             color="#f59e0b"
                           />

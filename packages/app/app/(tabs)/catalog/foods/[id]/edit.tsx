@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter, Stack, useFocusEffect } from "expo-router";
 import { useTabBarHidden } from "../../../../_layout";
-import { Ionicons } from "@expo/vector-icons";
+import { Icon, type IconName } from "../../../../../lib/icons";
 import { apiFetch, ApiError } from "../../../../../lib/api";
 import { ConfirmModal } from "../../../../../components/ConfirmModal";
 
@@ -198,7 +198,7 @@ export default function FoodEditScreen() {
                 }}
                 className="flex-row items-center gap-3 px-1 py-3 border-b border-slate-800"
               >
-                <Ionicons name="pencil-outline" size={18} color="#94a3b8" />
+                <Icon name="edit" size={18} color="#94a3b8" />
                 <Text className="text-white text-base">Edit Serving</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -209,7 +209,7 @@ export default function FoodEditScreen() {
                 }}
                 className="flex-row items-center gap-3 px-1 py-3"
               >
-                <Ionicons name="trash-outline" size={18} color="#f87171" />
+                <Icon name="trash" size={18} color="#f87171" />
                 <Text className="text-red-400 text-base">Delete Serving</Text>
               </TouchableOpacity>
             </View>
@@ -303,7 +303,7 @@ export default function FoodEditScreen() {
                       <Text className={isSelected ? "text-blue-400 font-medium" : "text-white"}>
                         {label}
                       </Text>
-                      {isSelected && <Ionicons name="checkmark" size={18} color="#3b82f6" />}
+                      {isSelected && <Icon name="check" size={18} color="#3b82f6" />}
                     </TouchableOpacity>
                   );
                 })}
@@ -322,7 +322,7 @@ export default function FoodEditScreen() {
               {addingServing ? (
                 <ActivityIndicator size="small" color="#3b82f6" />
               ) : (
-                <Ionicons name="add" size={16} color="#3b82f6" />
+                <Icon name="plus" size={16} color="#3b82f6" />
               )}
               <Text className="text-blue-500 text-xs">Add Serving</Text>
             </TouchableOpacity>
@@ -354,7 +354,7 @@ export default function FoodEditScreen() {
                   onPress={() => setMenuServingId(s.id)}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
-                  <Ionicons name="ellipsis-vertical" size={18} color="#475569" />
+                  <Icon name="more-vertical" size={18} color="#475569" />
                 </TouchableOpacity>
               )}
             </View>

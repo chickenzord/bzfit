@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { Icon, type IconName } from "../../lib/icons";
 import { createContext, useContext, useState } from "react";
 
 const TabBarContext = createContext<{ setHidden: (hidden: boolean) => void }>({
@@ -38,7 +38,7 @@ export default function TabsLayout() {
             title: "Journal",
             headerShown: false,
             tabBarIcon: ({ color, size }) => (
-              <Ionicons name="calendar-outline" size={size} color={color} />
+              <Icon name="calendar" size={size} color={color} />
             ),
           }}
         />
@@ -48,7 +48,7 @@ export default function TabsLayout() {
             title: "Catalog",
             headerShown: false,
             tabBarIcon: ({ color, size }) => (
-              <Ionicons name="grid-outline" size={size} color={color} />
+              <Icon name="grid" size={size} color={color} />
             ),
           }}
         />
@@ -58,7 +58,7 @@ export default function TabsLayout() {
             title: "Settings",
             headerShown: false,
             tabBarIcon: ({ color, size }) => (
-              <Ionicons name="settings-outline" size={size} color={color} />
+              <Icon name="settings" size={size} color={color} />
             ),
           }}
         />

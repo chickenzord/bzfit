@@ -11,7 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Icon, type IconName } from "../../../lib/icons";
 import { useNutritionGoals, type NutritionGoal } from "../../../lib/nutrition";
 
 function formatGoalDate(iso: string): string {
@@ -84,7 +84,7 @@ function GoalFormModal({ visible, onClose, onSubmit, title, submitLabel, initial
             <View className="flex-row items-center justify-between mb-6">
               <Text className="text-white text-xl font-bold">{title}</Text>
               <TouchableOpacity onPress={onClose}>
-                <Ionicons name="close" size={24} color="#94a3b8" />
+                <Icon name="close" size={24} color="#94a3b8" />
               </TouchableOpacity>
             </View>
 
@@ -181,7 +181,7 @@ export default function GoalsScreen() {
           onPress={() => setCreateVisible(true)}
           className="flex-row items-center justify-center gap-2 bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mb-6"
         >
-          <Ionicons name="add" size={18} color="#3b82f6" />
+          <Icon name="plus" size={18} color="#3b82f6" />
           <Text className="text-blue-400 font-semibold">New Goal</Text>
         </TouchableOpacity>
 
@@ -189,7 +189,7 @@ export default function GoalsScreen() {
           <ActivityIndicator color="#3b82f6" className="mt-8" />
         ) : goals.length === 0 ? (
           <View className="items-center mt-12">
-            <Ionicons name="flag-outline" size={40} color="#334155" />
+            <Icon name="flag" size={40} color="#334155" />
             <Text className="text-slate-500 text-base mt-3">No goals yet</Text>
             <Text className="text-slate-600 text-sm mt-1">Tap "New Goal" to set your daily targets.</Text>
           </View>
@@ -223,13 +223,13 @@ export default function GoalsScreen() {
                         onPress={() => setEditingGoal(goal)}
                         className="p-2"
                       >
-                        <Ionicons name="pencil-outline" size={16} color="#64748b" />
+                        <Icon name="edit" size={16} color="#64748b" />
                       </TouchableOpacity>
                       <TouchableOpacity
                         onPress={() => handleDelete(goal)}
                         className="p-2"
                       >
-                        <Ionicons name="trash-outline" size={16} color="#64748b" />
+                        <Icon name="trash" size={16} color="#64748b" />
                       </TouchableOpacity>
                     </View>
                   )}

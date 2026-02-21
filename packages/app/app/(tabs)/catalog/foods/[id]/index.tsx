@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { View, Text, ActivityIndicator, ScrollView, TouchableOpacity, Modal, Pressable } from "react-native";
 import { ConfirmModal } from "../../../../../components/ConfirmModal";
 import { useLocalSearchParams, useRouter, useFocusEffect, Stack } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { Icon, type IconName } from "../../../../../lib/icons";
 import { ApiError, apiFetch } from "../../../../../lib/api";
 import { FlashMessage } from "../../../../../components/FlashMessage";
 
@@ -154,7 +154,7 @@ export default function FoodDetailsScreen() {
               onPress={() => router.push(`/catalog/foods/${id}/edit`)}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Ionicons name="pencil-outline" size={20} color="#94a3b8" />
+              <Icon name="edit" size={20} color="#94a3b8" />
             </TouchableOpacity>
           ),
         }}
@@ -185,7 +185,7 @@ export default function FoodDetailsScreen() {
                 }}
                 className="flex-row items-center gap-3 px-1 py-3 border-b border-slate-800"
               >
-                <Ionicons name="pencil-outline" size={18} color="#94a3b8" />
+                <Icon name="edit" size={18} color="#94a3b8" />
                 <Text className="text-white text-base">Edit Serving</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -196,7 +196,7 @@ export default function FoodDetailsScreen() {
                 }}
                 className="flex-row items-center gap-3 px-1 py-3"
               >
-                <Ionicons name="trash-outline" size={18} color="#f87171" />
+                <Icon name="trash" size={18} color="#f87171" />
                 <Text className="text-red-400 text-base">Delete Serving</Text>
               </TouchableOpacity>
             </View>
@@ -239,7 +239,7 @@ export default function FoodDetailsScreen() {
             onPress={() => router.push(`/catalog/foods/${id}/servings/new`)}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Ionicons name="add" size={20} color="#3b82f6" />
+            <Icon name="plus" size={20} color="#3b82f6" />
           </TouchableOpacity>
         </View>
 
@@ -271,7 +271,7 @@ export default function FoodDetailsScreen() {
                 <View className="flex-row items-center gap-2">
                   {needsReview && (
                     <View className="flex-row items-center gap-1 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
-                      <Ionicons name="alert-circle-outline" size={11} color="#f59e0b" />
+                      <Icon name="alert-circle" size={11} color="#f59e0b" />
                       <Text className="text-amber-500 text-xs">{STATUS_LABEL[serving.status]}</Text>
                     </View>
                   )}
@@ -282,7 +282,7 @@ export default function FoodDetailsScreen() {
                       onPress={() => setMenuServingId(serving.id)}
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     >
-                      <Ionicons name="ellipsis-vertical" size={18} color="#475569" />
+                      <Icon name="more-vertical" size={18} color="#475569" />
                     </TouchableOpacity>
                   )}
                 </View>

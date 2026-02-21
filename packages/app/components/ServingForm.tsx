@@ -9,7 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Icon, type IconName } from "../lib/icons";
 
 export type ServingStatus = "VERIFIED" | "NEEDS_REVIEW" | "USER_CREATED";
 
@@ -204,7 +204,7 @@ export function ServingForm({
               scaleNutrition ? "bg-blue-500 border-blue-500" : "border-slate-600"
             }`}
           >
-            {scaleNutrition && <Ionicons name="checkmark" size={11} color="white" />}
+            {scaleNutrition && <Icon name="check" size={11} color="white" />}
           </View>
           <Text className="text-slate-400 text-sm">Scale nutrition to size</Text>
         </TouchableOpacity>
@@ -251,7 +251,7 @@ export function ServingForm({
             />
             <Text className="text-white">{STATUS_LABEL[status]}</Text>
           </View>
-          <Ionicons name={statusOpen ? "chevron-up" : "chevron-down"} size={18} color="#64748b" />
+          <Icon name={statusOpen ? "chevron-up" : "chevron-down"} size={18} color="#64748b" />
         </TouchableOpacity>
 
         {statusOpen && (
@@ -280,7 +280,7 @@ export function ServingForm({
                     {STATUS_LABEL[s]}
                   </Text>
                 </View>
-                {status === s && <Ionicons name="checkmark" size={18} color="#3b82f6" />}
+                {status === s && <Icon name="check" size={18} color="#3b82f6" />}
               </TouchableOpacity>
             ))}
           </View>
@@ -300,7 +300,7 @@ export function ServingForm({
                 isDefault ? "bg-blue-500 border-blue-500" : "border-slate-600"
               }`}
             >
-              {isDefault && <Ionicons name="checkmark" size={11} color="white" />}
+              {isDefault && <Icon name="check" size={11} color="white" />}
             </View>
             <Text className="text-slate-400 text-sm">Set as default serving</Text>
           </TouchableOpacity>

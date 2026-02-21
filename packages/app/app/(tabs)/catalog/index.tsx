@@ -8,7 +8,7 @@ import {
   Pressable,
 } from "react-native";
 import { Link } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { Icon, type IconName } from "../../../lib/icons";
 import { useDebounce } from "@uidotdev/usehooks";
 import { ApiError, apiFetch } from "../../../lib/api";
 
@@ -98,7 +98,7 @@ export default function CatalogScreen() {
             </View>
             {review && (
               <View className="flex-row items-center gap-1 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
-                <Ionicons name="alert-circle-outline" size={11} color="#f59e0b" />
+                <Icon name="alert-circle" size={11} color="#f59e0b" />
                 <Text className="text-amber-500 text-xs">Review</Text>
               </View>
             )}
@@ -112,7 +112,7 @@ export default function CatalogScreen() {
     <View className="flex-1 bg-slate-950 px-4 pt-4">
       {/* Search bar */}
       <View className="bg-slate-900 rounded-xl border border-slate-800 px-4 py-3 mb-4 flex-row items-center gap-2">
-        <Ionicons name="search-outline" size={16} color="#64748b" />
+        <Icon name="search" size={16} color="#64748b" />
         <TextInput
           placeholder="Search foods..."
           placeholderTextColor="#64748b"
@@ -123,7 +123,7 @@ export default function CatalogScreen() {
         />
         {searchQuery.length > 0 && (
           <Pressable onPress={() => setSearchQuery("")}>
-            <Ionicons name="close-circle" size={16} color="#64748b" />
+            <Icon name="close-circle" size={16} color="#64748b" />
           </Pressable>
         )}
       </View>

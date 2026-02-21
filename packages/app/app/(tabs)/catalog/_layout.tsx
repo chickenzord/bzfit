@@ -1,6 +1,6 @@
 import { Stack, useRouter } from "expo-router";
 import { Pressable } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Icon } from "../../../lib/icons";
 
 export default function CatalogLayout() {
   const router = useRouter();
@@ -20,7 +20,7 @@ export default function CatalogLayout() {
           title: "Food Details",
           headerLeft: () => (
             <Pressable onPress={() => router.back()}>
-              <Ionicons name="chevron-back" size={24} color="#f8fafc" />
+              <Icon name="chevron-left" size={24} color="#f8fafc" />
             </Pressable>
           ),
         }}
@@ -31,7 +31,7 @@ export default function CatalogLayout() {
           title: "Edit Food",
           headerLeft: () => (
             <Pressable onPress={() => router.back()}>
-              <Ionicons name="chevron-back" size={24} color="#f8fafc" />
+              <Icon name="chevron-left" size={24} color="#f8fafc" />
             </Pressable>
           ),
         }}
@@ -42,7 +42,7 @@ export default function CatalogLayout() {
           title: "New Serving",
           headerLeft: () => (
             <Pressable onPress={() => router.back()}>
-              <Ionicons name="chevron-back" size={24} color="#f8fafc" />
+              <Icon name="chevron-left" size={24} color="#f8fafc" />
             </Pressable>
           ),
         }}
@@ -53,7 +53,7 @@ export default function CatalogLayout() {
           title: "Edit Serving",
           headerLeft: () => (
             <Pressable onPress={() => router.back()}>
-              <Ionicons name="chevron-back" size={24} color="#f8fafc" />
+              <Icon name="chevron-left" size={24} color="#f8fafc" />
             </Pressable>
           ),
         }}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { Icon, type IconName } from "../../../lib/icons";
 import { useAuth } from "../../../lib/auth";
 import { getCustomApiUrl } from "../../../lib/storage";
 
@@ -45,7 +45,7 @@ export default function SettingsScreen() {
           <Text className="text-white text-base font-medium">Nutrition Goals</Text>
           <Text className="text-slate-400 text-sm mt-1">Manage daily targets</Text>
         </View>
-        <Ionicons name="chevron-forward" size={18} color="#475569" />
+        <Icon name="chevron-right" size={18} color="#475569" />
       </TouchableOpacity>
 
       <View className="bg-slate-900 rounded-xl p-4 border border-slate-800 mb-3">

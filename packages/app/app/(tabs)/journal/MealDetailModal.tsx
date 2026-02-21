@@ -7,14 +7,14 @@ import {
   Modal,
   ActivityIndicator,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Icon, type IconName } from "../../../lib/icons";
 import { type Meal, type MealItem, deleteMealItem } from "../../../lib/nutrition";
 
 const MEAL_TYPE_MAP = {
-  BREAKFAST: { label: "Breakfast", icon: "sunny-outline" as const },
-  LUNCH: { label: "Lunch", icon: "partly-sunny-outline" as const },
-  DINNER: { label: "Dinner", icon: "moon-outline" as const },
-  SNACK: { label: "Snack", icon: "cafe-outline" as const },
+  BREAKFAST: { label: "Breakfast", icon: "meal-breakfast" as const },
+  LUNCH: { label: "Lunch", icon: "meal-lunch" as const },
+  DINNER: { label: "Dinner", icon: "meal-dinner" as const },
+  SNACK: { label: "Snack", icon: "meal-snack" as const },
 } as const;
 
 type MealDetailModalProps = {
@@ -88,7 +88,7 @@ export function MealDetailModal({
           <View className="flex-row items-center justify-between px-6 pt-6 pb-4">
             <View className="flex-row items-center gap-2">
               {mealTypeInfo && (
-                <Ionicons name={mealTypeInfo.icon} size={20} color="#64748b" />
+                <Icon name={mealTypeInfo.icon} size={20} color="#64748b" />
               )}
               <View>
                 <Text className="text-white text-xl font-bold">
@@ -98,7 +98,7 @@ export function MealDetailModal({
               </View>
             </View>
             <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color="#94a3b8" />
+              <Icon name="close" size={24} color="#94a3b8" />
             </TouchableOpacity>
           </View>
 
@@ -121,8 +121,8 @@ export function MealDetailModal({
                       <View className="flex-1 mr-3">
                         <View className="flex-row items-center gap-1.5">
                           {item.isEstimated && (
-                            <Ionicons
-                              name="alert-circle-outline"
+                            <Icon
+                              name="alert-circle"
                               size={13}
                               color="#f59e0b"
                             />
@@ -146,7 +146,7 @@ export function MealDetailModal({
                         {isDeleting ? (
                           <ActivityIndicator size="small" color="#64748b" />
                         ) : (
-                          <Ionicons name="trash-outline" size={18} color="#64748b" />
+                          <Icon name="trash" size={18} color="#64748b" />
                         )}
                       </TouchableOpacity>
                     </View>
