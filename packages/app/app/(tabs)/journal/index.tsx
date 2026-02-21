@@ -89,7 +89,7 @@ type GoalsModalProps = {
 };
 
 function GoalsModal({ visible, onClose }: GoalsModalProps) {
-  const { goal, loading, update, saveAsNew } = useNutritionGoal();
+  const { goal, loading, update, saveAsNew, refresh } = useNutritionGoal();
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
@@ -98,6 +98,10 @@ function GoalsModal({ visible, onClose }: GoalsModalProps) {
     carbs: "",
     fat: "",
   });
+
+  useEffect(() => {
+    if (visible) refresh();
+  }, [visible]);
 
   useEffect(() => {
     if (goal) {
