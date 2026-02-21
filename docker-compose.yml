@@ -1,0 +1,23 @@
+# BzFit - Docker Compose
+#
+# Default: SQLite (data stored in a local volume)
+# For PostgreSQL: see docker-compose.postgres.yml or override DATABASE_URL below.
+
+services:
+  bzfit:
+    image: ghcr.io/chickenzord/bzfit:latest
+    ports:
+      - "3000:3000"
+    environment:
+      # SQLite (default) — data persisted in the volume below
+      DATABASE_URL: file:./data/db.sqlite
+
+      # Change this to a long random string in production!
+      JWT_SECRET: change-me-in-production
+      # JWT_EXPIRES_IN: 7d   # optional, default: 7d
+    volumes:
+      - bzfit-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  bzfit-data:
