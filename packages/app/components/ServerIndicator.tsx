@@ -15,6 +15,7 @@ import {
   setCustomApiUrl,
   removeCustomApiUrl,
 } from "../lib/storage";
+import { fetchServerInfo } from "../lib/api";
 
 const DEFAULT_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3001";
 
@@ -29,11 +30,16 @@ function getHostLabel(url: string): string {
 type PingStatus = "idle" | "pinging" | "ok" | "error";
 type TestStatus = "idle" | "testing" | "ok" | "error";
 
-export default function ServerIndicator() {
+type Props = {
+  onServerInfo?: (info: { registrationEnabled: boolean } | null) => void;
+};
+
+export default function ServerIndicator({ onServerInfo }: Props) {
   const [currentUrl, setCurrentUrl] = useState(DEFAULT_URL);
   const [modalVisible, setModalVisible] = useState(false);
   const [inputUrl, setInputUrl] = useState("");
   const [testStatus, setTestStatus] = useState<TestStatus>("idle");
+  const [testRegistrationEnabled, setTestRegistrationEnabled] = useState<boolean | null>(null);
   const [saving, setSaving] = useState(false);
   const [pingStatus, setPingStatus] = useState<PingStatus>("idle");
   const pingControllerRef = useRef<AbortController | null>(null);
@@ -44,13 +50,22 @@ export default function ServerIndicator() {
     pingControllerRef.current = controller;
     setPingStatus("pinging");
     try {
-      const res = await fetch(`${url}/api/v1/ping`, { signal: controller.signal });
-      const data = await res.json();
-      setPingStatus(data?.ok === true ? "ok" : "error");
+      const info = await fetchServerInfo(url);
+      if (controller.signal.aborted) return;
+      if (info?.name === 'BzFit') {
+        setPingStatus("ok");
+        onServerInfo?.({ registrationEnabled: info.registrationEnabled });
+      } else {
+        setPingStatus("error");
+        onServerInfo?.(null);
+      }
     } catch {
-      if (!controller.signal.aborted) setPingStatus("error");
+      if (!controller.signal.aborted) {
+        setPingStatus("error");
+        onServerInfo?.(null);
+      }
     }
-  }, []);
+  }, [onServerInfo]);
 
   const loadUrl = useCallback(async () => {
     const custom = await getCustomApiUrl();
@@ -80,10 +95,15 @@ export default function ServerIndicator() {
     const trimmed = inputUrl.trim().replace(/\/$/, "");
     if (!trimmed) return;
     setTestStatus("testing");
+    setTestRegistrationEnabled(null);
     try {
-      const res = await fetch(`${trimmed}/api/v1/ping`);
-      const data = await res.json();
-      setTestStatus(data?.ok === true ? "ok" : "error");
+      const info = await fetchServerInfo(trimmed);
+      if (info?.name === 'BzFit') {
+        setTestStatus("ok");
+        setTestRegistrationEnabled(info.registrationEnabled);
+      } else {
+        setTestStatus("error");
+      }
     } catch {
       setTestStatus("error");
     }
@@ -157,6 +177,7 @@ export default function ServerIndicator() {
                 onChangeText={(v) => {
                   setInputUrl(v);
                   setTestStatus("idle");
+                  setTestRegistrationEnabled(null);
                 }}
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -168,35 +189,38 @@ export default function ServerIndicator() {
               />
 
               {testStatus !== "idle" && (
-                <View className="flex-row items-center gap-2 mb-3 px-1">
-                  {testStatus === "testing" && (
-                    <ActivityIndicator size="small" color="#3b82f6" />
+                <View className="gap-1 mb-3 px-1">
+                  <View className="flex-row items-center gap-2">
+                    {testStatus === "testing" && (
+                      <ActivityIndicator size="small" color="#3b82f6" />
+                    )}
+                    {testStatus === "ok" && (
+                      <Icon name="check-circle" size={16} color="#22c55e" />
+                    )}
+                    {testStatus === "error" && (
+                      <Icon name="alert-circle" size={16} color="#ef4444" />
+                    )}
+                    <Text
+                      className={`text-sm ${
+                        testStatus === "ok"
+                          ? "text-green-400"
+                          : testStatus === "error"
+                          ? "text-red-400"
+                          : "text-slate-400"
+                      }`}
+                    >
+                      {testStatus === "testing"
+                        ? "Testing connection…"
+                        : testStatus === "ok"
+                        ? "BzFit server reachable"
+                        : "Could not reach a BzFit server"}
+                    </Text>
+                  </View>
+                  {testStatus === "ok" && testRegistrationEnabled === false && (
+                    <Text className="text-amber-400 text-xs ml-6">
+                      Registration is disabled on this server
+                    </Text>
                   )}
-                  {testStatus === "ok" && (
-                    <Icon
-                      name="check-circle"
-                      size={16}
-                      color="#22c55e"
-                    />
-                  )}
-                  {testStatus === "error" && (
-                    <Icon name="alert-circle" size={16} color="#ef4444" />
-                  )}
-                  <Text
-                    className={`text-sm ${
-                      testStatus === "ok"
-                        ? "text-green-400"
-                        : testStatus === "error"
-                        ? "text-red-400"
-                        : "text-slate-400"
-                    }`}
-                  >
-                    {testStatus === "testing"
-                      ? "Testing connection…"
-                      : testStatus === "ok"
-                      ? "Server reachable"
-                      : "Could not reach server"}
-                  </Text>
                 </View>
               )}
 

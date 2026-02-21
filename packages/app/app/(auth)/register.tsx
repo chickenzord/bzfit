@@ -33,7 +33,9 @@ export default function RegisterScreen() {
       await register(email.trim(), password, name.trim() || undefined);
       router.replace("/(tabs)");
     } catch (e) {
-      if (e instanceof ApiError && e.status === 409) {
+      if (e instanceof ApiError && e.status === 403) {
+        setError("Registration is disabled on this server");
+      } else if (e instanceof ApiError && e.status === 409) {
         setError("An account with this email already exists");
       } else {
         setError("Something went wrong. Please try again.");

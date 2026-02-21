@@ -11,6 +11,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [registrationEnabled, setRegistrationEnabled] = useState(true);
 
   function validate(): string | null {
     if (!email.trim()) return "Email is required";
@@ -91,17 +92,21 @@ export default function LoginScreen() {
             )}
           </Pressable>
 
-          <Pressable onPress={() => router.push("/(auth)/register")}>
-            <Text className="text-slate-400 text-center text-sm">
-              No account?{" "}
-              <Text className="text-blue-400 font-medium">Create one</Text>
-            </Text>
-          </Pressable>
+          {registrationEnabled && (
+            <Pressable onPress={() => router.push("/(auth)/register")}>
+              <Text className="text-slate-400 text-center text-sm">
+                No account?{" "}
+                <Text className="text-blue-400 font-medium">Create one</Text>
+              </Text>
+            </Pressable>
+          )}
         </View>
       </View>
 
       <View className="pb-8">
-        <ServerIndicator />
+        <ServerIndicator
+          onServerInfo={(info) => setRegistrationEnabled(info?.registrationEnabled ?? true)}
+        />
       </View>
     </View>
   );

@@ -4,6 +4,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CatalogModule } from './modules/catalog/catalog.module';
 import { NutritionModule } from './modules/nutrition/nutrition.module';
+import { ServerModule } from './modules/server/server.module';
 import { AppController } from './app.controller';
 
 const staticModules = process.env.SERVE_STATIC_PATH
@@ -19,6 +20,7 @@ const staticModules = process.env.SERVE_STATIC_PATH
   imports: [
     ...staticModules,
     PrismaModule,
+    ServerModule,
     AuthModule,
     CatalogModule,
     NutritionModule,

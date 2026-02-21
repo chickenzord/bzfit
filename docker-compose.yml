@@ -14,7 +14,10 @@ services:
 
       # Change this to a long random string in production!
       JWT_SECRET: change-me-in-production
-      # JWT_EXPIRES_IN: 7d   # optional, default: 7d
+      # JWT_EXPIRES_IN: 7d      # optional, default: 7d
+
+      # Set to false to disable new user registrations (single-user mode)
+      # REGISTRATION_ENABLED: false
     volumes:
       - bzfit-data:/app/data
     restart: unless-stopped

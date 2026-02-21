@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Delete, Body, Param, UseGuards, Request, HttpCode } from '@nestjs/common';
+import { Controller, Post, Get, Delete, Body, Param, UseGuards, Request, HttpCode, ForbiddenException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RegisterDto, LoginDto, CreateApiKeyDto, ChangePasswordDto } from './dto';
@@ -12,8 +12,12 @@ export class AuthController {
   @Post('register')
   @ApiOperation({ summary: 'Register a new user' })
   @ApiResponse({ status: 201, description: 'User registered successfully' })
+  @ApiResponse({ status: 403, description: 'Registration is disabled on this server' })
   @ApiResponse({ status: 409, description: 'User already exists' })
   async register(@Body() registerDto: RegisterDto) {
+    if (process.env.REGISTRATION_ENABLED === 'false') {
+      throw new ForbiddenException('Registration is disabled on this server');
+    }
     return this.authService.register(registerDto);
   }
 

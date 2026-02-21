@@ -39,6 +39,22 @@ export async function apiFetch<T = unknown>(
   return res.json();
 }
 
+export type ServerInfo = {
+  name: string;
+  version: string;
+  registrationEnabled: boolean;
+};
+
+export async function fetchServerInfo(baseUrl: string): Promise<ServerInfo | null> {
+  try {
+    const res = await fetch(`${baseUrl.replace(/\/$/, "")}/api/v1/server/info`);
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
+}
+
 export class ApiError extends Error {
   constructor(
     public status: number,
