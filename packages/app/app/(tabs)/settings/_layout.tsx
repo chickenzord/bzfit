@@ -11,6 +11,7 @@ export default function SettingsLayout() {
     >
       <Stack.Screen name="index" options={{ title: "Settings" }} />
       <Stack.Screen name="goals" options={{ title: "Nutrition Goals" }} />
+      <Stack.Screen name="account" options={{ title: "Account" }} />
     </Stack>
   );
 }

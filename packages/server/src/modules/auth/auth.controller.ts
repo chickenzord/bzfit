@@ -1,7 +1,7 @@
 import { Controller, Post, Get, Delete, Body, Param, UseGuards, Request, HttpCode } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { RegisterDto, LoginDto, CreateApiKeyDto } from './dto';
+import { RegisterDto, LoginDto, CreateApiKeyDto, ChangePasswordDto } from './dto';
 import { JwtAuthGuard } from './guards';
 
 @ApiTags('auth')
@@ -34,6 +34,17 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Not authenticated' })
   async getMe(@Request() req) {
     return { user: req.user };
+  }
+
+  @Post('change-password')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Change current user password' })
+  @ApiResponse({ status: 200, description: 'Password changed successfully' })
+  @ApiResponse({ status: 401, description: 'Current password is incorrect' })
+  async changePassword(@Request() req, @Body() changePasswordDto: ChangePasswordDto) {
+    return this.authService.changePassword(req.user.id, changePasswordDto);
   }
 
   @Post('api-keys')

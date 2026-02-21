@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
-import { RegisterDto, LoginDto, CreateApiKeyDto } from './dto';
+import { RegisterDto, LoginDto, CreateApiKeyDto, ChangePasswordDto } from './dto';
 
 @Injectable()
 export class AuthService {
@@ -170,6 +170,29 @@ export class AuthService {
       ...apiKey,
       scopes: JSON.parse(apiKey.scopes),
     }));
+  }
+
+  /**
+   * Change user password
+   */
+  async changePassword(userId: string, dto: ChangePasswordDto) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const isValid = await bcrypt.compare(dto.currentPassword, user.passwordHash);
+    if (!isValid) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    const newHash = await bcrypt.hash(dto.newPassword, 10);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash: newHash },
+    });
+
+    return { message: 'Password changed successfully' };
   }
 
   /**
