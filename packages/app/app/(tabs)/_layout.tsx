@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Icon, type IconName } from "../../lib/icons";
+import { Icon } from "../../lib/icons";
 import { createContext, useContext, useState } from "react";
 
 const TabBarContext = createContext<{ setHidden: (hidden: boolean) => void }>({

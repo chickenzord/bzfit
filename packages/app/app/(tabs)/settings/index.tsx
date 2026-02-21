@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
-import { Icon, type IconName } from "../../../lib/icons";
+import { Icon } from "../../../lib/icons";
 import { useAuth } from "../../../lib/auth";
 import { getCustomApiUrl } from "../../../lib/storage";
 

@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { View, Text, ActivityIndicator, ScrollView, TouchableOpacity, Modal, Pressable } from "react-native";
 import { ConfirmModal } from "../../../../../components/ConfirmModal";
 import { useLocalSearchParams, useRouter, useFocusEffect, Stack } from "expo-router";
-import { Icon, type IconName } from "../../../../../lib/icons";
+import { Icon } from "../../../../../lib/icons";
 import { ApiError, apiFetch } from "../../../../../lib/api";
 import { FlashMessage } from "../../../../../components/FlashMessage";
 

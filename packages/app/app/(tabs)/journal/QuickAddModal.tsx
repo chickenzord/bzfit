@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
   Dimensions,
 } from "react-native";
-import { Icon, type IconName } from "../../../lib/icons";
+import { Icon } from "../../../lib/icons";
 import { useDebounce } from "@uidotdev/usehooks";
 import { apiFetch } from "../../../lib/api";
 import {

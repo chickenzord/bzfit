@@ -12,8 +12,8 @@ import {
   Platform,
 } from "react-native";
 import { useLocalSearchParams, useRouter, Stack, useFocusEffect } from "expo-router";
-import { useTabBarHidden } from "../../../../_layout";
-import { Icon, type IconName } from "../../../../../lib/icons";
+import { useTabBarHidden } from "../../../_layout";
+import { Icon } from "../../../../../lib/icons";
 import { apiFetch, ApiError } from "../../../../../lib/api";
 import { ConfirmModal } from "../../../../../components/ConfirmModal";
 

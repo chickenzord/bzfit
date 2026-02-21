@@ -15,7 +15,7 @@ const ICON_MAP = {
   "plus-circle": "plus-circle",
   "check": "check",
   "check-circle": "check-circle",
-  "edit": "edit-2",
+  "edit": "edit",
   "trash": "trash-2",
   "more-vertical": "more-vertical",
   // Status / Info

@@ -5,7 +5,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 
 describe('GoalsService', () => {
   let service: GoalsService;
-  let prisma: PrismaService;
+  let _prisma: PrismaService;
 
   const START_JAN = new Date('2024-01-01T00:00:00.000Z');
   const START_JUN = new Date('2024-06-01T00:00:00.000Z');
@@ -62,7 +62,7 @@ describe('GoalsService', () => {
     }).compile();
 
     service = module.get<GoalsService>(GoalsService);
-    prisma = module.get<PrismaService>(PrismaService);
+    _prisma = module.get<PrismaService>(PrismaService);
   });
 
   afterEach(() => {

@@ -11,7 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { Icon, type IconName } from "../../../lib/icons";
+import { Icon } from "../../../lib/icons";
 import { useNutritionGoals, type NutritionGoal } from "../../../lib/nutrition";
 
 function formatGoalDate(iso: string): string {

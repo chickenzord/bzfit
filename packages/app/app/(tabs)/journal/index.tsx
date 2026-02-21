@@ -12,7 +12,7 @@ import {
   Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Icon, type IconName } from "../../../lib/icons";
+import { Icon } from "../../../lib/icons";
 import {
   useDailySummary,
   useNutritionGoal,
@@ -331,7 +331,6 @@ export default function JournalScreen() {
         });
       }, 100);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [expanded]);
 
   const dateStr = toDateString(selectedDate);
