@@ -25,6 +25,12 @@ const ICON_MAP = {
   "flag": "flag",
   // Branding
   "flame": "zap",
+  // Utilities
+  "key": "key",
+  "copy": "copy",
+  "external-link": "external-link",
+  "eye": "eye",
+  "eye-off": "eye-off",
   // Tabs
   "calendar": "calendar",
   "grid": "grid",

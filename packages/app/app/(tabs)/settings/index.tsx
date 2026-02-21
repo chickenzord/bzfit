@@ -59,10 +59,16 @@ export default function SettingsScreen() {
         <Icon name="chevron-right" size={18} color="#475569" />
       </TouchableOpacity>
 
-      <View className="bg-slate-900 rounded-xl p-4 border border-slate-800 mb-3">
-        <Text className="text-white text-base font-medium">API Keys</Text>
-        <Text className="text-slate-400 text-sm mt-1">Manage external access</Text>
-      </View>
+      <TouchableOpacity
+        onPress={() => router.push("/settings/api-keys" as any)}
+        className="bg-slate-900 rounded-xl p-4 border border-slate-800 mb-3 flex-row items-center justify-between"
+      >
+        <View>
+          <Text className="text-white text-base font-medium">API Keys</Text>
+          <Text className="text-slate-400 text-sm mt-1">Manage external access</Text>
+        </View>
+        <Icon name="chevron-right" size={18} color="#475569" />
+      </TouchableOpacity>
 
       <View className="bg-slate-900 rounded-xl p-4 border border-slate-800 mb-3">
         <Text className="text-white text-base font-medium mb-3">About</Text>
