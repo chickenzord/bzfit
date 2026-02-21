@@ -148,6 +148,7 @@ export default function FoodDetailsScreen() {
     <>
       <Stack.Screen
         options={{
+          title: displayName,
           headerRight: () => (
             <TouchableOpacity
               onPress={() => router.push(`/catalog/foods/${id}/edit`)}

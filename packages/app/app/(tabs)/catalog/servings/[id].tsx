@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { View, Text, ActivityIndicator } from "react-native";
-import { useLocalSearchParams, useRouter, Stack } from "expo-router";
+import { useLocalSearchParams, useRouter, Stack, useFocusEffect } from "expo-router";
+import { useTabBarHidden } from "../../../_layout";
 import { apiFetch, ApiError } from "../../../../lib/api";
 import { ServingForm, ServingFormValues } from "../../../../components/ServingForm";
 
@@ -31,6 +32,14 @@ function numStr(v: number | null): string {
 export default function ServingEditScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { setHidden } = useTabBarHidden();
+
+  useFocusEffect(
+    useCallback(() => {
+      setHidden(true);
+      return () => setHidden(false);
+    }, [setHidden])
+  );
 
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -90,7 +99,7 @@ export default function ServingEditScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: "Edit Serving" }} />
+      <Stack.Screen options={{ title: serving.name ?? `${serving.size}${serving.unit}` }} />
       <ServingForm
         food={food}
         initialValues={{

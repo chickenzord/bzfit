@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,8 @@ import {
   Pressable,
   Platform,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter, Stack, useFocusEffect } from "expo-router";
+import { useTabBarHidden } from "../../../../_layout";
 import { Ionicons } from "@expo/vector-icons";
 import { apiFetch, ApiError } from "../../../../../lib/api";
 import { ConfirmModal } from "../../../../../components/ConfirmModal";
@@ -35,6 +36,14 @@ interface Food {
 export default function FoodEditScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { setHidden } = useTabBarHidden();
+
+  useFocusEffect(
+    useCallback(() => {
+      setHidden(true);
+      return () => setHidden(false);
+    }, [setHidden])
+  );
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -163,6 +172,7 @@ export default function FoodEditScreen() {
 
   return (
     <>
+      <Stack.Screen options={{ title: name || "Edit Food" }} />
       {/* Serving action menu */}
       <Modal
         visible={!!menuServingId}

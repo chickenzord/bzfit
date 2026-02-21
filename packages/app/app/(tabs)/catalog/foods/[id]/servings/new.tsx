@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { View, Text, ActivityIndicator } from "react-native";
-import { useLocalSearchParams, useRouter, Stack } from "expo-router";
+import { useLocalSearchParams, useRouter, Stack, useFocusEffect } from "expo-router";
+import { useTabBarHidden } from "../../../../../_layout";
 import { apiFetch, ApiError } from "../../../../../../lib/api";
 import { ServingForm, ServingFormValues } from "../../../../../../components/ServingForm";
 
@@ -18,6 +19,14 @@ interface CreatedServing {
 export default function NewServingScreen() {
   const { id: foodId } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { setHidden } = useTabBarHidden();
+
+  useFocusEffect(
+    useCallback(() => {
+      setHidden(true);
+      return () => setHidden(false);
+    }, [setHidden])
+  );
 
   const [food, setFood] = useState<Food | null>(null);
   const [loading, setLoading] = useState(true);
