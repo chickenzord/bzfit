@@ -76,12 +76,16 @@ export default function SettingsScreen() {
           <Text className="text-slate-400 text-sm">Version</Text>
           <Text className="text-slate-300 text-sm">BzFit v0.1.0</Text>
         </View>
-        <View className="flex-row justify-between items-start">
+        <View className="flex-row justify-between items-start mb-2">
           <Text className="text-slate-400 text-sm">Server URL</Text>
           <Text className="text-slate-300 text-sm text-right flex-shrink ml-4" numberOfLines={2}>
             {serverUrl ?? "—"}
           </Text>
         </View>
+        <TouchableOpacity onPress={() => router.push("/privacy" as any)} className="flex-row justify-between items-center">
+          <Text className="text-slate-400 text-sm">Privacy Policy</Text>
+          <Icon name="chevron-right" size={14} color="#475569" />
+        </TouchableOpacity>
       </View>
 
       <View className="mt-auto">

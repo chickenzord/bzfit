@@ -17,4 +17,8 @@ config.resolver.nodeModulesPaths = [
   path.resolve(monorepoRoot, "node_modules"),
 ];
 
+// Allow importing .md files as text modules (e.g. PRIVACY.md)
+config.resolver.sourceExts = [...config.resolver.sourceExts, "md"];
+config.transformer.babelTransformerPath = path.resolve(__dirname, "metro-md-transformer.js");
+
 module.exports = withNativeWind(config, { input: "./global.css" });

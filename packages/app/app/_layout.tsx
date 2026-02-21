@@ -15,7 +15,8 @@ function RootNavigator() {
     if (isLoading) return;
 
     const inAuthGroup = segments[0] === "(auth)";
-    if (!isAuthenticated && !inAuthGroup) {
+    const inPublicRoute = segments[0] === "privacy";
+    if (!isAuthenticated && !inAuthGroup && !inPublicRoute) {
       router.replace("/(auth)/login");
     } else if (isAuthenticated && inAuthGroup) {
       router.replace("/(tabs)");
@@ -29,6 +30,16 @@ function RootNavigator() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="index" />
+        <Stack.Screen
+          name="privacy"
+          options={{
+            headerShown: true,
+            title: "Privacy Policy",
+            headerStyle: { backgroundColor: "#0f172a" },
+            headerTintColor: "#f8fafc",
+            headerShadowVisible: false,
+          }}
+        />
       </Stack>
     </>
   );
