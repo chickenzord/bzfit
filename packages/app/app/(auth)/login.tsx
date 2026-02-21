@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { View, Text, TextInput, Pressable, ActivityIndicator } from "react-native";
 import { router } from "expo-router";
-import { useAuth } from "../../lib/auth";
-import { ApiError } from "../../lib/api";
-import ServerIndicator from "../../components/ServerIndicator";
+import { useAuth } from "@/lib/auth";
+import { ApiError } from "@/lib/api";
+import ServerIndicator from "@/components/ServerIndicator";
 
 export default function LoginScreen() {
   const { login } = useAuth();

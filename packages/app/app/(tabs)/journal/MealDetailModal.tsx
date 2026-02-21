@@ -7,8 +7,8 @@ import {
   Modal,
   ActivityIndicator,
 } from "react-native";
-import { Icon } from "../../../lib/icons";
-import { type Meal, type MealItem, deleteMealItem } from "../../../lib/nutrition";
+import { Icon } from "@/lib/icons";
+import { type Meal, type MealItem, deleteMealItem } from "@/lib/nutrition";
 
 const MEAL_TYPE_MAP = {
   BREAKFAST: { label: "Breakfast", icon: "meal-breakfast" as const },

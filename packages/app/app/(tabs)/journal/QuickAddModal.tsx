@@ -11,15 +11,15 @@ import {
   ActivityIndicator,
   Dimensions,
 } from "react-native";
-import { Icon } from "../../../lib/icons";
+import { Icon } from "@/lib/icons";
 import { useDebounce } from "@uidotdev/usehooks";
-import { apiFetch } from "../../../lib/api";
+import { apiFetch } from "@/lib/api";
 import {
   quickAdd,
   logMealItem,
   createMealWithItem,
   type DailySummary,
-} from "../../../lib/nutrition";
+} from "@/lib/nutrition";
 
 type MealType = "BREAKFAST" | "LUNCH" | "DINNER" | "SNACK";
 

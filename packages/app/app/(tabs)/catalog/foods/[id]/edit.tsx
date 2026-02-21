@@ -13,9 +13,9 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter, Stack, useFocusEffect } from "expo-router";
 import { useTabBarHidden } from "../../../_layout";
-import { Icon } from "../../../../../lib/icons";
-import { apiFetch, ApiError } from "../../../../../lib/api";
-import { ConfirmModal } from "../../../../../components/ConfirmModal";
+import { Icon } from "@/lib/icons";
+import { apiFetch, ApiError } from "@/lib/api";
+import { ConfirmModal } from "@/components/ConfirmModal";
 
 interface Serving {
   id: string;

@@ -12,13 +12,13 @@ import {
   Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Icon } from "../../../lib/icons";
+import { Icon } from "@/lib/icons";
 import {
   useDailySummary,
   useNutritionGoal,
   useMealDates,
   type NutritionGoal,
-} from "../../../lib/nutrition";
+} from "@/lib/nutrition";
 
 function formatGoalDate(iso: string): string {
   const d = new Date(iso);

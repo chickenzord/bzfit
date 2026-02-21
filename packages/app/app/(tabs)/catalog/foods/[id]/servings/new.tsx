@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import { View, Text, ActivityIndicator } from "react-native";
 import { useLocalSearchParams, useRouter, Stack, useFocusEffect } from "expo-router";
 import { useTabBarHidden } from "../../../../_layout";
-import { apiFetch, ApiError } from "../../../../../../lib/api";
-import { ServingForm, ServingFormValues } from "../../../../../../components/ServingForm";
+import { apiFetch, ApiError } from "@/lib/api";
+import { ServingForm, ServingFormValues } from "@/components/ServingForm";
 
 interface Food {
   id: string;

@@ -8,9 +8,9 @@ import {
   Pressable,
 } from "react-native";
 import { Link } from "expo-router";
-import { Icon } from "../../../lib/icons";
+import { Icon } from "@/lib/icons";
 import { useDebounce } from "@uidotdev/usehooks";
-import { ApiError, apiFetch } from "../../../lib/api";
+import { ApiError, apiFetch } from "@/lib/api";
 
 interface Serving {
   id: string;

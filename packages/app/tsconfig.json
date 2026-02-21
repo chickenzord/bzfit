@@ -5,7 +5,8 @@
     "baseUrl": ".",
     "paths": {
       "@bzfit/shared": ["../shared/src/index.ts"],
-      "@bzfit/shared/*": ["../shared/src/*"]
+      "@bzfit/shared/*": ["../shared/src/*"],
+      "@/*": ["./*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx", "nativewind-env.d.ts", "../shared/src/**/*.ts"]
