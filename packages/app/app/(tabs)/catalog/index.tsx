@@ -35,6 +35,9 @@ export default function CatalogScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [allFoods, setAllFoods] = useState<Food[]>([]);
   const [searchResults, setSearchResults] = useState<Food[]>([]);
+  const [needsReviewFoods, setNeedsReviewFoods] = useState<Food[]>([]);
+  const [needsReviewCount, setNeedsReviewCount] = useState(0);
+  const [filterReview, setFilterReview] = useState(false);
   const [loadingAll, setLoadingAll] = useState(true);
   const [loadingSearch, setLoadingSearch] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,13 +45,19 @@ export default function CatalogScreen() {
   const debouncedQuery = useDebounce(searchQuery, 400);
   const isSearching = debouncedQuery.trim().length > 0;
 
-  // Load all foods on mount
+  // Load all foods and needs-review count on mount
   const loadAll = useCallback(async () => {
     setLoadingAll(true);
     setError(null);
     try {
-      const res = await apiFetch<{ data: Food[] }>("/catalog/foods");
+      const [res, reviewRes, countRes] = await Promise.all([
+        apiFetch<{ data: Food[] }>("/catalog/foods"),
+        apiFetch<Food[]>("/catalog/foods/needs-review"),
+        apiFetch<{ count: number }>("/catalog/foods/needs-review/count"),
+      ]);
       setAllFoods(res.data);
+      setNeedsReviewFoods(reviewRes);
+      setNeedsReviewCount(countRes.count);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Failed to load foods.");
     } finally {
@@ -59,6 +68,11 @@ export default function CatalogScreen() {
   useEffect(() => {
     loadAll();
   }, [loadAll]);
+
+  // Clear filter when count drops to 0
+  useEffect(() => {
+    if (needsReviewCount === 0) setFilterReview(false);
+  }, [needsReviewCount]);
 
   // Search when query changes
   useEffect(() => {
@@ -75,7 +89,7 @@ export default function CatalogScreen() {
       .finally(() => setLoadingSearch(false));
   }, [debouncedQuery, isSearching]);
 
-  const foods = isSearching ? searchResults : allFoods;
+  const foods = isSearching ? searchResults : filterReview ? needsReviewFoods : allFoods;
   const loading = isSearching ? loadingSearch : loadingAll;
 
   function renderItem({ item }: { item: Food }) {
@@ -128,6 +142,27 @@ export default function CatalogScreen() {
         )}
       </View>
 
+      {needsReviewCount > 0 && !isSearching && (
+        <Pressable
+          onPress={() => setFilterReview((v) => !v)}
+          className={`self-start flex-row items-center gap-1.5 px-3 py-1.5 rounded-full border mb-4 ${
+            filterReview
+              ? "bg-amber-500/20 border-amber-500/50"
+              : "bg-slate-900 border-slate-700"
+          }`}
+        >
+          <Icon name="alert-circle" size={12} color={filterReview ? "#f59e0b" : "#64748b"} />
+          <Text className={`text-xs font-medium ${filterReview ? "text-amber-400" : "text-slate-400"}`}>
+            Needs Review
+          </Text>
+          <View className={`rounded-full px-1.5 py-0.5 ${filterReview ? "bg-amber-500/30" : "bg-slate-700"}`}>
+            <Text className={`text-xs font-semibold ${filterReview ? "text-amber-300" : "text-slate-400"}`}>
+              {needsReviewCount}
+            </Text>
+          </View>
+        </Pressable>
+      )}
+
       {loading && (
         <ActivityIndicator className="my-8" size="large" color="#3b82f6" />
       )}
@@ -147,6 +182,11 @@ export default function CatalogScreen() {
             <>
               <Text className="text-slate-500 text-base">No results for "{debouncedQuery}"</Text>
               <Text className="text-slate-600 text-sm mt-1">Try a different search term.</Text>
+            </>
+          ) : filterReview ? (
+            <>
+              <Text className="text-slate-500 text-base">All caught up</Text>
+              <Text className="text-slate-600 text-sm mt-1">No servings need review.</Text>
             </>
           ) : (
             <>
