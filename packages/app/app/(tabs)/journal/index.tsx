@@ -363,6 +363,22 @@ export default function JournalScreen() {
     setGridMonth({ year: date.getFullYear(), month: date.getMonth() });
   }
 
+  function jumpToToday() {
+    setSelectedDate(today);
+    setGridMonth({ year: today.getFullYear(), month: today.getMonth() });
+    if (expanded) setExpanded(false);
+    const todayIdx = days.findIndex((d) => isSameDay(d, today));
+    if (flatListRef.current && todayIdx >= 0) {
+      setTimeout(() => {
+        flatListRef.current?.scrollToIndex({
+          index: todayIdx,
+          viewPosition: 0.5,
+          animated: true,
+        });
+      }, 100);
+    }
+  }
+
   function shiftGridMonth(delta: number) {
     setGridMonth(({ year, month }) => {
       const d = new Date(year, month + delta, 1);
@@ -550,7 +566,14 @@ export default function JournalScreen() {
       <View className="px-4 pt-4 pb-10">
         <View className="flex-row items-center justify-between mb-4">
           <Text className="text-slate-400 text-sm">{selectedLabel}</Text>
-          {loading && <ActivityIndicator size="small" color="#3b82f6" />}
+          <View className="flex-row items-center gap-3">
+            {!isSameDay(selectedDate, today) && (
+              <TouchableOpacity onPress={jumpToToday}>
+                <Text className="text-blue-400 text-sm">Today</Text>
+              </TouchableOpacity>
+            )}
+            {loading && <ActivityIndicator size="small" color="#3b82f6" />}
+          </View>
         </View>
 
         {/* Calories card — tappable to open goals */}
