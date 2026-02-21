@@ -2,6 +2,9 @@ import { Platform } from "react-native";
 
 const WEB_TOKEN_KEY = "bzfit_token";
 const WEB_API_URL_KEY = "bzfit_api_url";
+const WEB_THEME_KEY = "bzfit_theme";
+
+export type ThemePreference = "light" | "dark" | "system";
 
 async function getSecureStore() {
   if (Platform.OS === "web") return null;
@@ -58,4 +61,21 @@ export async function removeCustomApiUrl(): Promise<void> {
   }
   const SecureStore = await getSecureStore();
   await SecureStore?.deleteItemAsync("api_url");
+}
+
+export async function getThemePreference(): Promise<ThemePreference | null> {
+  if (Platform.OS === "web") {
+    return (localStorage.getItem(WEB_THEME_KEY) as ThemePreference) ?? null;
+  }
+  const SecureStore = await getSecureStore();
+  return ((await SecureStore?.getItemAsync("theme")) as ThemePreference) ?? null;
+}
+
+export async function setThemePreference(theme: ThemePreference): Promise<void> {
+  if (Platform.OS === "web") {
+    localStorage.setItem(WEB_THEME_KEY, theme);
+    return;
+  }
+  const SecureStore = await getSecureStore();
+  await SecureStore?.setItemAsync("theme", theme);
 }

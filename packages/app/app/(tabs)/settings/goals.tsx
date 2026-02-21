@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,7 +7,6 @@ import {
   TextInput,
   ActivityIndicator,
   Modal,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
@@ -17,6 +16,18 @@ import { useNutritionGoals, type NutritionGoal } from "@/lib/nutrition";
 function formatGoalDate(iso: string): string {
   const d = new Date(iso);
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+function isCurrentGoal(goal: NutritionGoal): boolean {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const start = new Date(goal.startDate);
+  start.setHours(0, 0, 0, 0);
+  if (start > today) return false;
+  if (!goal.endDate) return true;
+  const end = new Date(goal.endDate);
+  end.setHours(0, 0, 0, 0);
+  return end > today;
 }
 
 type GoalFormState = {
@@ -62,9 +73,70 @@ type GoalFormModalProps = {
   initialForm?: GoalFormState;
 };
 
+function ConfirmModal({
+  visible,
+  title,
+  message,
+  confirmLabel = "Delete",
+  onCancel,
+  onConfirm,
+}: {
+  visible: boolean;
+  title: string;
+  message: string;
+  confirmLabel?: string;
+  onCancel: () => void;
+  onConfirm: () => Promise<void>;
+}) {
+  const [loading, setLoading] = useState(false);
+  const handleConfirm = async () => {
+    setLoading(true);
+    try {
+      await onConfirm();
+    } finally {
+      setLoading(false);
+    }
+  };
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
+      <View className="flex-1 justify-center items-center bg-black/70 px-8">
+        <View className="bg-slate-900 rounded-2xl p-6 w-full border border-slate-800">
+          <Text className="text-white text-lg font-bold mb-2">{title}</Text>
+          <Text className="text-slate-400 text-sm mb-6">{message}</Text>
+          <View className="flex-row gap-3">
+            <TouchableOpacity
+              onPress={onCancel}
+              className="flex-1 py-3 rounded-xl border border-slate-700 items-center"
+            >
+              <Text className="text-slate-400">Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleConfirm}
+              disabled={loading}
+              className="flex-1 py-3 rounded-xl bg-rose-500 items-center"
+            >
+              {loading ? (
+                <ActivityIndicator size="small" color="white" />
+              ) : (
+                <Text className="text-white font-semibold">{confirmLabel}</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 function GoalFormModal({ visible, onClose, onSubmit, title, submitLabel, initialForm }: GoalFormModalProps) {
   const [form, setForm] = useState<GoalFormState>(initialForm ?? EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (visible) {
+      setForm(initialForm ?? EMPTY_FORM);
+    }
+  }, [visible, initialForm]);
 
   const handleSubmit = async () => {
     setSaving(true);
@@ -135,6 +207,7 @@ export default function GoalsScreen() {
   const { goals, loading, create, update, remove } = useNutritionGoals();
   const [createVisible, setCreateVisible] = useState(false);
   const [editingGoal, setEditingGoal] = useState<NutritionGoal | null>(null);
+  const [deletingGoal, setDeletingGoal] = useState<NutritionGoal | null>(null);
 
   const handleCreate = useCallback(async (form: GoalFormState) => {
     await create(buildTargets(form));
@@ -145,26 +218,11 @@ export default function GoalsScreen() {
     await update(editingGoal.id, buildTargets(form));
   }, [editingGoal, update]);
 
-  const handleDelete = useCallback((goal: NutritionGoal) => {
-    Alert.alert(
-      "Delete Goal",
-      `Delete the goal starting ${formatGoalDate(goal.startDate)}? This will restore the previous goal as current.`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await remove(goal.id);
-            } catch (e: any) {
-              Alert.alert("Error", e.message ?? "Failed to delete goal");
-            }
-          },
-        },
-      ]
-    );
-  }, [remove]);
+  const handleDeleteConfirm = useCallback(async () => {
+    if (!deletingGoal) return;
+    await remove(deletingGoal.id);
+    setDeletingGoal(null);
+  }, [deletingGoal, remove]);
 
   const DISPLAY_ROWS: { key: keyof NutritionGoal; label: string; unit: string; color: string }[] = [
     { key: "caloriesTarget", label: "Calories", unit: "kcal", color: "text-white" },
@@ -203,13 +261,13 @@ export default function GoalsScreen() {
               <View
                 key={goal.id}
                 className={`bg-slate-900 rounded-xl p-4 border mb-3 ${
-                  goal.isLatest ? "border-blue-500/30" : "border-slate-800"
+                  isCurrentGoal(goal) ? "border-blue-500/30" : "border-slate-800"
                 }`}
               >
                 <View className="flex-row items-center justify-between mb-3">
                   <View>
                     <View className="flex-row items-center gap-2">
-                      {goal.isLatest && (
+                      {isCurrentGoal(goal) && (
                         <View className="bg-blue-500/20 rounded px-1.5 py-0.5">
                           <Text className="text-blue-400 text-xs font-medium">Current</Text>
                         </View>
@@ -217,22 +275,22 @@ export default function GoalsScreen() {
                     </View>
                     <Text className="text-slate-400 text-xs mt-1">{dateRange}</Text>
                   </View>
-                  {goal.isLatest && (
-                    <View className="flex-row gap-2">
+                  <View className="flex-row gap-2">
+                    <TouchableOpacity
+                      onPress={() => setEditingGoal(goal)}
+                      className="p-2"
+                    >
+                      <Icon name="edit" size={16} color="#64748b" />
+                    </TouchableOpacity>
+                    {goal.isLatest && (
                       <TouchableOpacity
-                        onPress={() => setEditingGoal(goal)}
-                        className="p-2"
-                      >
-                        <Icon name="edit" size={16} color="#64748b" />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => handleDelete(goal)}
+                        onPress={() => setDeletingGoal(goal)}
                         className="p-2"
                       >
                         <Icon name="trash" size={16} color="#64748b" />
                       </TouchableOpacity>
-                    </View>
-                  )}
+                    )}
+                  </View>
                 </View>
 
                 <View className="flex-row flex-wrap gap-3">
@@ -272,6 +330,19 @@ export default function GoalsScreen() {
         title="Edit Targets"
         submitLabel="Save"
         initialForm={editingGoal ? formFromGoal(editingGoal) : undefined}
+      />
+
+      <ConfirmModal
+        visible={deletingGoal != null}
+        title="Delete Goal"
+        message={
+          deletingGoal
+            ? `Delete the goal starting ${formatGoalDate(deletingGoal.startDate)}? This will restore the previous goal as current.`
+            : ""
+        }
+        confirmLabel="Delete"
+        onCancel={() => setDeletingGoal(null)}
+        onConfirm={handleDeleteConfirm}
       />
     </ScrollView>
   );

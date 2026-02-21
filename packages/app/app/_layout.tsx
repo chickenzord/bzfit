@@ -3,6 +3,7 @@ import { Stack, router, useRootNavigationState, useSegments } from "expo-router"
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { AuthProvider, useAuth } from "../lib/auth";
+import { ThemeProvider } from "../lib/theme";
 
 function RootNavigator() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -35,8 +36,10 @@ function RootNavigator() {
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <RootNavigator />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <RootNavigator />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
