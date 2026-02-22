@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { View, Text, TextInput, Pressable, ActivityIndicator } from "react-native";
+import { View, Text, TextInput, Pressable, ActivityIndicator, Image } from "react-native";
+import icon from "@/assets/icon.png";
 import { router } from "expo-router";
 import { useAuth } from "@/lib/auth";
 import { ApiError } from "@/lib/api";
@@ -48,12 +49,21 @@ export default function RegisterScreen() {
   return (
     <View className="flex-1 bg-slate-950 px-6">
       <View className="flex-1 justify-center">
-        <Text className="text-white text-3xl font-bold text-center mb-2">
-          BzFit
-        </Text>
-        <Text className="text-slate-400 text-center mb-10">
-          Create your account
-        </Text>
+        <View className="items-center mb-10 gap-4">
+          <Image
+            source={icon}
+            style={{ width: 72, height: 72, borderRadius: 16 }}
+            resizeMode="contain"
+          />
+          <View className="items-center gap-1">
+            <Text className="text-white text-3xl font-bold tracking-tight">
+              BzFit
+            </Text>
+            <Text className="text-slate-400 text-center">
+              Create your account
+            </Text>
+          </View>
+        </View>
 
         <View className="gap-4">
           {error && (
@@ -103,7 +113,7 @@ export default function RegisterScreen() {
             )}
           </Pressable>
 
-          <Pressable onPress={() => router.back()}>
+          <Pressable onPress={() => router.replace("/(auth)/login")}>
             <Text className="text-slate-400 text-center text-sm">
               Already have an account?{" "}
               <Text className="text-blue-400 font-medium">Sign in</Text>

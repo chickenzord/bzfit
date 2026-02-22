@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { View, Text, Image, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import { useAuth } from "@/lib/auth";
-import icon from "../assets/icon.png";
+import icon from "@/assets/icon.png";
 
 const MIN_SPLASH_MS = 3000;
 

@@ -10,7 +10,9 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from "react-native";
+import icon from "@/assets/icon.png";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Icon } from "@/lib/icons";
 import {
@@ -400,9 +402,11 @@ export default function JournalScreen() {
         {/* Branding row */}
         <View className="flex-row items-center justify-between px-4 mb-4">
           <View className="flex-row items-center gap-2">
-            <View className="w-7 h-7 bg-blue-500 rounded-lg items-center justify-center">
-              <Icon name="flame" size={16} color="white" />
-            </View>
+            <Image
+              source={icon}
+              style={{ width: 28, height: 28, borderRadius: 6 }}
+              resizeMode="contain"
+            />
             <Text className="text-white text-xl font-bold tracking-tight">
               BzFit
             </Text>
