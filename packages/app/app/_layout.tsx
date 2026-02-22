@@ -2,6 +2,8 @@ import "../global.css";
 import { Stack, router, useRootNavigationState, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
+import { useFonts } from "expo-font";
+import { Feather } from "@expo/vector-icons";
 import { AuthProvider, useAuth } from "../lib/auth";
 import { ThemeProvider } from "../lib/theme";
 
@@ -50,6 +52,9 @@ function RootNavigator() {
 }
 
 export default function RootLayout() {
+  const [fontsLoaded] = useFonts(Feather.font);
+  if (!fontsLoaded) return null;
+
   return (
     <ThemeProvider>
       <AuthProvider>
