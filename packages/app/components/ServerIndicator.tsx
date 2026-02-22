@@ -17,7 +17,16 @@ import {
 } from "../lib/storage";
 import { fetchServerInfo } from "../lib/api";
 
-const DEFAULT_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3001";
+function getDefaultUrl(): string {
+  const env = process.env.EXPO_PUBLIC_API_URL;
+  if (env) return env;
+  if (typeof window !== "undefined" && window.location?.origin) {
+    return window.location.origin;
+  }
+  return "http://localhost:3001";
+}
+
+const DEFAULT_URL = getDefaultUrl();
 
 function getHostLabel(url: string): string {
   try {

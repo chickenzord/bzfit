@@ -1,7 +1,15 @@
 import { getToken, getCustomApiUrl } from "./storage";
 
-const DEFAULT_API_BASE =
-  (process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3001") + "/api/v1";
+function getDefaultApiBase(): string {
+  const env = process.env.EXPO_PUBLIC_API_URL;
+  if (env) return env + "/api/v1";
+  if (typeof window !== "undefined" && window.location?.origin) {
+    return window.location.origin + "/api/v1";
+  }
+  return "http://localhost:3001/api/v1";
+}
+
+const DEFAULT_API_BASE = getDefaultApiBase();
 
 async function getApiBase(): Promise<string> {
   const custom = await getCustomApiUrl();

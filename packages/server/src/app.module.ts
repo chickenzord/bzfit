@@ -11,7 +11,7 @@ const staticModules = process.env.SERVE_STATIC_PATH
   ? [
       ServeStaticModule.forRoot({
         rootPath: process.env.SERVE_STATIC_PATH,
-        exclude: ['/api/(.*)'],
+        exclude: ['/api/{*path}'],
       }),
     ]
   : [];
