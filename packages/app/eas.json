@@ -20,7 +20,7 @@
     "production": {
       "credentialsSource": "local",
       "android": {
-        "buildType": "aab",
+        "buildType": "app-bundle",
         "gradleCommand": ":app:bundleRelease"
       }
     }
