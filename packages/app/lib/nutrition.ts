@@ -257,6 +257,13 @@ export function useMealDates(from: string, to: string) {
   return { dates, refresh };
 }
 
+export async function updateMealItem(itemId: string, quantity: number): Promise<void> {
+  await apiFetch(`/nutrition/meal-items/${itemId}`, {
+    method: "PATCH",
+    body: { quantity },
+  });
+}
+
 export async function deleteMealItem(itemId: string): Promise<void> {
   try {
     await apiFetch(`/nutrition/meal-items/${itemId}`, { method: "DELETE" });
