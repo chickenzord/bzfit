@@ -4,7 +4,7 @@ import { router } from "expo-router";
 import { useAuth } from "@/lib/auth";
 import icon from "@/assets/icon.png";
 
-const MIN_SPLASH_MS = 3000;
+const MIN_SPLASH_MS = 1000;
 
 export default function SplashScreen() {
   const { isLoading, isAuthenticated } = useAuth();

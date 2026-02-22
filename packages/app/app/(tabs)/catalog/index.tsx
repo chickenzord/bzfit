@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { useFocusEffect } from "expo-router";
 import {
   View,
   Text,
@@ -65,9 +66,11 @@ export default function CatalogScreen() {
     }
   }, []);
 
-  useEffect(() => {
-    loadAll();
-  }, [loadAll]);
+  useFocusEffect(
+    useCallback(() => {
+      loadAll();
+    }, [loadAll])
+  );
 
   // Clear filter when count drops to 0
   useEffect(() => {

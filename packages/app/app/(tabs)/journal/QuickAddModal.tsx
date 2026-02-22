@@ -299,7 +299,7 @@ export function QuickAddModal({
     >
       <View className="flex-1 justify-end bg-black/60">
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
           <View
             className="bg-slate-900 rounded-t-3xl border-t border-slate-800"

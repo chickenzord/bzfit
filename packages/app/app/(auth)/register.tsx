@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { View, Text, TextInput, Pressable, ActivityIndicator, Image } from "react-native";
 import icon from "@/assets/icon.png";
 import { router } from "expo-router";
@@ -11,6 +11,8 @@ export default function RegisterScreen() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const emailRef = useRef<TextInput>(null);
+  const passwordRef = useRef<TextInput>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -76,24 +78,34 @@ export default function RegisterScreen() {
             placeholder="Name (optional)"
             placeholderTextColor="#64748b"
             autoCapitalize="words"
+            returnKeyType="next"
+            onSubmitEditing={() => emailRef.current?.focus()}
+            blurOnSubmit={false}
             value={name}
             onChangeText={setName}
             className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white text-base"
           />
           <TextInput
+            ref={emailRef}
             placeholder="Email"
             placeholderTextColor="#64748b"
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
+            returnKeyType="next"
+            onSubmitEditing={() => passwordRef.current?.focus()}
+            blurOnSubmit={false}
             value={email}
             onChangeText={setEmail}
             className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white text-base"
           />
           <TextInput
+            ref={passwordRef}
             placeholder="Password (min 8 characters)"
             placeholderTextColor="#64748b"
             secureTextEntry
+            returnKeyType="go"
+            onSubmitEditing={handleRegister}
             value={password}
             onChangeText={setPassword}
             className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white text-base"
