@@ -44,15 +44,17 @@ WORKDIR /app
 COPY pnpm-workspace.yaml pnpm-lock.yaml .npmrc package.json ./
 COPY packages/shared/package.json packages/shared/package.json
 COPY packages/server/package.json packages/server/package.json
+COPY prisma ./prisma
 
 # Install production dependencies for server only
 RUN pnpm install --frozen-lockfile --prod
 
+# Generate Prisma client
+RUN pnpm prisma generate
+
 # Copy built artifacts
 COPY --from=builder /app/packages/server/dist ./packages/server/dist
 COPY --from=builder /app/packages/app/dist ./web
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
 # Environment variables
 ENV DATABASE_URL="file:./data/db.sqlite"
