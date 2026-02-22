@@ -297,10 +297,11 @@ export function QuickAddModal({
       animationType="slide"
       onRequestClose={onClose}
     >
-      <View className="flex-1 justify-end bg-black/60">
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-        >
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <View className="flex-1 justify-end bg-black/60">
           <View
             className="bg-slate-900 rounded-t-3xl border-t border-slate-800"
             style={{ maxHeight: MAX_HEIGHT }}
@@ -681,8 +682,8 @@ export function QuickAddModal({
               </ScrollView>
             )}
           </View>
-        </KeyboardAvoidingView>
-      </View>
+        </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

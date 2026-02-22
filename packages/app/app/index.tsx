@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { View, Text, Image, StyleSheet } from "react-native";
 import { router } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/lib/auth";
 import icon from "@/assets/icon.png";
 
 const MIN_SPLASH_MS = 1000;
 
 export default function SplashScreen() {
+  const insets = useSafeAreaInsets();
   const { isLoading, isAuthenticated } = useAuth();
   const [minElapsed, setMinElapsed] = useState(false);
 
@@ -36,7 +38,7 @@ export default function SplashScreen() {
         </View>
       </View>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { bottom: Math.max(insets.bottom, 16) + 16 }]}>
         <Text style={styles.credit}>by akhy.dev</Text>
       </View>
     </View>
@@ -77,7 +79,6 @@ const styles = StyleSheet.create({
   },
   footer: {
     position: "absolute",
-    bottom: 40,
   },
   credit: {
     color: "#334155",

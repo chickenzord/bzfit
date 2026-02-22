@@ -1,12 +1,14 @@
 import { useState, useRef } from "react";
-import { View, Text, TextInput, Pressable, ActivityIndicator, Image } from "react-native";
+import { View, Text, TextInput, Pressable, ActivityIndicator, Image, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import { router } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/lib/auth";
 import { ApiError } from "@/lib/api";
 import ServerIndicator from "@/components/ServerIndicator";
 import icon from "@/assets/icon.png";
 
 export default function LoginScreen() {
+  const insets = useSafeAreaInsets();
   const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -45,86 +47,96 @@ export default function LoginScreen() {
   }
 
   return (
-    <View className="flex-1 bg-slate-950 px-6">
-      <View className="flex-1 justify-center">
-        <View className="items-center mb-10 gap-4">
-          <Image
-            source={icon}
-            style={{ width: 72, height: 72, borderRadius: 16 }}
-            resizeMode="contain"
-          />
-          <View className="items-center gap-1">
-            <Text className="text-white text-3xl font-bold tracking-tight">
-              BzFit
-            </Text>
-            <Text className="text-slate-400 text-center">
-              Track your nutrition, embrace imperfections
-            </Text>
+    <KeyboardAvoidingView
+      className="flex-1 bg-slate-950"
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ paddingTop: insets.top }}
+    >
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24 }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="flex-1 justify-center">
+          <View className="items-center mb-10 gap-4">
+            <Image
+              source={icon}
+              style={{ width: 72, height: 72, borderRadius: 16 }}
+              resizeMode="contain"
+            />
+            <View className="items-center gap-1">
+              <Text className="text-white text-3xl font-bold tracking-tight">
+                BzFit
+              </Text>
+              <Text className="text-slate-400 text-center">
+                Track your nutrition, embrace imperfections
+              </Text>
+            </View>
+          </View>
+
+          <View className="gap-4">
+            {error && (
+              <View className="bg-red-950 border border-red-800 rounded-xl px-4 py-3">
+                <Text className="text-red-400 text-sm">{error}</Text>
+              </View>
+            )}
+
+            <TextInput
+              placeholder="Email"
+              placeholderTextColor="#64748b"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              returnKeyType="next"
+              onSubmitEditing={() => passwordRef.current?.focus()}
+              blurOnSubmit={false}
+              value={email}
+              onChangeText={setEmail}
+              className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white text-base"
+            />
+            <TextInput
+              ref={passwordRef}
+              placeholder="Password"
+              placeholderTextColor="#64748b"
+              secureTextEntry
+              returnKeyType="go"
+              onSubmitEditing={handleLogin}
+              value={password}
+              onChangeText={setPassword}
+              className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white text-base"
+            />
+
+            <Pressable
+              onPress={handleLogin}
+              disabled={isLoading}
+              className="bg-blue-600 rounded-xl py-4 mt-2 active:bg-blue-700 disabled:opacity-50"
+            >
+              {isLoading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text className="text-white text-center font-semibold text-base">
+                  Sign In
+                </Text>
+              )}
+            </Pressable>
+
+            {registrationEnabled && (
+              <Pressable onPress={() => router.push("/(auth)/register")}>
+                <Text className="text-slate-400 text-center text-sm">
+                  No account?{" "}
+                  <Text className="text-blue-400 font-medium">Create one</Text>
+                </Text>
+              </Pressable>
+            )}
           </View>
         </View>
 
-        <View className="gap-4">
-          {error && (
-            <View className="bg-red-950 border border-red-800 rounded-xl px-4 py-3">
-              <Text className="text-red-400 text-sm">{error}</Text>
-            </View>
-          )}
-
-          <TextInput
-            placeholder="Email"
-            placeholderTextColor="#64748b"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            returnKeyType="next"
-            onSubmitEditing={() => passwordRef.current?.focus()}
-            blurOnSubmit={false}
-            value={email}
-            onChangeText={setEmail}
-            className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white text-base"
+        <View style={{ paddingBottom: Math.max(insets.bottom, 16) + 8, marginTop: 24 }}>
+          <ServerIndicator
+            onServerInfo={(info) => setRegistrationEnabled(info?.registrationEnabled ?? true)}
           />
-          <TextInput
-            ref={passwordRef}
-            placeholder="Password"
-            placeholderTextColor="#64748b"
-            secureTextEntry
-            returnKeyType="go"
-            onSubmitEditing={handleLogin}
-            value={password}
-            onChangeText={setPassword}
-            className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white text-base"
-          />
-
-          <Pressable
-            onPress={handleLogin}
-            disabled={isLoading}
-            className="bg-blue-600 rounded-xl py-4 mt-2 active:bg-blue-700 disabled:opacity-50"
-          >
-            {isLoading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text className="text-white text-center font-semibold text-base">
-                Sign In
-              </Text>
-            )}
-          </Pressable>
-
-          {registrationEnabled && (
-            <Pressable onPress={() => router.push("/(auth)/register")}>
-              <Text className="text-slate-400 text-center text-sm">
-                No account?{" "}
-                <Text className="text-blue-400 font-medium">Create one</Text>
-              </Text>
-            </Pressable>
-          )}
         </View>
-      </View>
-
-      <View className="pb-8">
-        <ServerIndicator
-          onServerInfo={(info) => setRegistrationEnabled(info?.registrationEnabled ?? true)}
-        />
-      </View>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
