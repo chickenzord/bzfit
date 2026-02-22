@@ -166,10 +166,11 @@ export default function ServerIndicator({ onServerInfo }: Props) {
         animationType="slide"
         onRequestClose={closeModal}
       >
-        <View className="flex-1 justify-end bg-black/60">
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
-          >
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
+          <View className="flex-1 justify-end bg-black/60">
             <View className="bg-slate-900 rounded-t-3xl p-6 border-t border-slate-800">
               <View className="flex-row items-center justify-between mb-2">
                 <Text className="text-white text-xl font-bold">Server URL</Text>
@@ -269,8 +270,8 @@ export default function ServerIndicator({ onServerInfo }: Props) {
                 </TouchableOpacity>
               )}
             </View>
-          </KeyboardAvoidingView>
-        </View>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
     </>
   );
