@@ -157,8 +157,11 @@ export function MealDetailModal({
       animationType="slide"
       onRequestClose={onClose}
     >
-      <View className="flex-1 justify-end bg-black/60">
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <View className="flex-1 justify-end bg-black/60">
           <View
             className="bg-slate-900 rounded-t-3xl border-t border-slate-800"
             style={{ maxHeight: "85%" }}
@@ -404,8 +407,8 @@ export function MealDetailModal({
               </ScrollView>
             )}
           </View>
-        </KeyboardAvoidingView>
-      </View>
+        </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

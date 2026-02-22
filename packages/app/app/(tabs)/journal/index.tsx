@@ -26,8 +26,8 @@ function formatGoalDate(iso: string): string {
   const d = new Date(iso);
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
-import { QuickAddModal } from "./QuickAddModal";
-import { MealDetailModal } from "./MealDetailModal";
+import { QuickAddModal } from "@/components/journal/QuickAddModal";
+import { MealDetailModal } from "@/components/journal/MealDetailModal";
 
 const DAY_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTH_NAMES = [
