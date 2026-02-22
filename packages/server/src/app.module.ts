@@ -12,6 +12,14 @@ const staticModules = process.env.SERVE_STATIC_PATH
       ServeStaticModule.forRoot({
         rootPath: process.env.SERVE_STATIC_PATH,
         exclude: ['/api/{*path}'],
+        serveStaticOptions: {
+          setHeaders: (res: any, filePath: string) => {
+            if (/\.ttf$/i.test(filePath)) res.setHeader('Content-Type', 'font/ttf');
+            else if (/\.otf$/i.test(filePath)) res.setHeader('Content-Type', 'font/otf');
+            else if (/\.woff$/i.test(filePath)) res.setHeader('Content-Type', 'font/woff');
+            else if (/\.woff2$/i.test(filePath)) res.setHeader('Content-Type', 'font/woff2');
+          },
+        },
       }),
     ]
   : [];
