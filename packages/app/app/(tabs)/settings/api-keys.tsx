@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,9 +10,11 @@ import {
   Clipboard,
   Linking,
 } from "react-native";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiFetch, ApiError } from "@/lib/api";
 import { Icon } from "@/lib/icons";
 import { getCustomApiUrl } from "@/lib/storage";
+import { queryKeys } from "@/lib/query-keys";
 
 const DEFAULT_API_BASE = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3001";
 
@@ -33,39 +35,58 @@ function formatDate(iso: string | null): string {
 }
 
 export default function ApiKeysScreen() {
+  const queryClient = useQueryClient();
   const [serverUrl, setServerUrl] = useState<string | null>(null);
-  const [keys, setKeys] = useState<ApiKey[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    getCustomApiUrl().then((url) => setServerUrl(url ?? DEFAULT_API_BASE));
+  }, []);
 
   // Create form
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
   const [scopes, setScopes] = useState("");
-  const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
 
   // Newly created key (shown once)
   const [newKey, setNewKey] = useState<NewKeyResult | null>(null);
   const [keyCopied, setKeyCopied] = useState(false);
 
-  const loadKeys = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await apiFetch<ApiKey[]>("/auth/api-keys");
-      setKeys(data);
-    } catch {
-      setError("Failed to load API keys.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const apiKeysQuery = useQuery({
+    queryKey: queryKeys.apiKeys(),
+    queryFn: () => apiFetch<ApiKey[]>("/auth/api-keys"),
+  });
 
-  useEffect(() => {
-    loadKeys();
-    getCustomApiUrl().then((url) => setServerUrl(url ?? DEFAULT_API_BASE));
-  }, [loadKeys]);
+  const createMutation = useMutation({
+    mutationFn: ({ keyName, scopeList }: { keyName: string; scopeList: string[] }) =>
+      apiFetch<NewKeyResult>("/auth/api-keys", {
+        method: "POST",
+        body: { name: keyName, scopes: scopeList },
+      }),
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.apiKeys() });
+      setNewKey(result);
+      setName("");
+      setScopes("");
+      setShowForm(false);
+      setKeyCopied(false);
+    },
+    onError: (e) => {
+      setCreateError(e instanceof ApiError ? e.message : "Failed to create API key.");
+    },
+  });
+
+  const revokeMutation = useMutation({
+    mutationFn: (id: string) =>
+      apiFetch(`/auth/api-keys/${id}`, { method: "DELETE" }),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.apiKeys() });
+      if (newKey?.id === id) setNewKey(null);
+    },
+    onError: () => {
+      Alert.alert("Error", "Failed to revoke API key.");
+    },
+  });
 
   async function handleCreate() {
     if (!name.trim()) {
@@ -73,31 +94,11 @@ export default function ApiKeysScreen() {
       return;
     }
     setCreateError(null);
-    setCreating(true);
-    try {
-      const scopeList = scopes
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean);
-      const result = await apiFetch<NewKeyResult>("/auth/api-keys", {
-        method: "POST",
-        body: { name: name.trim(), scopes: scopeList },
-      });
-      setNewKey(result);
-      setName("");
-      setScopes("");
-      setShowForm(false);
-      setKeyCopied(false);
-      await loadKeys();
-    } catch (e) {
-      if (e instanceof ApiError) {
-        setCreateError(e.message);
-      } else {
-        setCreateError("Failed to create API key.");
-      }
-    } finally {
-      setCreating(false);
-    }
+    const scopeList = scopes
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    await createMutation.mutateAsync({ keyName: name.trim(), scopeList }).catch(() => {});
   }
 
   function handleRevoke(key: ApiKey) {
@@ -106,15 +107,7 @@ export default function ApiKeysScreen() {
       {
         text: "Revoke",
         style: "destructive",
-        onPress: async () => {
-          try {
-            await apiFetch(`/auth/api-keys/${key.id}`, { method: "DELETE" });
-            setKeys((prev) => prev.filter((k) => k.id !== key.id));
-            if (newKey?.id === key.id) setNewKey(null);
-          } catch {
-            Alert.alert("Error", "Failed to revoke API key.");
-          }
-        },
+        onPress: () => revokeMutation.mutate(key.id),
       },
     ]);
   }
@@ -124,6 +117,10 @@ export default function ApiKeysScreen() {
     setKeyCopied(true);
     setTimeout(() => setKeyCopied(false), 2000);
   }
+
+  const keys = apiKeysQuery.data ?? [];
+  const loading = apiKeysQuery.isLoading;
+  const error = apiKeysQuery.error instanceof Error ? apiKeysQuery.error.message : null;
 
   return (
     <ScrollView
@@ -207,10 +204,10 @@ export default function ApiKeysScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               onPress={handleCreate}
-              disabled={creating}
+              disabled={createMutation.isPending}
               className="flex-1 bg-blue-600 rounded-xl py-3 items-center disabled:opacity-50"
             >
-              {creating ? (
+              {createMutation.isPending ? (
                 <ActivityIndicator color="#fff" size="small" />
               ) : (
                 <Text className="text-white font-semibold">Create</Text>

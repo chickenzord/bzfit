@@ -753,7 +753,7 @@ export default function JournalScreen() {
         onClose={() => setSelectedMealType(null)}
         meal={selectedMeal}
         dateLabel={selectedLabel}
-        onItemDeleted={refreshAll}
+        date={dateStr}
       />
       <QuickAddModal
         visible={quickAddVisible}

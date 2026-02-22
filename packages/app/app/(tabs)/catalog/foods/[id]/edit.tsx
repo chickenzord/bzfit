@@ -12,10 +12,12 @@ import {
   Platform,
 } from "react-native";
 import { useLocalSearchParams, useRouter, Stack, useFocusEffect } from "expo-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTabBarHidden } from "../../../_layout";
 import { Icon } from "@/lib/icons";
 import { apiFetch, ApiError } from "@/lib/api";
 import { ConfirmModal } from "@/components/ConfirmModal";
+import { queryKeys } from "@/lib/query-keys";
 
 interface Serving {
   id: string;
@@ -36,19 +38,18 @@ interface Food {
 export default function FoodEditScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { setHidden } = useTabBarHidden();
 
   useFocusEffect(
     useCallback(() => {
       setHidden(true);
       return () => setHidden(false);
-    }, [setHidden])
+    }, [setHidden]),
   );
 
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [addingServing, setAddingServing] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const [name, setName] = useState("");
@@ -60,27 +61,33 @@ export default function FoodEditScreen() {
 
   const [menuServingId, setMenuServingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-  const [usageCount, setUsageCount] = useState<number | null>(null);
-  const [usageLoading, setUsageLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  const foodQuery = useQuery({
+    queryKey: queryKeys.food(id),
+    queryFn: () => apiFetch<Food>(`/catalog/foods/${id}`),
+    enabled: !!id,
+  });
+
+  const usageQuery = useQuery({
+    queryKey: queryKeys.servingUsage(confirmDeleteId ?? ""),
+    queryFn: () =>
+      apiFetch<{ mealItemCount: number }>(`/catalog/servings/${confirmDeleteId}/usage`),
+    enabled: !!confirmDeleteId,
+  });
+
+  // Populate form when food data first loads (not on background refetches)
   useEffect(() => {
-    if (!id) return;
-    apiFetch<Food>(`/catalog/foods/${id}`)
-      .then((food) => {
-        setName(food.name);
-        setVariant(food.variant ?? "");
-        setBrand(food.brand ?? "");
-        setServings(food.servings);
-        const def = food.servings.find((s) => s.isDefault);
-        setDefaultServingId(def?.id ?? null);
-        setOriginalDefaultServingId(def?.id ?? null);
-      })
-      .catch((e) =>
-        setLoadError(e instanceof ApiError ? e.message : "Failed to load food")
-      )
-      .finally(() => setLoading(false));
-  }, [id]);
+    if (!foodQuery.data) return;
+    const food = foodQuery.data;
+    setName(food.name);
+    setVariant(food.variant ?? "");
+    setBrand(food.brand ?? "");
+    setServings(food.servings);
+    const def = food.servings.find((s) => s.isDefault);
+    setDefaultServingId(def?.id ?? null);
+    setOriginalDefaultServingId(def?.id ?? null);
+  }, [foodQuery.data?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleSave() {
     if (!name.trim()) return;
@@ -103,6 +110,8 @@ export default function FoodEditScreen() {
         });
       }
 
+      queryClient.invalidateQueries({ queryKey: queryKeys.foods() });
+      queryClient.invalidateQueries({ queryKey: ["meals"] });
       router.replace(`/catalog/foods/${id}?edited=true`);
     } catch (e) {
       setSaveError(e instanceof ApiError ? e.message : "Failed to save");
@@ -126,15 +135,6 @@ export default function FoodEditScreen() {
     }
   }
 
-  useEffect(() => {
-    if (!confirmDeleteId) { setUsageCount(null); return; }
-    setUsageLoading(true);
-    apiFetch<{ mealItemCount: number }>(`/catalog/servings/${confirmDeleteId}/usage`)
-      .then((r) => setUsageCount(r.mealItemCount))
-      .catch(() => setUsageCount(null))
-      .finally(() => setUsageLoading(false));
-  }, [confirmDeleteId]);
-
   async function handleDeleteServing(servingId: string) {
     setConfirmDeleteId(null);
     setDeletingId(servingId);
@@ -143,6 +143,7 @@ export default function FoodEditScreen() {
       setServings((prev) => prev.filter((s) => s.id !== servingId));
       if (defaultServingId === servingId) setDefaultServingId(null);
       if (originalDefaultServingId === servingId) setOriginalDefaultServingId(null);
+      queryClient.invalidateQueries({ queryKey: queryKeys.food(id) });
     } catch (e) {
       setSaveError(e instanceof ApiError ? e.message : "Failed to delete serving");
     } finally {
@@ -153,8 +154,10 @@ export default function FoodEditScreen() {
   const menuServing = servings.find((s) => s.id === menuServingId) ?? null;
   const confirmServing = servings.find((s) => s.id === confirmDeleteId) ?? null;
   const isValid = name.trim().length > 0;
+  const usageCount = usageQuery.data?.mealItemCount ?? null;
+  const usageLoading = usageQuery.isLoading;
 
-  if (loading) {
+  if (foodQuery.isLoading) {
     return (
       <View className="flex-1 bg-slate-950 items-center justify-center">
         <ActivityIndicator size="large" color="#3b82f6" />
@@ -162,10 +165,12 @@ export default function FoodEditScreen() {
     );
   }
 
-  if (loadError) {
+  if (foodQuery.error) {
     return (
       <View className="flex-1 bg-slate-950 items-center justify-center px-6">
-        <Text className="text-red-400 text-base">{loadError}</Text>
+        <Text className="text-red-400 text-base">
+          {foodQuery.error instanceof Error ? foodQuery.error.message : "Failed to load food"}
+        </Text>
       </View>
     );
   }

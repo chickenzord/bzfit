@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Dimensions,
 } from "react-native";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Icon } from "@/lib/icons";
 import { useDebounce } from "@uidotdev/usehooks";
 import { apiFetch } from "@/lib/api";
@@ -20,6 +21,7 @@ import {
   createMealWithItem,
   type DailySummary,
 } from "@/lib/nutrition";
+import { queryKeys } from "@/lib/query-keys";
 
 type MealType = "BREAKFAST" | "LUNCH" | "DINNER" | "SNACK";
 
@@ -113,13 +115,26 @@ export function QuickAddModal({
   defaultMealType,
   summary,
 }: QuickAddModalProps) {
+  const queryClient = useQueryClient();
   const [phase, setPhase] = useState<Phase>("search");
 
   // Search
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 400);
-  const [searchResults, setSearchResults] = useState<SearchFood[]>([]);
-  const [searching, setSearching] = useState(false);
+  const trimmedQuery = debouncedQuery.trim();
+
+  const searchQuery = useQuery({
+    queryKey: queryKeys.foodSearch(trimmedQuery),
+    queryFn: () =>
+      apiFetch<SearchFood[]>(
+        `/catalog/foods/search?q=${encodeURIComponent(trimmedQuery)}`
+      ),
+    enabled: visible && trimmedQuery.length > 0,
+  });
+
+  const searchResults =
+    visible && trimmedQuery.length > 0 ? (searchQuery.data ?? []) : [];
+  const searching = searchQuery.isFetching;
 
   // Selection
   const [isNewFood, setIsNewFood] = useState(false);
@@ -156,7 +171,6 @@ export function QuickAddModal({
     if (visible) {
       setPhase("search");
       setQuery("");
-      setSearchResults([]);
       setIsNewFood(false);
       setSelectedFood(null);
       setMealType(defaultMealType);
@@ -170,21 +184,6 @@ export function QuickAddModal({
       setError(null);
     }
   }, [visible, defaultMealType]);
-
-  // Search
-  useEffect(() => {
-    if (!visible || debouncedQuery.trim().length === 0) {
-      setSearchResults([]);
-      return;
-    }
-    setSearching(true);
-    apiFetch<SearchFood[]>(
-      `/catalog/foods/search?q=${encodeURIComponent(debouncedQuery.trim())}`
-    )
-      .then(setSearchResults)
-      .catch(() => setSearchResults([]))
-      .finally(() => setSearching(false));
-  }, [debouncedQuery, visible]);
 
   const handleSelectExistingFood = useCallback(async (food: SearchFood) => {
     setLoadingFood(true);
@@ -254,6 +253,7 @@ export function QuickAddModal({
           mealType,
           date,
         });
+        queryClient.invalidateQueries({ queryKey: queryKeys.foods() });
       } else {
         const serving = selectedServing!;
         const existingMeal = summary?.meals.find((m) => m.mealType === mealType);
@@ -274,6 +274,8 @@ export function QuickAddModal({
           });
         }
       }
+      queryClient.invalidateQueries({ queryKey: queryKeys.dailySummary(date) });
+      queryClient.invalidateQueries({ queryKey: ["meals", "dates"] });
       onSuccess();
       onClose();
     } catch (e: unknown) {

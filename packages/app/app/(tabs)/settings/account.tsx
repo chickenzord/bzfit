@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { apiFetch, ApiError } from "@/lib/api";
 
@@ -18,46 +19,44 @@ export default function AccountScreen() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  function validate(): string | null {
-    if (!currentPassword) return "Current password is required";
-    if (!newPassword) return "New password is required";
-    if (newPassword.length < 8) return "New password must be at least 8 characters";
-    if (newPassword !== confirmPassword) return "Passwords do not match";
-    return null;
-  }
-
-  async function handleChangePassword() {
-    const validationError = validate();
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-    setError(null);
-    setSuccess(false);
-    setSaving(true);
-    try {
-      await apiFetch("/auth/change-password", {
+  const changePasswordMutation = useMutation({
+    mutationFn: () =>
+      apiFetch("/auth/change-password", {
         method: "POST",
         body: { currentPassword, newPassword, confirmPassword },
-      });
+      }),
+    onSuccess: () => {
       setSuccess(true);
+      setValidationError(null);
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-    } catch (e) {
+    },
+    onError: (e) => {
+      setSuccess(false);
       if (e instanceof ApiError && e.status === 401) {
-        setError("Current password is incorrect");
+        setValidationError("Current password is incorrect");
       } else {
-        setError("Something went wrong. Please try again.");
+        setValidationError("Something went wrong. Please try again.");
       }
-    } finally {
-      setSaving(false);
-    }
+    },
+  });
+
+  function handleChangePassword() {
+    if (!currentPassword) { setValidationError("Current password is required"); return; }
+    if (!newPassword) { setValidationError("New password is required"); return; }
+    if (newPassword.length < 8) { setValidationError("New password must be at least 8 characters"); return; }
+    if (newPassword !== confirmPassword) { setValidationError("Passwords do not match"); return; }
+    setValidationError(null);
+    setSuccess(false);
+    changePasswordMutation.mutate();
   }
+
+  const saving = changePasswordMutation.isPending;
+  const error = validationError;
 
   return (
     <KeyboardAvoidingView

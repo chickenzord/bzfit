@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiFetch, ApiError } from "./api";
+import { queryKeys } from "./query-keys";
 
 export type NutritionTotals = {
   calories: number;
@@ -86,126 +87,131 @@ type GoalTargets = {
 };
 
 export function useDailySummary(date: string) {
-  const [data, setData] = useState<DailySummary | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const query = useQuery({
+    queryKey: queryKeys.dailySummary(date),
+    queryFn: () => apiFetch<DailySummary>(`/nutrition/meals/daily-summary?date=${date}`),
+  });
 
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await apiFetch<DailySummary>(
-        `/nutrition/meals/daily-summary?date=${date}`,
-      );
-      setData(result);
-    } catch (e: any) {
-      setError(e.message ?? "Failed to load data");
-    } finally {
-      setLoading(false);
-    }
-  }, [date]);
-
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
-
-  return { data, loading, error, refresh };
+  return {
+    data: query.data ?? null,
+    loading: query.isLoading,
+    error: query.error instanceof Error ? query.error.message : null,
+    refresh: () => query.refetch(),
+  };
 }
 
 export function useNutritionGoal() {
-  const [goal, setGoal] = useState<NutritionGoal | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await apiFetch<NutritionGoal | null>("/nutrition/goals");
-      setGoal(result);
-    } catch (e: any) {
-      if (e.status === 404) {
-        setGoal(null);
-      } else {
-        setError(e.message ?? "Failed to load goal");
+  const query = useQuery({
+    queryKey: queryKeys.currentGoal(),
+    queryFn: async () => {
+      try {
+        return await apiFetch<NutritionGoal>("/nutrition/goals");
+      } catch (e) {
+        if (e instanceof ApiError && e.status === 404) return null;
+        throw e;
       }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+  });
 
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
+  const updateMutation = useMutation({
+    mutationFn: ({ id, targets }: { id: string; targets: GoalTargets }) =>
+      apiFetch<NutritionGoal>(`/nutrition/goals/${id}`, { method: "PATCH", body: targets }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.currentGoal() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.allGoals() });
+    },
+  });
 
-  const update = async (targets: GoalTargets) => {
-    if (!goal) throw new Error("No active goal to update");
-    const result = await apiFetch<NutritionGoal>(`/nutrition/goals/${goal.id}`, {
-      method: "PATCH",
-      body: targets,
-    });
-    setGoal(result);
-    return result;
+  const saveAsNewMutation = useMutation({
+    mutationFn: (targets: GoalTargets & { startDate?: string }) =>
+      apiFetch<NutritionGoal>("/nutrition/goals", { method: "POST", body: targets }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.currentGoal() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.allGoals() });
+    },
+  });
+
+  return {
+    goal: query.data ?? null,
+    loading: query.isLoading,
+    error: query.error instanceof Error ? query.error.message : null,
+    refresh: () => queryClient.invalidateQueries({ queryKey: queryKeys.currentGoal() }),
+    update: async (targets: GoalTargets) => {
+      const goal = query.data;
+      if (!goal) throw new Error("No active goal to update");
+      return updateMutation.mutateAsync({ id: goal.id, targets });
+    },
+    saveAsNew: (targets: GoalTargets & { startDate?: string }) =>
+      saveAsNewMutation.mutateAsync(targets),
   };
-
-  const saveAsNew = async (targets: GoalTargets & { startDate?: string }) => {
-    const result = await apiFetch<NutritionGoal>("/nutrition/goals", {
-      method: "POST",
-      body: targets,
-    });
-    setGoal(result);
-    return result;
-  };
-
-  return { goal, loading, error, refresh, update, saveAsNew };
 }
 
 export function useNutritionGoals() {
-  const [goals, setGoals] = useState<NutritionGoal[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await apiFetch<NutritionGoal[]>("/nutrition/goals/all");
-      setGoals(result);
-    } catch (e: any) {
-      setError(e.message ?? "Failed to load goals");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const query = useQuery({
+    queryKey: queryKeys.allGoals(),
+    queryFn: () => apiFetch<NutritionGoal[]>("/nutrition/goals/all"),
+  });
 
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
+  const createMutation = useMutation({
+    mutationFn: (targets: GoalTargets & { startDate?: string }) =>
+      apiFetch<NutritionGoal>("/nutrition/goals", { method: "POST", body: targets }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.allGoals() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.currentGoal() });
+    },
+  });
 
-  const create = async (targets: GoalTargets & { startDate?: string }) => {
-    const result = await apiFetch<NutritionGoal>("/nutrition/goals", {
-      method: "POST",
-      body: targets,
-    });
-    await refresh();
-    return result;
+  const updateMutation = useMutation({
+    mutationFn: ({ id, targets }: { id: string; targets: GoalTargets }) =>
+      apiFetch<NutritionGoal>(`/nutrition/goals/${id}`, { method: "PATCH", body: targets }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.allGoals() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.currentGoal() });
+    },
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: (id: string) =>
+      apiFetch(`/nutrition/goals/${id}`, { method: "DELETE" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.allGoals() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.currentGoal() });
+    },
+  });
+
+  return {
+    goals: query.data ?? [],
+    loading: query.isLoading,
+    error: query.error instanceof Error ? query.error.message : null,
+    refresh: () => queryClient.invalidateQueries({ queryKey: queryKeys.allGoals() }),
+    create: (targets: GoalTargets & { startDate?: string }) =>
+      createMutation.mutateAsync(targets),
+    update: (id: string, targets: GoalTargets) =>
+      updateMutation.mutateAsync({ id, targets }),
+    remove: (id: string) => removeMutation.mutateAsync(id),
   };
+}
 
-  const update = async (id: string, targets: GoalTargets) => {
-    const result = await apiFetch<NutritionGoal>(`/nutrition/goals/${id}`, {
-      method: "PATCH",
-      body: targets,
-    });
-    await refresh();
-    return result;
+export function useMealDates(from: string, to: string) {
+  const query = useQuery({
+    queryKey: queryKeys.mealDates(from, to),
+    queryFn: async () => {
+      const result = await apiFetch<string[]>(
+        `/nutrition/meals/dates?from=${from}&to=${to}`,
+      );
+      return new Set(result);
+    },
+    enabled: !!(from && to),
+  });
+
+  return {
+    dates: query.data ?? new Set<string>(),
+    refresh: () => query.refetch(),
   };
-
-  const remove = async (id: string) => {
-    await apiFetch(`/nutrition/goals/${id}`, { method: "DELETE" });
-    await refresh();
-  };
-
-  return { goals, loading, error, refresh, create, update, remove };
 }
 
 export async function quickAdd(dto: {
@@ -233,28 +239,6 @@ export async function logMealItem(params: {
       quantity: params.quantity,
     },
   });
-}
-
-export function useMealDates(from: string, to: string) {
-  const [dates, setDates] = useState<Set<string>>(new Set());
-
-  const refresh = useCallback(async () => {
-    if (!from || !to) return;
-    try {
-      const result = await apiFetch<string[]>(
-        `/nutrition/meals/dates?from=${from}&to=${to}`,
-      );
-      setDates(new Set(result));
-    } catch {
-      // silently ignore
-    }
-  }, [from, to]);
-
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
-
-  return { dates, refresh };
 }
 
 export async function updateMealItem(itemId: string, quantity: number): Promise<void> {

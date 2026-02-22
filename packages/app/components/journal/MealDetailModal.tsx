@@ -10,8 +10,10 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { useQueryClient } from "@tanstack/react-query";
 import { Icon } from "@/lib/icons";
 import { type Meal, type MealItem, deleteMealItem, updateMealItem } from "@/lib/nutrition";
+import { queryKeys } from "@/lib/query-keys";
 
 const MEAL_TYPE_MAP = {
   BREAKFAST: { label: "Breakfast", icon: "meal-breakfast" as const },
@@ -25,7 +27,7 @@ type MealDetailModalProps = {
   onClose: () => void;
   meal: Meal | null;
   dateLabel: string;
-  onItemDeleted: () => void;
+  date: string;
 };
 
 export function MealDetailModal({
@@ -33,9 +35,9 @@ export function MealDetailModal({
   onClose,
   meal,
   dateLabel,
-  onItemDeleted,
+  date,
 }: MealDetailModalProps) {
-  const [localItems, setLocalItems] = useState<MealItem[]>([]);
+  const queryClient = useQueryClient();
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
 
   // Edit state
@@ -45,25 +47,22 @@ export function MealDetailModal({
   const [savingItemId, setSavingItemId] = useState<string | null>(null);
   const [editError, setEditError] = useState<string | null>(null);
 
+  // Reset edit state when modal closes or meal changes
   useEffect(() => {
-    if (visible && meal) {
-      setLocalItems(meal.items);
+    if (!visible) {
       setEditingItemId(null);
       setEditError(null);
     }
-  }, [visible, meal]);
+  }, [visible]);
+
+  // Close when the last item is confirmed deleted by the server
+  useEffect(() => {
+    if (visible && meal && meal.items.length === 0) {
+      onClose();
+    }
+  }, [visible, meal, onClose]);
 
   const mealTypeInfo = meal ? MEAL_TYPE_MAP[meal.mealType] : null;
-
-  const localTotals = localItems.reduce(
-    (acc, item) => ({
-      calories: acc.calories + (item.nutrition.calories ?? 0),
-      protein: acc.protein + (item.nutrition.protein ?? 0),
-      carbs: acc.carbs + (item.nutrition.carbs ?? 0),
-      fat: acc.fat + (item.nutrition.fat ?? 0),
-    }),
-    { calories: 0, protein: 0, carbs: 0, fat: 0 },
-  );
 
   const startEditing = useCallback((item: MealItem) => {
     setEditingItemId(item.id);
@@ -107,24 +106,8 @@ export function MealDetailModal({
     setEditError(null);
     try {
       await updateMealItem(item.id, qty);
-      setLocalItems((prev) =>
-        prev.map((i) =>
-          i.id === item.id
-            ? {
-                ...i,
-                quantity: qty,
-                nutrition: {
-                  calories: i.serving.calories != null ? i.serving.calories * qty : undefined,
-                  protein: i.nutrition.protein != null ? (i.nutrition.protein / i.quantity) * qty : undefined,
-                  carbs: i.nutrition.carbs != null ? (i.nutrition.carbs / i.quantity) * qty : undefined,
-                  fat: i.nutrition.fat != null ? (i.nutrition.fat / i.quantity) * qty : undefined,
-                },
-              }
-            : i,
-        ),
-      );
+      queryClient.invalidateQueries({ queryKey: queryKeys.dailySummary(date) });
       setEditingItemId(null);
-      onItemDeleted(); // triggers parent refresh
     } catch {
       setEditError("Failed to save. Please try again.");
     } finally {
@@ -134,15 +117,13 @@ export function MealDetailModal({
 
   async function handleDeleteItem(itemId: string) {
     if (deletingItemId) return;
+    const isLast = meal ? meal.items.length === 1 : false;
     setDeletingItemId(itemId);
     try {
       await deleteMealItem(itemId);
-      const remaining = localItems.filter((item) => item.id !== itemId);
-      setLocalItems(remaining);
-      onItemDeleted();
-      if (remaining.length === 0) {
-        onClose();
-      }
+      queryClient.invalidateQueries({ queryKey: queryKeys.dailySummary(date) });
+      queryClient.invalidateQueries({ queryKey: ["meals", "dates"] });
+      if (isLast) onClose();
     } catch {
       // leave as-is on error
     } finally {
@@ -190,7 +171,7 @@ export function MealDetailModal({
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
               >
-                {localItems.map((item, index) => {
+                {meal.items.map((item, index) => {
                   const foodName = [item.food.name, item.food.variant]
                     .filter(Boolean)
                     .join(" · ");
@@ -378,28 +359,28 @@ export function MealDetailModal({
                   );
                 })}
 
-                {/* Totals row */}
+                {/* Totals row — always from server data */}
                 <View className="border-t border-slate-700 py-4 mt-1 mb-8">
                   <View className="flex-row items-center justify-between">
                     <Text className="text-slate-400 text-sm font-medium">Total</Text>
                     <Text className="text-white text-sm font-bold">
-                      {Math.round(localTotals.calories)} kcal
+                      {Math.round(meal.totals.calories)} kcal
                     </Text>
                   </View>
                   <View className="flex-row items-center gap-3 mt-1 justify-end">
-                    {localTotals.protein > 0 && (
+                    {meal.totals.protein > 0 && (
                       <Text className="text-blue-400 text-xs">
-                        P {Math.round(localTotals.protein)}g
+                        P {Math.round(meal.totals.protein)}g
                       </Text>
                     )}
-                    {localTotals.carbs > 0 && (
+                    {meal.totals.carbs > 0 && (
                       <Text className="text-amber-400 text-xs">
-                        C {Math.round(localTotals.carbs)}g
+                        C {Math.round(meal.totals.carbs)}g
                       </Text>
                     )}
-                    {localTotals.fat > 0 && (
+                    {meal.totals.fat > 0 && (
                       <Text className="text-rose-400 text-xs">
-                        F {Math.round(localTotals.fat)}g
+                        F {Math.round(meal.totals.fat)}g
                       </Text>
                     )}
                   </View>

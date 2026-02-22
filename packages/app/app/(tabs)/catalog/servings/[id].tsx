@@ -1,9 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback } from "react";
 import { View, Text, ActivityIndicator } from "react-native";
 import { useLocalSearchParams, useRouter, Stack, useFocusEffect } from "expo-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTabBarHidden } from "../../_layout";
 import { apiFetch, ApiError } from "@/lib/api";
 import { ServingForm, ServingFormValues } from "@/components/ServingForm";
+import { queryKeys } from "@/lib/query-keys";
 
 interface Serving {
   id: string;
@@ -32,33 +34,25 @@ function numStr(v: number | null): string {
 export default function ServingEditScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { setHidden } = useTabBarHidden();
 
   useFocusEffect(
     useCallback(() => {
       setHidden(true);
       return () => setHidden(false);
-    }, [setHidden])
+    }, [setHidden]),
   );
 
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [serving, setServing] = useState<Serving | null>(null);
-  const [food, setFood] = useState<Food | null>(null);
-
-  useEffect(() => {
-    if (!id) return;
-    apiFetch<Serving>(`/catalog/servings/${id}`)
-      .then((s) => {
-        setServing(s);
-        return apiFetch<Food>(`/catalog/foods/${s.foodId}`);
-      })
-      .then(setFood)
-      .catch((e) =>
-        setLoadError(e instanceof ApiError ? e.message : "Failed to load serving")
-      )
-      .finally(() => setLoading(false));
-  }, [id]);
+  const servingQuery = useQuery({
+    queryKey: queryKeys.serving(id),
+    queryFn: async () => {
+      const serving = await apiFetch<Serving>(`/catalog/servings/${id}`);
+      const food = await apiFetch<Food>(`/catalog/foods/${serving.foodId}`);
+      return { serving, food };
+    },
+    enabled: !!id,
+  });
 
   async function handleSave(values: ServingFormValues) {
     const size = parseFloat(values.sizeStr);
@@ -77,11 +71,14 @@ export default function ServingEditScreen() {
     if (!isNaN(carb)) body.carbs = carb;
     if (!isNaN(fat)) body.fat = fat;
 
+    const food = servingQuery.data!.food;
     await apiFetch(`/catalog/servings/${id}`, { method: "PATCH", body });
-    router.replace(`/catalog/foods/${food!.id}?editedServingId=${id}`);
+    queryClient.invalidateQueries({ queryKey: queryKeys.foods() });
+    queryClient.invalidateQueries({ queryKey: ["meals"] });
+    router.replace(`/catalog/foods/${food.id}?editedServingId=${id}`);
   }
 
-  if (loading) {
+  if (servingQuery.isLoading) {
     return (
       <View className="flex-1 bg-slate-950 items-center justify-center">
         <ActivityIndicator size="large" color="#3b82f6" />
@@ -89,13 +86,19 @@ export default function ServingEditScreen() {
     );
   }
 
-  if (loadError || !serving || !food) {
+  if (servingQuery.error || !servingQuery.data) {
     return (
       <View className="flex-1 bg-slate-950 items-center justify-center px-6">
-        <Text className="text-red-400 text-base">{loadError ?? "Failed to load"}</Text>
+        <Text className="text-red-400 text-base">
+          {servingQuery.error instanceof ApiError
+            ? servingQuery.error.message
+            : "Failed to load serving"}
+        </Text>
       </View>
     );
   }
+
+  const { serving, food } = servingQuery.data;
 
   return (
     <>

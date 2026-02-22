@@ -2,9 +2,11 @@ import { useState, useCallback, useEffect } from "react";
 import { View, Text, ActivityIndicator, ScrollView, TouchableOpacity, Modal, Pressable } from "react-native";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { useLocalSearchParams, useRouter, useFocusEffect, Stack } from "expo-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Icon } from "@/lib/icons";
 import { ApiError, apiFetch } from "@/lib/api";
 import { FlashMessage } from "@/components/FlashMessage";
+import { queryKeys } from "@/lib/query-keys";
 
 interface Serving {
   id: string;
@@ -43,17 +45,46 @@ export default function FoodDetailsScreen() {
     edited?: string;
   }>();
   const router = useRouter();
-  const [food, setFood] = useState<Food | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [showEditedFlash, setShowEditedFlash] = useState(false);
   const [showAddedFlash, setShowAddedFlash] = useState(false);
   const [menuServingId, setMenuServingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-  const [usageCount, setUsageCount] = useState<number | null>(null);
-  const [usageLoading, setUsageLoading] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const foodQuery = useQuery({
+    queryKey: queryKeys.food(id),
+    queryFn: () => apiFetch<Food>(`/catalog/foods/${id}`),
+    enabled: !!id,
+  });
+
+  const usageQuery = useQuery({
+    queryKey: queryKeys.servingUsage(confirmDeleteId ?? ""),
+    queryFn: () =>
+      apiFetch<{ mealItemCount: number }>(`/catalog/servings/${confirmDeleteId}/usage`),
+    enabled: !!confirmDeleteId,
+  });
+
+  const deleteServingMutation = useMutation({
+    mutationFn: (servingId: string) =>
+      apiFetch(`/catalog/servings/${servingId}`, { method: "DELETE" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.food(id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.needsReview() });
+    },
+    onError: (err) => {
+      setDeleteError(err instanceof ApiError ? err.message : "Failed to delete serving");
+    },
+  });
+
+  // Refresh when navigating back to this screen (e.g. after editing a serving)
+  useFocusEffect(
+    useCallback(() => {
+      if (id) queryClient.invalidateQueries({ queryKey: queryKeys.food(id) });
+    }, [id, queryClient]),
+  );
 
   useEffect(() => {
     if (!editedServingId) return;
@@ -78,43 +109,15 @@ export default function FoodDetailsScreen() {
     return () => clearTimeout(t);
   }, [edited]);
 
-  useFocusEffect(
-    useCallback(() => {
-      if (!id) return;
-      setLoading(true);
-      setError(null);
-      apiFetch<Food>(`/catalog/foods/${id}`)
-        .then(setFood)
-        .catch((err) =>
-          setError(err instanceof ApiError ? err.message : "An unexpected error occurred.")
-        )
-        .finally(() => setLoading(false));
-    }, [id])
-  );
-
-  useEffect(() => {
-    if (!confirmDeleteId) { setUsageCount(null); return; }
-    setUsageLoading(true);
-    apiFetch<{ mealItemCount: number }>(`/catalog/servings/${confirmDeleteId}/usage`)
-      .then((r) => setUsageCount(r.mealItemCount))
-      .catch(() => setUsageCount(null))
-      .finally(() => setUsageLoading(false));
-  }, [confirmDeleteId]);
-
   async function handleDeleteServing(servingId: string) {
     setConfirmDeleteId(null);
-    setDeletingId(servingId);
-    try {
-      await apiFetch(`/catalog/servings/${servingId}`, { method: "DELETE" });
-      setFood((prev) =>
-        prev ? { ...prev, servings: prev.servings.filter((s) => s.id !== servingId) } : prev
-      );
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Failed to delete serving");
-    } finally {
-      setDeletingId(null);
-    }
+    setDeleteError(null);
+    await deleteServingMutation.mutateAsync(servingId).catch(() => {});
   }
+
+  const food = foodQuery.data ?? null;
+  const loading = foodQuery.isLoading;
+  const error = foodQuery.error instanceof Error ? foodQuery.error.message : null;
 
   if (loading) {
     return (
@@ -143,6 +146,8 @@ export default function FoodDetailsScreen() {
   const displayName = [food.name, food.variant].filter(Boolean).join(" · ");
   const menuServing = food.servings.find((s) => s.id === menuServingId) ?? null;
   const confirmServing = food.servings.find((s) => s.id === confirmDeleteId) ?? null;
+  const usageCount = usageQuery.data?.mealItemCount ?? null;
+  const usageLoading = usageQuery.isLoading;
 
   return (
     <>
@@ -208,7 +213,9 @@ export default function FoodDetailsScreen() {
         visible={!!confirmDeleteId}
         title="Delete Serving?"
         message={
-          usageLoading || usageCount === null
+          deleteError
+            ? deleteError
+            : usageLoading || usageCount === null
             ? undefined
             : usageCount > 0
             ? `"${confirmServing?.name ?? `${confirmServing?.size}${confirmServing?.unit}`}" has been logged ${usageCount} time${usageCount === 1 ? "" : "s"}. Those meal entries will also be deleted.`
@@ -216,9 +223,9 @@ export default function FoodDetailsScreen() {
         }
         confirmLabel="Delete"
         destructive
-        loading={usageLoading}
+        loading={usageLoading || deleteServingMutation.isPending}
         onConfirm={() => confirmDeleteId && handleDeleteServing(confirmDeleteId)}
-        onCancel={() => setConfirmDeleteId(null)}
+        onCancel={() => { setConfirmDeleteId(null); setDeleteError(null); }}
       />
 
       <ScrollView className="flex-1 bg-slate-950" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
@@ -248,7 +255,8 @@ export default function FoodDetailsScreen() {
         )}
 
         {food.servings.map((serving) => {
-          const needsReview = serving.status === "NEEDS_REVIEW";
+          const needsReviewStatus = serving.status === "NEEDS_REVIEW";
+          const isDeleting = deleteServingMutation.isPending && deleteServingMutation.variables === serving.id;
           return (
             <View
               key={serving.id}
@@ -269,13 +277,13 @@ export default function FoodDetailsScreen() {
                   </Text>
                 </View>
                 <View className="flex-row items-center gap-2">
-                  {needsReview && (
+                  {needsReviewStatus && (
                     <View className="flex-row items-center gap-1 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
                       <Icon name="alert-circle" size={11} color="#f59e0b" />
                       <Text className="text-amber-500 text-xs">{STATUS_LABEL[serving.status]}</Text>
                     </View>
                   )}
-                  {deletingId === serving.id ? (
+                  {isDeleting ? (
                     <ActivityIndicator size="small" color="#475569" />
                   ) : (
                     <TouchableOpacity

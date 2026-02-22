@@ -4,8 +4,10 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { useFonts } from "expo-font";
 import { Feather } from "@expo/vector-icons";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "../lib/auth";
 import { ThemeProvider } from "../lib/theme";
+import { queryClient } from "../lib/query-client";
 
 function RootNavigator() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -56,10 +58,12 @@ export default function RootLayout() {
   if (!fontsLoaded) return null;
 
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <RootNavigator />
-      </AuthProvider>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <AuthProvider>
+          <RootNavigator />
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }

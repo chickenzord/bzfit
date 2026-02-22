@@ -1,5 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
-import { useFocusEffect } from "expo-router";
+import { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,10 +7,12 @@ import {
   FlatList,
   Pressable,
 } from "react-native";
-import { Link } from "expo-router";
+import { Link, useFocusEffect } from "expo-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Icon } from "@/lib/icons";
 import { useDebounce } from "@uidotdev/usehooks";
-import { ApiError, apiFetch } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
+import { queryKeys } from "@/lib/query-keys";
 
 interface Serving {
   id: string;
@@ -33,67 +34,55 @@ function needsReview(food: Food): boolean {
 }
 
 export default function CatalogScreen() {
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
-  const [allFoods, setAllFoods] = useState<Food[]>([]);
-  const [searchResults, setSearchResults] = useState<Food[]>([]);
-  const [needsReviewFoods, setNeedsReviewFoods] = useState<Food[]>([]);
-  const [needsReviewCount, setNeedsReviewCount] = useState(0);
   const [filterReview, setFilterReview] = useState(false);
-  const [loadingAll, setLoadingAll] = useState(true);
-  const [loadingSearch, setLoadingSearch] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const debouncedQuery = useDebounce(searchQuery, 400);
   const isSearching = debouncedQuery.trim().length > 0;
 
-  // Load all foods and needs-review count on mount
-  const loadAll = useCallback(async () => {
-    setLoadingAll(true);
-    setError(null);
-    try {
-      const [res, reviewRes, countRes] = await Promise.all([
-        apiFetch<{ data: Food[] }>("/catalog/foods"),
-        apiFetch<Food[]>("/catalog/foods/needs-review"),
-        apiFetch<{ count: number }>("/catalog/foods/needs-review/count"),
-      ]);
-      setAllFoods(res.data);
-      setNeedsReviewFoods(reviewRes);
-      setNeedsReviewCount(countRes.count);
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Failed to load foods.");
-    } finally {
-      setLoadingAll(false);
-    }
-  }, []);
+  const allFoodsQuery = useQuery({
+    queryKey: queryKeys.foods(),
+    queryFn: () =>
+      apiFetch<{ data: Food[] }>("/catalog/foods").then((r) => r.data),
+  });
 
+  const needsReviewQuery = useQuery({
+    queryKey: queryKeys.needsReview(),
+    queryFn: () => apiFetch<Food[]>("/catalog/foods/needs-review"),
+  });
+
+  const searchQuery_ = useQuery({
+    queryKey: queryKeys.foodSearch(debouncedQuery.trim()),
+    queryFn: () =>
+      apiFetch<Food[]>(
+        `/catalog/foods/search?q=${encodeURIComponent(debouncedQuery.trim())}`,
+      ),
+    enabled: isSearching,
+  });
+
+  // Refresh on screen focus so edits made elsewhere are reflected
   useFocusEffect(
     useCallback(() => {
-      loadAll();
-    }, [loadAll])
+      queryClient.invalidateQueries({ queryKey: queryKeys.foods() });
+    }, [queryClient]),
   );
+
+  const allFoods = allFoodsQuery.data ?? [];
+  const needsReviewFoods = needsReviewQuery.data ?? [];
+  const needsReviewCount = needsReviewFoods.length;
+  const searchResults = searchQuery_.data ?? [];
 
   // Clear filter when count drops to 0
   useEffect(() => {
     if (needsReviewCount === 0) setFilterReview(false);
   }, [needsReviewCount]);
 
-  // Search when query changes
-  useEffect(() => {
-    if (!isSearching) {
-      setSearchResults([]);
-      return;
-    }
-    setLoadingSearch(true);
-    apiFetch<Food[]>(`/catalog/foods/search?q=${encodeURIComponent(debouncedQuery)}`)
-      .then(setSearchResults)
-      .catch((err) =>
-        setError(err instanceof ApiError ? err.message : "Search failed.")
-      )
-      .finally(() => setLoadingSearch(false));
-  }, [debouncedQuery, isSearching]);
-
   const foods = isSearching ? searchResults : filterReview ? needsReviewFoods : allFoods;
-  const loading = isSearching ? loadingSearch : loadingAll;
+  const loading = isSearching ? searchQuery_.isLoading : allFoodsQuery.isLoading;
+  const error = isSearching
+    ? (searchQuery_.error instanceof Error ? searchQuery_.error.message : null)
+    : (allFoodsQuery.error instanceof Error ? allFoodsQuery.error.message : null);
 
   function renderItem({ item }: { item: Food }) {
     const displayName = [item.name, item.variant].filter(Boolean).join(" · ");
@@ -173,7 +162,10 @@ export default function CatalogScreen() {
       {!loading && error && (
         <View className="flex-1 items-center justify-center pb-20">
           <Text className="text-red-400 text-base mb-2">{error}</Text>
-          <Pressable onPress={loadAll} className="mt-2">
+          <Pressable
+            onPress={() => queryClient.invalidateQueries({ queryKey: queryKeys.foods() })}
+            className="mt-2"
+          >
             <Text className="text-blue-400 text-sm">Retry</Text>
           </Pressable>
         </View>

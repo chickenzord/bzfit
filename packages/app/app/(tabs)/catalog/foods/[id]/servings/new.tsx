@@ -1,9 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback } from "react";
 import { View, Text, ActivityIndicator } from "react-native";
 import { useLocalSearchParams, useRouter, Stack, useFocusEffect } from "expo-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTabBarHidden } from "../../../../_layout";
 import { apiFetch, ApiError } from "@/lib/api";
 import { ServingForm, ServingFormValues } from "@/components/ServingForm";
+import { queryKeys } from "@/lib/query-keys";
 
 interface Food {
   id: string;
@@ -19,26 +21,21 @@ interface CreatedServing {
 export default function NewServingScreen() {
   const { id: foodId } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { setHidden } = useTabBarHidden();
 
   useFocusEffect(
     useCallback(() => {
       setHidden(true);
       return () => setHidden(false);
-    }, [setHidden])
+    }, [setHidden]),
   );
 
-  const [food, setFood] = useState<Food | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!foodId) return;
-    apiFetch<Food>(`/catalog/foods/${foodId}`)
-      .then(setFood)
-      .catch((e: unknown) => setLoadError(e instanceof ApiError ? e.message : "Failed to load food"))
-      .finally(() => setLoading(false));
-  }, [foodId]);
+  const foodQuery = useQuery({
+    queryKey: queryKeys.food(foodId),
+    queryFn: () => apiFetch<Food>(`/catalog/foods/${foodId}`),
+    enabled: !!foodId,
+  });
 
   async function handleSave(values: ServingFormValues) {
     const size = parseFloat(values.sizeStr);
@@ -60,10 +57,12 @@ export default function NewServingScreen() {
     if (!isNaN(fat)) body.fat = fat;
 
     const created = await apiFetch<CreatedServing>(`/catalog/servings`, { method: "POST", body });
+    queryClient.invalidateQueries({ queryKey: queryKeys.food(foodId) });
+    queryClient.invalidateQueries({ queryKey: queryKeys.needsReview() });
     router.replace(`/catalog/foods/${foodId}?newServingId=${created.id}`);
   }
 
-  if (loading) {
+  if (foodQuery.isLoading) {
     return (
       <View className="flex-1 bg-slate-950 items-center justify-center">
         <ActivityIndicator size="large" color="#3b82f6" />
@@ -71,10 +70,14 @@ export default function NewServingScreen() {
     );
   }
 
-  if (loadError || !food) {
+  if (foodQuery.error || !foodQuery.data) {
     return (
       <View className="flex-1 bg-slate-950 items-center justify-center px-6">
-        <Text className="text-red-400 text-base">{loadError ?? "Failed to load food"}</Text>
+        <Text className="text-red-400 text-base">
+          {foodQuery.error instanceof ApiError
+            ? foodQuery.error.message
+            : "Failed to load food"}
+        </Text>
       </View>
     );
   }
@@ -83,7 +86,7 @@ export default function NewServingScreen() {
     <>
       <Stack.Screen options={{ title: "New Serving" }} />
       <ServingForm
-        food={food}
+        food={foodQuery.data}
         onSave={handleSave}
         submitLabel="Add Serving"
         showIsDefault
