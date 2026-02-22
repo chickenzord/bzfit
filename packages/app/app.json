@@ -16,7 +16,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.bzfit.app"
+      "package": "dev.akhy.bzfit"
     },
     "web": {
       "bundler": "metro",

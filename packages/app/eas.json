@@ -11,14 +11,12 @@
       }
     },
     "production-apk": {
-      "credentialsSource": "local",
       "android": {
         "buildType": "apk",
         "gradleCommand": ":app:assembleRelease"
       }
     },
     "production": {
-      "credentialsSource": "local",
       "android": {
         "buildType": "app-bundle",
         "gradleCommand": ":app:bundleRelease"

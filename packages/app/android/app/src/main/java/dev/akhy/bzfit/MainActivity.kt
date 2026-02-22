@@ -1,4 +1,4 @@
-package com.bzfit.app
+package dev.akhy.bzfit
 
 import android.os.Build
 import android.os.Bundle
