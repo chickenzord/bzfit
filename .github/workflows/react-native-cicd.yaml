@@ -81,7 +81,18 @@ jobs:
           echo "storePassword=$ANDROID_STORE_PASSWORD" >> packages/app/android/keystore.properties
           echo "keyAlias=$ANDROID_KEY_ALIAS" >> packages/app/android/keystore.properties
           echo "keyPassword=$ANDROID_KEY_PASSWORD" >> packages/app/android/keystore.properties
-          echo "$GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64" | base64 -d > packages/app/credentials.json
+          cat > packages/app/credentials.json << EOF
+          {
+            "android": {
+              "keystore": {
+                "keystorePath": "android/bzfit-release.jks",
+                "keystorePassword": "$ANDROID_STORE_PASSWORD",
+                "keyAlias": "$ANDROID_KEY_ALIAS",
+                "keyPassword": "$ANDROID_KEY_PASSWORD"
+              }
+            }
+          }
+          EOF
 
       - name: 📱 Build Production APK
         if: github.event.inputs.buildType == 'all' || github.event.inputs.buildType == 'prod-apk' || github.event_name == 'push'
