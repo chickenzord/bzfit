@@ -15,10 +15,14 @@ function RootNavigator() {
     if (isLoading) return;
 
     const inAuthGroup = segments[0] === "(auth)";
-    const inPublicRoute = segments[0] === "privacy";
-    if (!isAuthenticated && !inAuthGroup && !inPublicRoute) {
+    const inTabs = segments[0] === "(tabs)";
+
+    // Mid-session protection: if token expires or user logs out while in tabs
+    if (!isAuthenticated && inTabs) {
       router.replace("/(auth)/login");
-    } else if (isAuthenticated && inAuthGroup) {
+    }
+    // Skip auth screens if already authenticated
+    if (isAuthenticated && inAuthGroup) {
       router.replace("/(tabs)");
     }
   }, [isAuthenticated, isLoading, segments, navigationState?.key]);
