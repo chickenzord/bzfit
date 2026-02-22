@@ -45,3 +45,7 @@ prisma/migrations/*_migration_lock.toml
 
 # Others
 /.learnings
+
+# Secrets
+credentials.json
+bzfit-release.jks

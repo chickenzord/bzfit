@@ -81,7 +81,7 @@ jobs:
           echo "storePassword=$ANDROID_STORE_PASSWORD" >> packages/app/android/keystore.properties
           echo "keyAlias=$ANDROID_KEY_ALIAS" >> packages/app/android/keystore.properties
           echo "keyPassword=$ANDROID_KEY_PASSWORD" >> packages/app/android/keystore.properties
-          echo "$GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64" | base64 -d > packages/app/android/credentials.json
+          echo "$GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64" | base64 -d > packages/app/credentials.json
 
       - name: 📱 Build Production APK
         if: github.event.inputs.buildType == 'all' || github.event.inputs.buildType == 'prod-apk' || github.event_name == 'push'
