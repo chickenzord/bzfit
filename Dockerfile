@@ -53,6 +53,7 @@ RUN pnpm install --frozen-lockfile --prod
 RUN pnpm prisma generate
 
 # Copy built artifacts
+COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 COPY --from=builder /app/packages/server/dist ./packages/server/dist
 COPY --from=builder /app/packages/app/dist ./web
 
