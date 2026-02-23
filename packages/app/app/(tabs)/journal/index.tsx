@@ -396,9 +396,10 @@ export default function JournalScreen() {
   const selectedLabel = `${DAY_SHORT[selectedDate.getDay()]}, ${MONTH_SHORT[selectedDate.getMonth()]} ${selectedDate.getDate()}`;
 
   return (
-    <ScrollView className="flex-1 bg-slate-950" stickyHeaderIndices={[0]}>
+    <View className="flex-1 bg-slate-950" style={{ paddingTop: insets.top }}>
+    <ScrollView className="flex-1" stickyHeaderIndices={[0]}>
       {/* Sticky header: branding + calendar */}
-      <View className="bg-slate-950 pb-3 border-b border-slate-800" style={{ paddingTop: insets.top + 12 }}>
+      <View className="bg-slate-950 pt-3 pb-3 border-b border-slate-800">
         {/* Branding row */}
         <View className="flex-row items-center justify-between px-4 mb-4">
           <View className="flex-row items-center gap-2">
@@ -768,5 +769,6 @@ export default function JournalScreen() {
         onClose={() => setGoalsVisible(false)}
       />
     </ScrollView>
+    </View>
   );
 }
