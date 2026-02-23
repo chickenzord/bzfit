@@ -9,7 +9,7 @@ const config = getDefaultConfig(projectRoot);
 
 // Watch the entire monorepo root so Metro can access pnpm's .pnpm store
 // (pnpm symlinks packages to node_modules/.pnpm/ at the root, outside projectRoot)
-config.watchFolders = [monorepoRoot];
+config.watchFolders = [monorepoRoot, ...(config.watchFolders ?? [])];
 
 // Resolve modules from both app and monorepo root
 config.resolver.nodeModulesPaths = [

@@ -46,7 +46,7 @@ jobs:
       - name: 🏗 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "24"
           cache: "pnpm"
 
       - name: 📦 Install dependencies
@@ -76,16 +76,12 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_BASE64 }}
         run: |
-          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > packages/app/android/bzfit-release.jks
-          echo "storeFile=bzfit-release.jks" > packages/app/android/keystore.properties
-          echo "storePassword=$ANDROID_STORE_PASSWORD" >> packages/app/android/keystore.properties
-          echo "keyAlias=$ANDROID_KEY_ALIAS" >> packages/app/android/keystore.properties
-          echo "keyPassword=$ANDROID_KEY_PASSWORD" >> packages/app/android/keystore.properties
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > packages/app/bzfit-release.jks
           cat > packages/app/credentials.json << EOF
           {
             "android": {
               "keystore": {
-                "keystorePath": "android/bzfit-release.jks",
+                "keystorePath": "bzfit-release.jks",
                 "keystorePassword": "$ANDROID_STORE_PASSWORD",
                 "keyAlias": "$ANDROID_KEY_ALIAS",
                 "keyPassword": "$ANDROID_KEY_PASSWORD"
