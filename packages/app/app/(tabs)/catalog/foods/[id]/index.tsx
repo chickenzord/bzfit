@@ -52,6 +52,7 @@ export default function FoodDetailsScreen() {
   const [showAddedFlash, setShowAddedFlash] = useState(false);
   const [menuServingId, setMenuServingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [confirmDeleteFood, setConfirmDeleteFood] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const foodQuery = useQuery({
@@ -65,6 +66,18 @@ export default function FoodDetailsScreen() {
     queryFn: () =>
       apiFetch<{ mealItemCount: number }>(`/catalog/servings/${confirmDeleteId}/usage`),
     enabled: !!confirmDeleteId,
+  });
+
+  const deleteFoodMutation = useMutation({
+    mutationFn: () => apiFetch(`/catalog/foods/${id}`, { method: "DELETE" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.foods() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.needsReview() });
+      router.replace("/catalog");
+    },
+    onError: (err) => {
+      setDeleteError(err instanceof ApiError ? err.message : "Failed to delete food");
+    },
   });
 
   const deleteServingMutation = useMutation({
@@ -155,12 +168,20 @@ export default function FoodDetailsScreen() {
         options={{
           title: displayName,
           headerRight: () => (
-            <TouchableOpacity
-              onPress={() => router.push(`/catalog/foods/${id}/edit`)}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <Icon name="edit" size={20} color="#94a3b8" />
-            </TouchableOpacity>
+            <View className="flex-row items-center gap-3">
+              <TouchableOpacity
+                onPress={() => { setConfirmDeleteFood(true); setDeleteError(null); }}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Icon name="trash" size={20} color="#f87171" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => router.push(`/catalog/foods/${id}/edit`)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Icon name="edit" size={20} color="#94a3b8" />
+              </TouchableOpacity>
+            </View>
           ),
         }}
       />
@@ -226,6 +247,23 @@ export default function FoodDetailsScreen() {
         loading={usageLoading || deleteServingMutation.isPending}
         onConfirm={() => confirmDeleteId && handleDeleteServing(confirmDeleteId)}
         onCancel={() => { setConfirmDeleteId(null); setDeleteError(null); }}
+      />
+
+      <ConfirmModal
+        visible={confirmDeleteFood}
+        title="Delete Food?"
+        message={
+          deleteError
+            ? deleteError
+            : food.servings.length > 0
+            ? `"${displayName}" has ${food.servings.length} serving${food.servings.length === 1 ? "" : "s"} that will also be deleted.`
+            : `"${displayName}" will be permanently removed.`
+        }
+        confirmLabel="Delete"
+        destructive
+        loading={deleteFoodMutation.isPending}
+        onConfirm={() => deleteFoodMutation.mutate()}
+        onCancel={() => { setConfirmDeleteFood(false); setDeleteError(null); }}
       />
 
       <ScrollView className="flex-1 bg-slate-950" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
