@@ -28,10 +28,12 @@ export class FoodsController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a food' })
+  @ApiQuery({ name: 'force', required: false, type: Boolean, description: 'If true, also delete referenced meal items' })
   @ApiResponse({ status: HttpStatus.OK, description: 'The food has been successfully deleted.' })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Food not found' })
-  async remove(@Param('id') id: string) {
-    return this.foodsService.removeFood(id);
+  @ApiResponse({ status: HttpStatus.CONFLICT, description: 'Food is referenced by meal items. Response includes mealItemCount.', schema: { type: 'object', properties: { message: { type: 'string' }, mealItemCount: { type: 'number' } } } })
+  async remove(@Param('id') id: string, @Query('force') force?: string) {
+    return this.foodsService.removeFood(id, force === 'true');
   }
 
   @Get()

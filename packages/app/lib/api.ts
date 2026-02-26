@@ -41,7 +41,7 @@ export async function apiFetch<T = unknown>(
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({ message: res.statusText }));
-    throw new ApiError(res.status, error.message ?? "Request failed");
+    throw new ApiError(res.status, error.message ?? "Request failed", error);
   }
 
   return res.json();
@@ -67,6 +67,7 @@ export class ApiError extends Error {
   constructor(
     public status: number,
     message: string,
+    public data?: unknown,
   ) {
     super(message);
     this.name = "ApiError";

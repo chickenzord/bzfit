@@ -53,6 +53,8 @@ export default function FoodDetailsScreen() {
   const [menuServingId, setMenuServingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [confirmDeleteFood, setConfirmDeleteFood] = useState(false);
+  const [confirmForceDeleteFood, setConfirmForceDeleteFood] = useState(false);
+  const [foodMealItemCount, setFoodMealItemCount] = useState<number | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const foodQuery = useQuery({
@@ -69,14 +71,22 @@ export default function FoodDetailsScreen() {
   });
 
   const deleteFoodMutation = useMutation({
-    mutationFn: () => apiFetch(`/catalog/foods/${id}`, { method: "DELETE" }),
+    mutationFn: (force: boolean) =>
+      apiFetch(`/catalog/foods/${id}${force ? "?force=true" : ""}`, { method: "DELETE" }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.foods() });
       queryClient.invalidateQueries({ queryKey: queryKeys.needsReview() });
       router.replace("/catalog");
     },
     onError: (err) => {
-      setDeleteError(err instanceof ApiError ? err.message : "Failed to delete food");
+      if (err instanceof ApiError && err.status === 409) {
+        const data = err.data as { mealItemCount?: number } | undefined;
+        setFoodMealItemCount(data?.mealItemCount ?? null);
+        setConfirmDeleteFood(false);
+        setConfirmForceDeleteFood(true);
+      } else {
+        setDeleteError(err instanceof ApiError ? err.message : "Failed to delete food");
+      }
     },
   });
 
@@ -262,8 +272,19 @@ export default function FoodDetailsScreen() {
         confirmLabel="Delete"
         destructive
         loading={deleteFoodMutation.isPending}
-        onConfirm={() => deleteFoodMutation.mutate()}
+        onConfirm={() => deleteFoodMutation.mutate(false)}
         onCancel={() => { setConfirmDeleteFood(false); setDeleteError(null); }}
+      />
+
+      <ConfirmModal
+        visible={confirmForceDeleteFood}
+        title="Food is Logged in Meals"
+        message={`"${displayName}" has been logged ${foodMealItemCount} time${foodMealItemCount === 1 ? "" : "s"}. Those meal entries will also be deleted. This cannot be undone.`}
+        confirmLabel="Delete Anyway"
+        destructive
+        loading={deleteFoodMutation.isPending}
+        onConfirm={() => deleteFoodMutation.mutate(true)}
+        onCancel={() => { setConfirmForceDeleteFood(false); setDeleteError(null); }}
       />
 
       <ScrollView className="flex-1 bg-slate-950" contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>

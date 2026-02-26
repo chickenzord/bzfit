@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { FoodResponseDto, CreateFoodDto, UpdateFoodDto, ServingResponseDto } from '@bzfit/shared';
 
@@ -52,7 +52,7 @@ export class FoodsService {
   /**
    * Remove a food
    */
-  async removeFood(id: string): Promise<{ id: string }> {
+  async removeFood(id: string, force = false): Promise<{ id: string }> {
     const existingFood = await this.prisma.food.findUnique({
       where: { id },
     });
@@ -61,9 +61,24 @@ export class FoodsService {
       throw new NotFoundException(`Food with ID ${id} not found`);
     }
 
-    await this.prisma.food.delete({
-      where: { id },
+    const mealItemCount = await this.prisma.mealItem.count({
+      where: { foodId: id },
     });
+
+    if (mealItemCount > 0 && !force) {
+      throw new ConflictException({
+        message: `Food is referenced by ${mealItemCount} meal item${mealItemCount === 1 ? '' : 's'}`,
+        mealItemCount,
+      });
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      if (mealItemCount > 0) {
+        await tx.mealItem.deleteMany({ where: { foodId: id } });
+      }
+      await tx.food.delete({ where: { id } });
+    });
+
     return { id };
   }
 
