@@ -21,4 +21,7 @@ config.resolver.nodeModulesPaths = [
 config.resolver.sourceExts = [...config.resolver.sourceExts, "md"];
 config.transformer.babelTransformerPath = path.resolve(__dirname, "metro-md-transformer.js");
 
+// Flatten asset paths for web to avoid issues with long node_modules URLs
+config.transformer.assetPlugins = [path.resolve(__dirname, "metro-asset-plugin.js")];
+
 module.exports = withNativeWind(config, { input: "./global.css" });
