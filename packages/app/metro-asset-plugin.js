@@ -14,8 +14,8 @@
  */
 
 module.exports = function(assetData) {
-  // Only flatten during production export, not in dev server
-  if (process.env.NODE_ENV !== 'production') {
+  // Only flatten during `expo export` (build:web), not in dev server
+  if (!process.env.EXPO_EXPORT) {
     return assetData;
   }
 
