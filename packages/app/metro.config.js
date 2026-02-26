@@ -17,11 +17,14 @@ config.resolver.nodeModulesPaths = [
   path.resolve(monorepoRoot, "node_modules"),
 ];
 
+// Exclude build output from Metro's resolver — otherwise Metro picks up
+// pre-built assets (e.g. dist/assets/vendor/*.ttf) and uses wrong paths
+config.resolver.blockList = [
+  new RegExp(`${path.resolve(projectRoot, "dist")}/.*`),
+];
+
 // Allow importing .md files as text modules (e.g. PRIVACY.md)
 config.resolver.sourceExts = [...config.resolver.sourceExts, "md"];
 config.transformer.babelTransformerPath = path.resolve(__dirname, "metro-md-transformer.js");
-
-// Flatten asset paths for web to avoid issues with long node_modules URLs
-config.transformer.assetPlugins = [path.resolve(__dirname, "metro-asset-plugin.js")];
 
 module.exports = withNativeWind(config, { input: "./global.css" });
