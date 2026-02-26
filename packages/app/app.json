@@ -9,7 +9,9 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "backgroundColor": "#0f172a"
+      "image": "./assets/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#020617"
     },
     "android": {
       "adaptiveIcon": {

@@ -4,10 +4,14 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { useFonts } from "expo-font";
 import { Feather } from "@expo/vector-icons";
+import * as SplashScreen from "expo-splash-screen";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "../lib/auth";
 import { ThemeProvider } from "../lib/theme";
 import { queryClient } from "../lib/query-client";
+
+// Keep native splash visible until we're ready
+SplashScreen.preventAutoHideAsync();
 
 function RootNavigator() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -18,16 +22,23 @@ function RootNavigator() {
     if (!navigationState?.key) return; // navigator not mounted yet
     if (isLoading) return;
 
+    // Hide splash screen once auth state is resolved
+    SplashScreen.hideAsync();
+
     const inAuthGroup = segments[0] === "(auth)";
     const inTabs = segments[0] === "(tabs)";
 
-    // Mid-session protection: if token expires or user logs out while in tabs
     if (!isAuthenticated && inTabs) {
       router.replace("/(auth)/login");
-    }
-    // Skip auth screens if already authenticated
-    if (isAuthenticated && inAuthGroup) {
+    } else if (isAuthenticated && inAuthGroup) {
       router.replace("/(tabs)");
+    } else if (!inAuthGroup && !inTabs) {
+      // Initial navigation from the root index — redirect based on auth
+      if (isAuthenticated) {
+        router.replace("/(tabs)");
+      } else {
+        router.replace("/(auth)/login");
+      }
     }
   }, [isAuthenticated, isLoading, segments, navigationState?.key]);
 
@@ -37,7 +48,6 @@ function RootNavigator() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="(auth)" />
-        <Stack.Screen name="index" />
         <Stack.Screen
           name="privacy"
           options={{
@@ -55,6 +65,8 @@ function RootNavigator() {
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts(Feather.font);
+
+  // Don't render anything until fonts are loaded — native splash stays visible
   if (!fontsLoaded) return null;
 
   return (
