@@ -1,0 +1,17 @@
+# Development Docker Compose — for testing local production builds
+# Usage: docker compose -f docker-compose.dev.yml up --build
+
+services:
+  bzfit:
+    build: .
+    ports:
+      - "3002:3000"
+    environment:
+      DATABASE_URL: file:./data/db.sqlite
+      JWT_SECRET: dev-secret-change-me
+    volumes:
+      - bzfit-dev-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  bzfit-dev-data:
