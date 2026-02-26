@@ -7,7 +7,6 @@ import {
   ScrollView,
   Modal,
   KeyboardAvoidingView,
-  Platform,
   ActivityIndicator,
   Dimensions,
 } from "react-native";
@@ -301,7 +300,7 @@ export function QuickAddModal({
     >
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior="padding"
       >
         <View className="flex-1 justify-end bg-black/60">
           <View

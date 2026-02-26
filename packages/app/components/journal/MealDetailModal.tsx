@@ -8,7 +8,6 @@ import {
   Modal,
   ActivityIndicator,
   KeyboardAvoidingView,
-  Platform,
 } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import { Icon } from "@/lib/icons";
@@ -140,7 +139,7 @@ export function MealDetailModal({
     >
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior="padding"
       >
         <View className="flex-1 justify-end bg-black/60">
           <View
