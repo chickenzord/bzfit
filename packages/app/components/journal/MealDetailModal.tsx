@@ -189,7 +189,7 @@ export function MealDetailModal({
                       <View className="flex-row items-start justify-between">
                         <View className="flex-1 mr-3">
                           <View className="flex-row items-center gap-1.5">
-                            {item.isEstimated && (
+                            {item.serving.status === "NEEDS_REVIEW" && (
                               <Icon name="alert-circle" size={13} color="#f59e0b" />
                             )}
                             <Text

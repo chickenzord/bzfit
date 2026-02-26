@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { MealType } from '../../entities';
+import { MealType, ServingStatus } from '../../entities';
 
 export const NutritionTotalsSchema = z.object({
   calories: z.number(),
@@ -31,6 +31,7 @@ export const MealItemResponseSchema = z.object({
     protein: z.number().nullable(),
     carbs: z.number().nullable(),
     fat: z.number().nullable(),
+    status: z.nativeEnum(ServingStatus),
   }),
   nutrition: z.object({
     calories: z.number().optional(),

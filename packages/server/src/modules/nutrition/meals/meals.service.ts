@@ -196,6 +196,7 @@ export class MealsService {
         protein: serving.protein ?? null,
         carbs: serving.carbs ?? null,
         fat: serving.fat ?? null,
+        status: serving.status,
       },
       nutrition,
       createdAt: item.createdAt.toISOString(),

@@ -727,7 +727,7 @@ export default function JournalScreen() {
                         </Text>
                       </View>
                       <View className="flex-row items-center gap-1.5">
-                        {item.isEstimated && (
+                        {item.serving.status === "NEEDS_REVIEW" && (
                           <Icon
                             name="alert-circle"
                             size={13}

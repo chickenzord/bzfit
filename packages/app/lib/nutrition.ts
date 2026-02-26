@@ -26,6 +26,7 @@ export type MealItem = {
     size: number;
     unit: string;
     calories: number | null;
+    status: "VERIFIED" | "NEEDS_REVIEW" | "USER_CREATED";
   };
   nutrition: {
     calories?: number;
