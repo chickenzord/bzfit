@@ -23,7 +23,6 @@ describe('MealItemsController', () => {
         servingId: 'serving-1',
         quantity: 1,
         notes: null,
-        isEstimated: false,
         food: { id: 'food-1', name: 'Rice', variant: null, brand: null },
         serving: { id: 'serving-1', name: 'Cup', size: 100, unit: 'g', calories: 200, protein: 4, carbs: 44, fat: 0.4 },
         nutrition: { calories: 200, protein: 4, carbs: 44, fat: 0.4 },
@@ -37,7 +36,6 @@ describe('MealItemsController', () => {
         servingId: 'serving-2',
         quantity: 1,
         notes: null,
-        isEstimated: false,
         food: { id: 'food-2', name: 'Chicken', variant: null, brand: null },
         serving: { id: 'serving-2', name: 'Piece', size: 120, unit: 'g', calories: 165, protein: 31, carbs: 0, fat: 3.6 },
         nutrition: { calories: 165, protein: 31, carbs: 0, fat: 3.6 },
@@ -102,19 +100,6 @@ describe('MealItemsController', () => {
       expect(result.totals.calories).toBe(565);
       expect(result.items[0].quantity).toBe(2);
       expect(service.updateItem).toHaveBeenCalledWith('user-1', 'item-1', { quantity: 2 });
-    });
-
-    it('should update isEstimated flag', async () => {
-      const updatedMeal = {
-        ...baseMealResponse,
-        items: [{ ...baseMealResponse.items[0], isEstimated: false }, baseMealResponse.items[1]],
-      };
-      mockMealsService.updateItem.mockResolvedValue(updatedMeal);
-
-      const result = await controller.update(mockRequest, 'item-1', { isEstimated: false });
-
-      expect(result.items[0].isEstimated).toBe(false);
-      expect(service.updateItem).toHaveBeenCalledWith('user-1', 'item-1', { isEstimated: false });
     });
 
     it('should update notes', async () => {

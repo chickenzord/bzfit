@@ -139,7 +139,6 @@ model MealItem {
 
   quantity    Float    @default(1.0)
   notes       String?
-  isEstimated Boolean  @default(false)
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

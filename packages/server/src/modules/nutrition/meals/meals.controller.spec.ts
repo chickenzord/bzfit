@@ -23,7 +23,6 @@ describe('MealsController', () => {
         servingId: 'serving-1',
         quantity: 1,
         notes: null,
-        isEstimated: false,
         food: {
           id: 'food-1',
           name: 'Oatmeal',

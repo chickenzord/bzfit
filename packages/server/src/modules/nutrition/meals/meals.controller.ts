@@ -66,7 +66,7 @@ export class MealsController {
     description:
       'Used when user searches but doesn\'t find a food and wants to log it immediately. ' +
       'Creates food (or reuses existing), creates serving with NEEDS_REVIEW status, ' +
-      'finds or creates meal, and adds item with isEstimated=true. All in one atomic transaction.',
+      'finds or creates meal, and adds the item. All in one atomic transaction.',
   })
   @ApiBody({ type: QuickAddDto })
   @ApiResponse({ status: 201, description: 'Food created and logged successfully' })

@@ -180,7 +180,6 @@ export class MealsService {
       servingId: item.servingId,
       quantity: item.quantity,
       notes: item.notes ?? null,
-      isEstimated: item.isEstimated,
       food: {
         id: food.id,
         name: food.name,
@@ -296,7 +295,6 @@ export class MealsService {
                 servingId: item.servingId,
                 quantity: item.quantity ?? 1.0,
                 notes: item.notes,
-                isEstimated: item.isEstimated ?? false,
               })),
             }
           : undefined,
@@ -384,7 +382,7 @@ export class MealsService {
         });
       }
 
-      // Step 4: Create MealItem with isEstimated: true
+      // Step 4: Create MealItem
       await tx.mealItem.create({
         data: {
           mealId: meal.id,
@@ -392,7 +390,6 @@ export class MealsService {
           servingId: serving.id,
           quantity: quantity ?? 1.0,
           notes,
-          isEstimated: true, // Always mark as estimated for quick-add
         },
       });
 
@@ -485,7 +482,6 @@ export class MealsService {
         servingId: addItemDto.servingId,
         quantity: addItemDto.quantity ?? 1.0,
         notes: addItemDto.notes,
-        isEstimated: addItemDto.isEstimated ?? false,
       },
     });
 
@@ -494,7 +490,7 @@ export class MealsService {
   }
 
   /**
-   * Update meal item (quantity, notes, isEstimated)
+   * Update meal item (quantity, notes)
    */
   async updateItem(userId: string, itemId: string, updateItemDto: UpdateMealItemDto): Promise<MealResponseDto> {
     // Find item and verify user owns the parent meal
@@ -520,7 +516,6 @@ export class MealsService {
       data: {
         quantity: updateItemDto.quantity,
         notes: updateItemDto.notes,
-        isEstimated: updateItemDto.isEstimated,
       },
     });
 

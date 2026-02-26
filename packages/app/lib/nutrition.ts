@@ -12,7 +12,6 @@ export type NutritionTotals = {
 export type MealItem = {
   id: string;
   quantity: number;
-  isEstimated: boolean;
   notes: string | null;
   food: {
     id: string;

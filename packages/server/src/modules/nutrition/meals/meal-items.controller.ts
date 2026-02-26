@@ -12,7 +12,7 @@ export class MealItemsController {
   constructor(private mealsService: MealsService) {}
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update meal item (quantity, notes, isEstimated)' })
+  @ApiOperation({ summary: 'Update meal item (quantity, notes)' })
   @ApiBody({ type: UpdateMealItemDto })
   @ApiResponse({ status: 200, description: 'Item updated successfully' })
   @ApiResponse({ status: 404, description: 'Meal item not found' })

@@ -15,7 +15,6 @@ export const MealItemResponseSchema = z.object({
   servingId: z.string(),
   quantity: z.number(),
   notes: z.string().nullable(),
-  isEstimated: z.boolean(),
   food: z.object({
     id: z.string(),
     name: z.string(),
