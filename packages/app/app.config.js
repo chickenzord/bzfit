@@ -1,11 +1,24 @@
+const pkg = require("../../package.json");
 const isDev = process.env.APP_ENV === "development";
+
+// APP_BUILD is the rebuild counter (default 0). Set by CI via env var or
+// locally when building a specific rebuild of the same semver.
+const build = parseInt(process.env.APP_BUILD ?? "0", 10);
+
+function deriveVersionCode(version, build = 0) {
+  const [major, minor, patch] = version.split(".").map(Number);
+  return major * 1000000 + minor * 10000 + patch * 100 + build;
+}
+
+const version = pkg.version;
+const versionCode = deriveVersionCode(version, build);
 
 /** @type {import('expo/config').ExpoConfig} */
 module.exports = {
   expo: {
     name: isDev ? "BzFit (Dev)" : "BzFit",
     slug: "bzfit",
-    version: "0.1.0",
+    version,
     scheme: "bzfit",
     orientation: "portrait",
     icon: isDev ? "./assets/icon-dev.png" : "./assets/icon.png",
@@ -22,7 +35,7 @@ module.exports = {
         backgroundColor: "#ffffff",
       },
       package: isDev ? "dev.akhy.bzfit.dev" : "dev.akhy.bzfit",
-      versionCode: 10000,
+      versionCode,
     },
     web: {
       bundler: "metro",

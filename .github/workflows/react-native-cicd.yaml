@@ -69,15 +69,18 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-eas-build-local-
 
-      - name: 🔢 Apply versionCode
+      - name: 🔢 Compute version info
         id: version
         run: |
           BUILD=${{ inputs.build || 0 }}
-          node scripts/sync-version.js --build $BUILD
-          VERSION=$(node -p "require('./packages/app/app.json').expo.version")
-          VCODE=$(node -p "require('./packages/app/app.json').expo.android.versionCode")
+          VERSION=$(node -p "require('./package.json').version")
+          VCODE=$(node -p "
+            const [major, minor, patch] = '$VERSION'.split('.').map(Number);
+            major * 1000000 + minor * 10000 + patch * 100 + $BUILD
+          ")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "versionCode=$VCODE" >> $GITHUB_OUTPUT
+          echo "build=$BUILD" >> $GITHUB_OUTPUT
           # Tag format: vX.Y.Z for build 0, vX.Y.Z-bN for rebuilds
           if [ "$BUILD" = "0" ]; then
             TAG="v$VERSION"
@@ -126,6 +129,7 @@ jobs:
         env:
           NODE_ENV: production
           NODE_OPTIONS: "--max_old_space_size=4096"
+          APP_BUILD: ${{ steps.version.outputs.build }}
         run: eas build --platform android --profile production-apk --local --non-interactive --output=${{ github.workspace }}/app-prod.apk
 
       - name: 📱 Build AAB
@@ -134,6 +138,7 @@ jobs:
         env:
           NODE_ENV: production
           NODE_OPTIONS: "--max_old_space_size=4096"
+          APP_BUILD: ${{ steps.version.outputs.build }}
         run: eas build --platform android --profile production --local --non-interactive --output=${{ github.workspace }}/app-prod.aab
 
       - name: 🚀 Submit to Play Store

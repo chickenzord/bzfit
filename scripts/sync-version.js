@@ -22,23 +22,15 @@ function writeJson(file, data) {
   fs.writeFileSync(file, JSON.stringify(data, null, 2) + "\n");
 }
 
-function deriveVersionCode(version, build = 0) {
-  const [major, minor, patch] = version.split(".").map(Number);
-  return major * 1000000 + minor * 10000 + patch * 100 + build;
-}
-
 // --- Parse args ---
 const args = process.argv.slice(2);
 const checkOnly = args.includes("--check");
-const buildIndex = args.indexOf("--build");
-const build = buildIndex !== -1 ? parseInt(args[buildIndex + 1], 10) : 0;
 
 // --- Read source of truth ---
 const rootPkg = readJson(path.join(root, "package.json"));
 const version = rootPkg.version;
-const versionCode = deriveVersionCode(version, build);
 
-console.log(`version: ${version}  versionCode: ${versionCode} (build=${build})`);
+console.log(`version: ${version}`);
 
 // --- Files to sync ---
 const packageFiles = [
@@ -46,8 +38,6 @@ const packageFiles = [
   "packages/shared/package.json",
   "packages/app/package.json",
 ];
-
-const appJson = path.join(root, "packages/app/app.json");
 
 let outOfSync = false;
 
@@ -69,24 +59,9 @@ for (const rel of packageFiles) {
   }
 }
 
-// --- Check / update app.json ---
-const app = readJson(appJson);
-const expoVersion = app.expo.version;
-const expoVersionCode = app.expo.android?.versionCode;
-
-if (expoVersion !== version || expoVersionCode !== versionCode) {
-  if (checkOnly) {
-    console.error(`  ✗ app.json: version=${expoVersion} versionCode=${expoVersionCode} (expected ${version} / ${versionCode})`);
-    outOfSync = true;
-  } else {
-    app.expo.version = version;
-    app.expo.android = { ...app.expo.android, versionCode };
-    writeJson(appJson, app);
-    console.log(`  updated packages/app/app.json`);
-  }
-} else {
-  console.log(`  ok      packages/app/app.json`);
-}
+// app.config.js derives version and versionCode from package.json at build
+// time — no file patching needed here.
+console.log(`  ok      packages/app/app.config.js (reads package.json at build time)`);
 
 if (checkOnly && outOfSync) {
   console.error("\nVersions are out of sync. Run: node scripts/sync-version.js");
