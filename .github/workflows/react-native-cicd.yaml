@@ -23,54 +23,37 @@ on:
 env:
   EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
+# Reusable signing setup
+# Each build job decodes the keystore independently so they can run in parallel
+# and be retried without depending on a shared setup job.
+
 jobs:
+  # ─── Fast pre-flight ────────────────────────────────────────────────────────
+
   check:
+    name: Version check
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: "20"
-
       - name: Verify versions are in sync
         run: node scripts/sync-version.js --check
 
-  build-and-release:
+  version:
+    name: Compute version
     needs: check
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.compute.outputs.version }}
+      versionCode: ${{ steps.compute.outputs.versionCode }}
+      build: ${{ steps.compute.outputs.build }}
+      tag: ${{ steps.compute.outputs.tag }}
     steps:
-      - name: 🏗 Checkout repository
-        uses: actions/checkout@v4
-
-      - name: 🏗 Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: latest
-
-      - name: 🏗 Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "24"
-          cache: "pnpm"
-
-      - name: 📦 Install dependencies
-        run: |
-          pnpm install
-          pnpm add -g eas-cli@latest
-
-      - name: 📱 Setup EAS build cache
-        uses: actions/cache@v3
-        with:
-          path: ~/.eas-build-local
-          key: ${{ runner.os }}-eas-build-local-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-eas-build-local-
-
-      - name: 🔢 Compute version info
-        id: version
+      - uses: actions/checkout@v4
+      - name: Compute version info
+        id: compute
         run: |
           BUILD=${{ inputs.build || 0 }}
           VERSION=$(node -p "require('./package.json').version")
@@ -78,18 +61,12 @@ jobs:
             const [major, minor, patch] = '$VERSION'.split('.').map(Number);
             major * 1000000 + minor * 10000 + patch * 100 + $BUILD
           ")
+          if [ "$BUILD" = "0" ]; then TAG="v$VERSION"; else TAG="v$VERSION-b$BUILD"; fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "versionCode=$VCODE" >> $GITHUB_OUTPUT
           echo "build=$BUILD" >> $GITHUB_OUTPUT
-          # Tag format: vX.Y.Z for build 0, vX.Y.Z-bN for rebuilds
-          if [ "$BUILD" = "0" ]; then
-            TAG="v$VERSION"
-          else
-            TAG="v$VERSION-b$BUILD"
-          fi
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
-          # Write job summary for visibility
           echo "## 📦 Build Info" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
@@ -102,7 +79,32 @@ jobs:
           NEXT_BUILD=$((BUILD + 1))
           echo "> If a rebuild is needed, rerun this workflow with **build = \`$NEXT_BUILD\`**" >> $GITHUB_STEP_SUMMARY
 
-      - name: 🔐 Setup signing secrets
+  # ─── Builds (slow, run in parallel) ────────────────────────────────────────
+
+  build-apk:
+    name: Build APK
+    needs: [check, version]
+    if: github.event_name == 'push' || inputs.buildType == 'prod-apk' || inputs.buildType == 'all'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "pnpm"
+      - name: Install dependencies
+        run: |
+          pnpm install
+          pnpm add -g eas-cli@latest
+      - uses: actions/cache@v3
+        with:
+          path: ~/.eas-build-local
+          key: ${{ runner.os }}-eas-build-local-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: ${{ runner.os }}-eas-build-local-
+      - name: 🔐 Setup signing
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
@@ -122,36 +124,102 @@ jobs:
             }
           }
           EOF
-
       - name: 📱 Build APK
-        if: ${{ inputs.buildType == 'all' || inputs.buildType == 'prod-apk' || github.event_name == 'push' }}
         working-directory: packages/app
         env:
           NODE_ENV: production
           NODE_OPTIONS: "--max_old_space_size=4096"
-          APP_BUILD: ${{ steps.version.outputs.build }}
+          APP_BUILD: ${{ needs.version.outputs.build }}
         run: eas build --platform android --profile production-apk --local --non-interactive --output=${{ github.workspace }}/app-prod.apk
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-${{ needs.version.outputs.tag }}
+          path: app-prod.apk
+          retention-days: 7
 
+  build-aab:
+    name: Build AAB
+    needs: [check, version]
+    if: github.event_name == 'push' || inputs.buildType == 'prod-aab' || inputs.buildType == 'publish-stores' || inputs.buildType == 'all'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "pnpm"
+      - name: Install dependencies
+        run: |
+          pnpm install
+          pnpm add -g eas-cli@latest
+      - uses: actions/cache@v3
+        with:
+          path: ~/.eas-build-local
+          key: ${{ runner.os }}-eas-build-local-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: ${{ runner.os }}-eas-build-local-
+      - name: 🔐 Setup signing
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > packages/app/bzfit-release.jks
+          cat > packages/app/credentials.json << EOF
+          {
+            "android": {
+              "keystore": {
+                "keystorePath": "bzfit-release.jks",
+                "keystorePassword": "$ANDROID_STORE_PASSWORD",
+                "keyAlias": "$ANDROID_KEY_ALIAS",
+                "keyPassword": "$ANDROID_KEY_PASSWORD"
+              }
+            }
+          }
+          EOF
       - name: 📱 Build AAB
-        if: ${{ inputs.buildType == 'all' || inputs.buildType == 'prod-aab' || inputs.buildType == 'publish-stores' || github.event_name == 'push' }}
         working-directory: packages/app
         env:
           NODE_ENV: production
           NODE_OPTIONS: "--max_old_space_size=4096"
-          APP_BUILD: ${{ steps.version.outputs.build }}
+          APP_BUILD: ${{ needs.version.outputs.build }}
         run: eas build --platform android --profile production --local --non-interactive --output=${{ github.workspace }}/app-prod.aab
-
-      - name: 🚀 Submit to Play Store
-        if: ${{ inputs.buildType == 'all' || inputs.buildType == 'publish-stores' }}
-        uses: r0adkll/upload-google-play@v1
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
         with:
-          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
-          packageName: dev.akhy.bzfit
-          releaseFiles: ${{ github.workspace }}/app-prod.aab
-          track: internal
+          name: aab-${{ needs.version.outputs.tag }}
+          path: app-prod.aab
+          retention-days: 7
 
-      - name: 📝 Generate changelog
-        id: changelog
+  # ─── Publishing (fast, independently retryable) ─────────────────────────────
+
+  release:
+    name: GitHub Release
+    needs: [version, build-apk, build-aab]
+    if: |
+      always() &&
+      needs.version.result == 'success' &&
+      (needs.build-apk.result == 'success' || needs.build-aab.result == 'success')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download APK
+        if: needs.build-apk.result == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          name: apk-${{ needs.version.outputs.tag }}
+          path: artifacts/
+      - name: Download AAB
+        if: needs.build-aab.result == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          name: aab-${{ needs.version.outputs.tag }}
+          path: artifacts/
+      - name: Generate changelog
         run: |
           if git describe --tags --abbrev=0 > /dev/null 2>&1; then
             LAST_TAG=$(git describe --tags --abbrev=0)
@@ -159,25 +227,37 @@ jobs:
           else
             git log --pretty=format:"- %s" -n 20 > changelog.md
           fi
-
       - name: 🚀 Create GitHub Release draft
         uses: softprops/action-gh-release@v1
         with:
           draft: true
-          tag_name: ${{ steps.version.outputs.tag }}
-          name: "BzFit ${{ steps.version.outputs.tag }}"
+          tag_name: ${{ needs.version.outputs.tag }}
+          name: "BzFit ${{ needs.version.outputs.tag }}"
           body_path: changelog.md
-          files: |
-            ./app-prod.apk
-            ./app-prod.aab
+          files: artifacts/*
+          fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 📦 Upload artifacts
-        uses: actions/upload-artifact@v4
+  publish-playstore:
+    name: Publish to Play Store
+    needs: [version, build-aab, release]
+    if: |
+      always() &&
+      needs.build-aab.result == 'success' &&
+      needs.release.result == 'success' &&
+      (inputs.buildType == 'publish-stores' || inputs.buildType == 'all')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download AAB
+        uses: actions/download-artifact@v4
         with:
-          name: app-builds-${{ steps.version.outputs.tag }}
-          path: |
-            ./app-prod.apk
-            ./app-prod.aab
-          retention-days: 7
+          name: aab-${{ needs.version.outputs.tag }}
+          path: artifacts/
+      - name: 🚀 Submit to Play Store
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
+          packageName: dev.akhy.bzfit
+          releaseFiles: artifacts/app-prod.aab
+          track: internal
