@@ -1,3 +1,6 @@
 .expo/
 android/
 ios/
+google-service-account.json
+bzfit-release.jks
+credentials.json

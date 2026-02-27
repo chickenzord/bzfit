@@ -137,13 +137,14 @@ jobs:
           NODE_OPTIONS: "--max_old_space_size=4096"
         run: eas build --platform android --profile production --local --non-interactive --output=${{ github.workspace }}/app-prod.aab
 
-      # - name: 🚀 Submit to Play Store
-      #   if: ${{ inputs.buildType == 'all' || inputs.buildType == 'publish-stores' }}
-      #   working-directory: packages/app
-      #   env:
-      #     EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-      #     GOOGLE_PLAY_SERVICE_ACCOUNT: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
-      #   run: eas submit -p android --path ${{ github.workspace }}/app-prod.aab --non-interactive
+      - name: 🚀 Submit to Play Store
+        if: ${{ inputs.buildType == 'all' || inputs.buildType == 'publish-stores' }}
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
+          packageName: dev.akhy.bzfit
+          releaseFiles: ${{ github.workspace }}/app-prod.aab
+          track: internal
 
       - name: 📝 Generate changelog
         id: changelog
