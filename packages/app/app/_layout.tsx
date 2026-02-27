@@ -1,3 +1,5 @@
+// Must be the first import — initialises the dev client launcher in debug builds
+import "expo-dev-client";
 import "../global.css";
 import { Stack, router, useRootNavigationState, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";

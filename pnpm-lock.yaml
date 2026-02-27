@@ -54,6 +54,9 @@ importers:
       expo-constants:
         specifier: ~18.0.13
         version: 18.0.13(expo@54.0.33)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))
+      expo-dev-client:
+        specifier: ^55.0.10
+        version: 55.0.10(expo@54.0.33)(typescript@5.9.3)
       expo-font:
         specifier: ^14.0.11
         version: 14.0.11(expo@54.0.33)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
@@ -964,6 +967,9 @@ packages:
 
   '@expo/schema-utils@0.1.8':
     resolution: {integrity: sha512-9I6ZqvnAvKKDiO+ZF8BpQQFYWXOJvTAL5L/227RUbWG1OVZDInFifzCBiqAZ3b67NRfeAgpgvbA7rejsqhY62A==}
+
+  '@expo/schema-utils@55.0.2':
+    resolution: {integrity: sha512-QZ5WKbJOWkCrMq0/kfhV9ry8te/OaS34YgLVpG8u9y2gix96TlpRTbxM/YATjNcUR2s4fiQmPCOxkGtog4i37g==}
 
   '@expo/sdk-runtime-versions@1.0.0':
     resolution: {integrity: sha512-Doz2bfiPndXYFPMRwPyGa1k5QaKDVpY806UJj570epIiMzWaYyCtobasyfC++qfIXVb5Ocy7r3tP9d62hAQ7IQ==}
@@ -3470,6 +3476,26 @@ packages:
       expo: '*'
       react-native: '*'
 
+  expo-dev-client@55.0.10:
+    resolution: {integrity: sha512-qclT+uDp5VjdHDrXkMus0d8ZpNq41CzOXWJq4UmlfsuFeY4b7v/vAI0OJTtScx/FSTkSkggRzjqm+EwnmIFRCg==}
+    peerDependencies:
+      expo: '*'
+
+  expo-dev-launcher@55.0.11:
+    resolution: {integrity: sha512-u/8iVwD4VU2N5R5Tr32+yqT7Llm8K7VyfYB76Fe5apK97Ocpf2PR4Oqf8RbKc9DmqcbHEWfNriMGEW8U6FsaKA==}
+    peerDependencies:
+      expo: '*'
+
+  expo-dev-menu-interface@55.0.1:
+    resolution: {integrity: sha512-FkNtwq1q6NmYoy28pj+ZLuHmirJgc039pQbJ167MZJIaprLcMN1yy67qA7xBHK+FNJ8AN8kGCtMTPByg5UC72A==}
+    peerDependencies:
+      expo: '*'
+
+  expo-dev-menu@55.0.10:
+    resolution: {integrity: sha512-gad31DFkRmEC6pj6sZLIv3HY14PR3X6SUwUTtilArF5eQK/Nr3dWhYFL/QHlrBkwTEDYeKKgcw3V6sZDfE6hcg==}
+    peerDependencies:
+      expo: '*'
+
   expo-file-system@19.0.21:
     resolution: {integrity: sha512-s3DlrDdiscBHtab/6W1osrjGL+C2bvoInPJD7sOwmxfJ5Woynv2oc+Fz1/xVXaE/V7HE/+xrHC/H45tu6lZzzg==}
     peerDependencies:
@@ -3483,6 +3509,9 @@ packages:
       react: '*'
       react-native: '*'
 
+  expo-json-utils@55.0.0:
+    resolution: {integrity: sha512-aupt/o5PDAb8dXDCb0JcRdkqnTLxe/F+La7jrnyd/sXlYFfRgBJLFOa1SqVFXm1E/Xam1SE/yw6eAb+DGY7Arg==}
+
   expo-keep-awake@15.0.8:
     resolution: {integrity: sha512-YK9M1VrnoH1vLJiQzChZgzDvVimVoriibiDIFLbQMpjYBnvyfUeHJcin/Gx1a+XgupNXy92EQJLgI/9ZuXajYQ==}
     peerDependencies:
@@ -3494,6 +3523,11 @@ packages:
     peerDependencies:
       react: '*'
       react-native: '*'
+
+  expo-manifests@55.0.9:
+    resolution: {integrity: sha512-i82j3X4hbxYDe6kxUw4u8WfvbvTj2w+9BD9WKuL0mFRy+MjvdzdyaqAjEViWCKo/alquP/hTApDTQBb3UmWhkg==}
+    peerDependencies:
+      expo: '*'
 
   expo-modules-autolinking@3.0.24:
     resolution: {integrity: sha512-TP+6HTwhL7orDvsz2VzauyQlXJcAWyU3ANsZ7JGL4DQu8XaZv/A41ZchbtAYLfozNA2Ya1Hzmhx65hXryBMjaQ==}
@@ -3568,6 +3602,11 @@ packages:
     peerDependenciesMeta:
       react-native-web:
         optional: true
+
+  expo-updates-interface@55.1.3:
+    resolution: {integrity: sha512-UVVIiZqymQZJL+o/jh65kXOI97xdkbqBJJM0LMabaPMNLFnc6/WvOMOzmQs7SPyKb8+0PeBaFd7tj5DzF6JeQg==}
+    peerDependencies:
+      expo: '*'
 
   expo@54.0.33:
     resolution: {integrity: sha512-3yOEfAKqo+gqHcV8vKcnq0uA5zxlohnhA3fu4G43likN8ct5ZZ3LjAh9wDdKteEkoad3tFPvwxmXW711S5OHUw==}
@@ -7479,6 +7518,8 @@ snapshots:
 
   '@expo/schema-utils@0.1.8': {}
 
+  '@expo/schema-utils@55.0.2': {}
+
   '@expo/sdk-runtime-versions@1.0.0': {}
 
   '@expo/spawn-async@1.7.2':
@@ -10241,6 +10282,37 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  expo-dev-client@55.0.10(expo@54.0.33)(typescript@5.9.3):
+    dependencies:
+      expo: 54.0.33(@babel/core@7.29.0)(@expo/metro-runtime@6.1.2)(expo-router@6.0.23)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
+      expo-dev-launcher: 55.0.11(expo@54.0.33)(typescript@5.9.3)
+      expo-dev-menu: 55.0.10(expo@54.0.33)
+      expo-dev-menu-interface: 55.0.1(expo@54.0.33)
+      expo-manifests: 55.0.9(expo@54.0.33)(typescript@5.9.3)
+      expo-updates-interface: 55.1.3(expo@54.0.33)
+    transitivePeerDependencies:
+      - supports-color
+      - typescript
+
+  expo-dev-launcher@55.0.11(expo@54.0.33)(typescript@5.9.3):
+    dependencies:
+      '@expo/schema-utils': 55.0.2
+      expo: 54.0.33(@babel/core@7.29.0)(@expo/metro-runtime@6.1.2)(expo-router@6.0.23)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
+      expo-dev-menu: 55.0.10(expo@54.0.33)
+      expo-manifests: 55.0.9(expo@54.0.33)(typescript@5.9.3)
+    transitivePeerDependencies:
+      - supports-color
+      - typescript
+
+  expo-dev-menu-interface@55.0.1(expo@54.0.33):
+    dependencies:
+      expo: 54.0.33(@babel/core@7.29.0)(@expo/metro-runtime@6.1.2)(expo-router@6.0.23)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
+
+  expo-dev-menu@55.0.10(expo@54.0.33):
+    dependencies:
+      expo: 54.0.33(@babel/core@7.29.0)(@expo/metro-runtime@6.1.2)(expo-router@6.0.23)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
+      expo-dev-menu-interface: 55.0.1(expo@54.0.33)
+
   expo-file-system@19.0.21(expo@54.0.33)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0)):
     dependencies:
       expo: 54.0.33(@babel/core@7.29.0)(@expo/metro-runtime@6.1.2)(expo-router@6.0.23)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
@@ -10252,6 +10324,8 @@ snapshots:
       fontfaceobserver: 2.3.0
       react: 19.1.0
       react-native: 0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0)
+
+  expo-json-utils@55.0.0: {}
 
   expo-keep-awake@15.0.8(expo@54.0.33)(react@19.1.0):
     dependencies:
@@ -10267,6 +10341,15 @@ snapshots:
     transitivePeerDependencies:
       - expo
       - supports-color
+
+  expo-manifests@55.0.9(expo@54.0.33)(typescript@5.9.3):
+    dependencies:
+      '@expo/config': 55.0.8(typescript@5.9.3)
+      expo: 54.0.33(@babel/core@7.29.0)(@expo/metro-runtime@6.1.2)(expo-router@6.0.23)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
+      expo-json-utils: 55.0.0
+    transitivePeerDependencies:
+      - supports-color
+      - typescript
 
   expo-modules-autolinking@3.0.24:
     dependencies:
@@ -10354,6 +10437,10 @@ snapshots:
       react-native-web: 0.21.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
     transitivePeerDependencies:
       - supports-color
+
+  expo-updates-interface@55.1.3(expo@54.0.33):
+    dependencies:
+      expo: 54.0.33(@babel/core@7.29.0)(@expo/metro-runtime@6.1.2)(expo-router@6.0.23)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
 
   expo@54.0.33(@babel/core@7.29.0)(@expo/metro-runtime@6.1.2)(expo-router@6.0.23)(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0):
     dependencies:
