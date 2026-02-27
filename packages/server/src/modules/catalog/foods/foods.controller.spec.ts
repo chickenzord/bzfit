@@ -146,7 +146,7 @@ describe('FoodsController', () => {
       const result = await controller.remove('food-1');
 
       expect(result).toEqual({ id: 'food-1' });
-      expect(service.removeFood).toHaveBeenCalledWith('food-1');
+      expect(service.removeFood).toHaveBeenCalledWith('food-1', false);
       expect(service.removeFood).toHaveBeenCalledTimes(1);
     });
 
@@ -158,7 +158,7 @@ describe('FoodsController', () => {
       await expect(controller.remove('invalid-id')).rejects.toThrow(
         NotFoundException,
       );
-      expect(service.removeFood).toHaveBeenCalledWith('invalid-id');
+      expect(service.removeFood).toHaveBeenCalledWith('invalid-id', false);
     });
   });
 
