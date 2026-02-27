@@ -1,4 +1,4 @@
-name: React Native CI/CD
+name: Expo Build
 
 on:
   push:
@@ -18,7 +18,7 @@ on:
       build:
         type: number
         description: "Rebuild counter for this semver (0 = first build, increment on rebuild)"
-        default: "0"
+        default: 0
 
 env:
   EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
@@ -100,7 +100,6 @@ jobs:
           echo "> If a rebuild is needed, rerun this workflow with **build = \`$NEXT_BUILD\`**" >> $GITHUB_STEP_SUMMARY
 
       - name: 🔐 Setup signing secrets
-        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
