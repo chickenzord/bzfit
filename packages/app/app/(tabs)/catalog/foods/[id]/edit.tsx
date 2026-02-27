@@ -12,7 +12,7 @@ import {
   Platform,
 } from "react-native";
 import { useLocalSearchParams, useRouter, Stack, useFocusEffect } from "expo-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTabBarHidden } from "../../../_layout";
 import { Icon } from "@/lib/icons";
 import { apiFetch, ApiError } from "@/lib/api";
@@ -87,7 +87,7 @@ export default function FoodEditScreen() {
     const def = food.servings.find((s) => s.isDefault);
     setDefaultServingId(def?.id ?? null);
     setOriginalDefaultServingId(def?.id ?? null);
-  }, [foodQuery.data?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [foodQuery.data?.id]); // eslint-disable-line
 
   async function handleSave() {
     if (!name.trim()) return;
