@@ -6,7 +6,7 @@ dev-up:
 	docker compose -f docker-compose.dev.yml up --build -d
 
 dev-build-android:
-	cd packages/app && eas build --profile development --platform android --local --non-interactive --output ../../dev-build.apk
+	cd packages/app && pnpx eas-cli build --profile development --platform android --local --output ../../dev-build.apk
 
 dev-users:
 	@echo "Creating dev user..."
