@@ -19,6 +19,9 @@
     "test:watch": "pnpm --filter @bzfit/server test:watch",
     "test:cov": "pnpm --filter @bzfit/server test:cov",
     "test:ci": "pnpm --filter @bzfit/server test:ci",
+    "version:bump": "node scripts/bump-version.js",
+    "version:sync": "node scripts/sync-version.js",
+    "version:check": "node scripts/sync-version.js --check",
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r lint",
     "format": "prettier --write \"packages/**/*.{ts,tsx,css}\""
