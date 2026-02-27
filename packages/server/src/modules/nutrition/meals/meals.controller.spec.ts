@@ -38,6 +38,7 @@ describe('MealsController', () => {
           protein: 5,
           carbs: 27,
           fat: 2.5,
+          status: 'VERIFIED' as const,
         },
         nutrition: {
           calories: 150,
