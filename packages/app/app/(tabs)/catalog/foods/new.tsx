@@ -111,6 +111,7 @@ export default function NewFoodScreen() {
         <ScrollView
           contentContainerStyle={{ padding: 20, paddingBottom: 48 }}
           keyboardShouldPersistTaps="handled"
+          automaticallyAdjustKeyboardInsets
         >
           {/* Food Info */}
           <Text className="text-slate-400 text-xs uppercase tracking-wide mb-3">Food Info</Text>
