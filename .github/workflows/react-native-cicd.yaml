@@ -261,3 +261,4 @@ jobs:
           packageName: dev.akhy.bzfit
           releaseFiles: artifacts/app-prod.aab
           track: internal
+          status: draft
