@@ -516,28 +516,51 @@ export function QuickAddModal({
                     </View>
                   </View>
                 ) : (
-                  /* Existing food: serving picker + multiplier */
+                  /* Existing food: compact serving selector merged with per-serving amount + quantity.
+                     Single serving → plain text (non-interactive); multiple servings → dropdown. */
                   <>
-                    <Text className="text-slate-500 text-xs mb-1">
-                      Which serving
-                    </Text>
-                    <TouchableOpacity
-                      onPress={() => setServingPickerOpen((v) => !v)}
-                      className="flex-row items-center justify-between px-4 py-3 rounded-xl border border-slate-700 bg-slate-800 mb-1"
-                    >
-                      <Text className={selectedServing ? "text-white text-base" : "text-slate-500 text-base"}>
-                        {selectedServing
-                          ? servingOptionLabel(selectedServing)
-                          : "Select serving"}
-                      </Text>
-                      <Icon
-                        name={servingPickerOpen ? "chevron-up" : "chevron-down"}
-                        size={18}
-                        color="#64748b"
-                      />
-                    </TouchableOpacity>
+                    {/* Combined serving + quantity row */}
+                    <View className="flex-row items-stretch gap-2 mb-1">
+                      {/* Serving: plain text if single, dropdown if multiple */}
+                      {selectedFood && selectedFood.servings.length > 1 ? (
+                        <TouchableOpacity
+                          onPress={() => setServingPickerOpen((v) => !v)}
+                          className="flex-1 flex-row items-center justify-between px-4 py-3 rounded-xl border border-slate-700 bg-slate-800"
+                        >
+                          <Text className="text-white text-base flex-1 mr-2" numberOfLines={1}>
+                            {selectedServing ? servingOptionLabel(selectedServing) : "Select serving"}
+                          </Text>
+                          <Icon
+                            name={servingPickerOpen ? "chevron-up" : "chevron-down"}
+                            size={18}
+                            color="#64748b"
+                          />
+                        </TouchableOpacity>
+                      ) : (
+                        <View className="flex-1 px-4 py-3 rounded-xl border border-slate-700 bg-slate-800/50">
+                          <Text className="text-slate-300 text-base" numberOfLines={1}>
+                            {selectedServing ? servingOptionLabel(selectedServing) : "—"}
+                          </Text>
+                        </View>
+                      )}
 
-                    {servingPickerOpen && selectedFood && (
+                      {/* Quantity multiplier */}
+                      <View
+                        className="flex-row items-center justify-center bg-slate-800 border border-slate-700 rounded-xl px-3"
+                        style={{ width: 88 }}
+                      >
+                        <Text className="text-slate-400 text-sm mr-1">×</Text>
+                        <TextInput
+                          value={quantityStr}
+                          onChangeText={handleQuantityChange}
+                          keyboardType="decimal-pad"
+                          style={{ color: "white", flex: 1 }}
+                        />
+                      </View>
+                    </View>
+
+                    {/* Dropdown options when multiple servings */}
+                    {servingPickerOpen && selectedFood && selectedFood.servings.length > 1 && (
                       <View className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden mb-3">
                         {selectedFood.servings.map((s, i) => (
                           <TouchableOpacity
@@ -564,49 +587,9 @@ export function QuickAddModal({
                       </View>
                     )}
 
-                    {!servingPickerOpen && <View className="mb-3" />}
+                    <View className="mb-3" />
 
-                    {/* Row 1: Per serving + Quantity */}
-                    <View className="flex-row gap-3 mb-3">
-                      {/* Per serving (readonly) */}
-                      <View className="flex-[2]">
-                        <Text className="text-slate-500 text-xs mb-1">Per serving</Text>
-                        <View className="flex-row items-center bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
-                          <Text
-                            style={{ color: "#94a3b8", flex: 1, paddingHorizontal: 12, paddingVertical: 12 }}
-                            numberOfLines={1}
-                          >
-                            {selectedServing?.size ?? "—"}
-                          </Text>
-                          <View
-                            style={{
-                              borderLeftWidth: 1,
-                              borderLeftColor: "#334155",
-                              paddingHorizontal: 12,
-                              paddingVertical: 12,
-                            }}
-                          >
-                            <Text style={{ color: "#94a3b8", fontSize: 14 }}>
-                              {selectedServing?.unit ?? ""}
-                            </Text>
-                          </View>
-                        </View>
-                      </View>
-                      {/* Quantity */}
-                      <View className="flex-1">
-                        <Text className="text-slate-500 text-xs mb-1">Quantity</Text>
-                        <View className="flex-row items-center bg-slate-800 border border-slate-700 rounded-xl px-3 py-3">
-                          <Text className="text-slate-400 text-sm mr-1">×</Text>
-                          <TextInput
-                            value={quantityStr}
-                            onChangeText={handleQuantityChange}
-                            keyboardType="decimal-pad"
-                            style={{ color: "white", flex: 1 }}
-                          />
-                        </View>
-                      </View>
-                    </View>
-                    {/* Row 2: Total (editable, full width) */}
+                    {/* Total (editable, full width) */}
                     <View className="mb-4">
                       <Text className="text-slate-500 text-xs mb-1">Total</Text>
                       <View className="flex-row items-center bg-slate-800 border border-blue-500/40 rounded-xl px-3 py-3">
@@ -614,7 +597,7 @@ export function QuickAddModal({
                           value={totalStr}
                           onChangeText={handleTotalChange}
                           keyboardType="decimal-pad"
-                          style={{ color: "white", flex: 1, fontSize: 15 }}
+                          style={{ color: "white", flex: 1, fontSize: 15, textAlign: "right" }}
                         />
                         {selectedServing?.unit ? (
                           <Text style={{ color: "#94a3b8", fontSize: 14, marginLeft: 4 }}>
