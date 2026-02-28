@@ -195,6 +195,11 @@ export function MealDetailModal({
                               {foodName}
                             </Text>
                           </View>
+                          {item.food.brand && (
+                            <Text className="text-slate-500 text-xs mt-0.5" numberOfLines={1}>
+                              {item.food.brand}
+                            </Text>
+                          )}
                           {!isEditing && (
                             <Text className="text-slate-500 text-xs mt-0.5">
                               {servingLabel}

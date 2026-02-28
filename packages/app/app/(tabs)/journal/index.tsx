@@ -722,6 +722,11 @@ export default function JournalScreen() {
                         <Text className="text-white text-sm" numberOfLines={1}>
                           {foodName}
                         </Text>
+                        {item.food.brand && (
+                          <Text className="text-slate-500 text-xs mt-0.5" numberOfLines={1}>
+                            {item.food.brand}
+                          </Text>
+                        )}
                         <Text className="text-slate-500 text-xs mt-0.5">
                           {servingLabel}
                         </Text>
