@@ -41,6 +41,7 @@ module.exports = {
       },
       package: isDev ? "dev.akhy.bzfit.dev" : "dev.akhy.bzfit",
       versionCode,
+      googleServicesFile: "./google-services.json",
     },
     web: {
       bundler: "metro",
