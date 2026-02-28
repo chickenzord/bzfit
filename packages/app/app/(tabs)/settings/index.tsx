@@ -9,6 +9,7 @@ import { fetchServerInfo } from "@/lib/api";
 
 const DEFAULT_API_BASE = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3001";
 const APP_VERSION = Constants.expoConfig?.version ?? "0.0.0";
+const BUILD_NUMBER = Constants.nativeBuildVersion;
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -90,42 +91,40 @@ export default function SettingsScreen() {
         <Text className="text-white text-base font-medium mb-3">About</Text>
 
         <View className="flex-row justify-between items-center mb-2">
-          <Text className="text-slate-400 text-sm">App version</Text>
-          <Text className="text-slate-300 text-sm">v{APP_VERSION}</Text>
+          <Text className="text-slate-400 text-sm">App</Text>
+          <Text className="text-slate-300 text-sm">
+            v{APP_VERSION}{BUILD_NUMBER ? ` (${BUILD_NUMBER})` : ""}
+          </Text>
         </View>
 
         <View className="flex-row justify-between items-center mb-2">
-          <Text className="text-slate-400 text-sm">Server version</Text>
+          <Text className="text-slate-400 text-sm">Server</Text>
           {serverVersionLoading ? (
             <ActivityIndicator size="small" color="#475569" />
-          ) : serverVersion ? (
-            <View className="flex-row items-center gap-1.5">
+          ) : (
+            <View className="flex-row items-center gap-1.5 flex-1 justify-end ml-4">
               {versionMismatch && (
                 <Icon name="alert-circle" size={13} color="#f59e0b" />
               )}
-              <Text
-                className={`text-sm ${versionMismatch ? "text-amber-400" : "text-slate-300"}`}
-              >
-                v{serverVersion}
+              <Text className="text-slate-300 text-sm text-right" numberOfLines={1} style={{ flexShrink: 1 }}>
+                {serverUrl ?? "—"}
               </Text>
+              {serverVersion ? (
+                <Text className={`text-sm flex-shrink-0 ${versionMismatch ? "text-amber-400" : "text-slate-300"}`}>
+                  · v{serverVersion}
+                </Text>
+              ) : (
+                <Text className="text-slate-500 text-sm flex-shrink-0">· unavailable</Text>
+              )}
             </View>
-          ) : (
-            <Text className="text-slate-500 text-sm">unavailable</Text>
           )}
         </View>
 
         {versionMismatch && (
-          <Text className="text-amber-400/80 text-xs mt-1 mb-2">
+          <Text className="text-amber-400/80 text-xs mb-2">
             App and server versions differ — consider updating.
           </Text>
         )}
-
-        <View className="flex-row justify-between items-start mb-2">
-          <Text className="text-slate-400 text-sm">Server URL</Text>
-          <Text className="text-slate-300 text-sm text-right flex-shrink ml-4" numberOfLines={2}>
-            {serverUrl ?? "—"}
-          </Text>
-        </View>
 
         <TouchableOpacity onPress={() => router.push("/privacy" as any)} className="flex-row justify-between items-center">
           <Text className="text-slate-400 text-sm">Privacy Policy</Text>
