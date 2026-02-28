@@ -1,6 +1,7 @@
 // Must be the first import — initialises the dev client launcher in debug builds
 import "expo-dev-client";
 import "../global.css";
+import { crashReporter } from "../lib/crash-reporter";
 import { Stack, router, useRootNavigationState, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
@@ -14,6 +15,10 @@ import { queryClient } from "../lib/query-client";
 
 // Keep native splash visible until we're ready
 SplashScreen.preventAutoHideAsync();
+
+// Initialise crash reporting as early as possible so uncaught JS errors
+// that occur during app startup are captured.
+crashReporter.log("App starting");
 
 function RootNavigator() {
   const { isAuthenticated, isLoading } = useAuth();

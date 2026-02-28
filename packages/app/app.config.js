@@ -1,6 +1,11 @@
 const pkg = require("../../package.json");
 const isDev = process.env.APP_ENV === "development";
 
+// Controls which crash reporter is bundled at build time.
+// "crashlytics" (default) → Firebase Crashlytics
+// "none"                  → noop (e.g. a future F-Droid flavor with no Firebase)
+const crashReporter = process.env.CRASH_REPORTER ?? "crashlytics";
+
 // APP_BUILD is the rebuild counter (default 0). Set by CI via env var or
 // locally when building a specific rebuild of the same semver.
 const build = parseInt(process.env.APP_BUILD ?? "0", 10);
@@ -41,9 +46,15 @@ module.exports = {
       bundler: "metro",
       favicon: "./assets/favicon.png",
     },
-    plugins: ["expo-router", "expo-secure-store", "expo-system-ui"],
+    plugins: [
+      "@react-native-firebase/app",
+      "expo-router",
+      "expo-secure-store",
+      "expo-system-ui",
+    ],
     extra: {
       build,
+      crashReporter,
       router: {},
       eas: {
         projectId: "38135bc5-de7c-4946-a24b-14452ff6b472",
