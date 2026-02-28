@@ -7,7 +7,6 @@ import {
   ScrollView,
   ActivityIndicator,
   KeyboardAvoidingView,
-  Platform,
 } from "react-native";
 import { useRouter, Stack, useFocusEffect } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -107,7 +106,7 @@ export default function NewFoodScreen() {
       <Stack.Screen options={{ title: "New Food" }} />
       <KeyboardAvoidingView
         className="flex-1 bg-slate-950"
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior="padding"
       >
         <ScrollView
           contentContainerStyle={{ padding: 20, paddingBottom: 48 }}
