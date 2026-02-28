@@ -18,6 +18,7 @@ import { Icon } from "@/lib/icons";
 import { apiFetch, ApiError } from "@/lib/api";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { queryKeys } from "@/lib/query-keys";
+import { useUpdateFood, useUpdateServing, useDeleteServing } from "@/lib/catalog";
 
 interface Serving {
   id: string;
@@ -40,6 +41,10 @@ export default function FoodEditScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { setHidden } = useTabBarHidden();
+
+  const updateFoodMutation = useUpdateFood();
+  const updateServingMutation = useUpdateServing();
+  const deleteServingMutation = useDeleteServing();
 
   useFocusEffect(
     useCallback(() => {
@@ -64,13 +69,13 @@ export default function FoodEditScreen() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const foodQuery = useQuery({
-    queryKey: queryKeys.food(id),
+    queryKey: queryKeys.catalog.food(id),
     queryFn: () => apiFetch<Food>(`/catalog/foods/${id}`),
     enabled: !!id,
   });
 
   const usageQuery = useQuery({
-    queryKey: queryKeys.servingUsage(confirmDeleteId ?? ""),
+    queryKey: queryKeys.catalog.servingUsage(confirmDeleteId ?? ""),
     queryFn: () =>
       apiFetch<{ mealItemCount: number }>(`/catalog/servings/${confirmDeleteId}/usage`),
     enabled: !!confirmDeleteId,
@@ -94,9 +99,9 @@ export default function FoodEditScreen() {
     setSaving(true);
     setSaveError(null);
     try {
-      await apiFetch(`/catalog/foods/${id}`, {
-        method: "PATCH",
-        body: {
+      await updateFoodMutation.mutateAsync({
+        id,
+        data: {
           name: name.trim(),
           variant: variant.trim() || undefined,
           brand: brand.trim() || undefined,
@@ -104,14 +109,13 @@ export default function FoodEditScreen() {
       });
 
       if (defaultServingId && defaultServingId !== originalDefaultServingId) {
-        await apiFetch(`/catalog/servings/${defaultServingId}`, {
-          method: "PATCH",
-          body: { isDefault: true },
+        await updateServingMutation.mutateAsync({
+          id: defaultServingId,
+          foodId: id,
+          data: { isDefault: true },
         });
       }
 
-      queryClient.invalidateQueries({ queryKey: queryKeys.foods() });
-      queryClient.invalidateQueries({ queryKey: ["meals"] });
       router.replace(`/catalog/foods/${id}?edited=true`);
     } catch (e) {
       setSaveError(e instanceof ApiError ? e.message : "Failed to save");
@@ -139,11 +143,17 @@ export default function FoodEditScreen() {
     setConfirmDeleteId(null);
     setDeletingId(servingId);
     try {
-      await apiFetch(`/catalog/servings/${servingId}`, { method: "DELETE" });
+      await deleteServingMutation.mutateAsync(
+        { id: servingId },
+        {
+          onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: queryKeys.catalog.food(id) });
+          },
+        }
+      );
       setServings((prev) => prev.filter((s) => s.id !== servingId));
       if (defaultServingId === servingId) setDefaultServingId(null);
       if (originalDefaultServingId === servingId) setOriginalDefaultServingId(null);
-      queryClient.invalidateQueries({ queryKey: queryKeys.food(id) });
     } catch (e) {
       setSaveError(e instanceof ApiError ? e.message : "Failed to delete serving");
     } finally {

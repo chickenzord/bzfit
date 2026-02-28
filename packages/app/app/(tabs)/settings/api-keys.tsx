@@ -53,7 +53,7 @@ export default function ApiKeysScreen() {
   const [keyCopied, setKeyCopied] = useState(false);
 
   const apiKeysQuery = useQuery({
-    queryKey: queryKeys.apiKeys(),
+    queryKey: queryKeys.auth.apiKeys(),
     queryFn: () => apiFetch<ApiKey[]>("/auth/api-keys"),
   });
 
@@ -64,7 +64,7 @@ export default function ApiKeysScreen() {
         body: { name: keyName, scopes: scopeList },
       }),
     onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.apiKeys() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.apiKeys() });
       setNewKey(result);
       setName("");
       setScopes("");
@@ -80,7 +80,7 @@ export default function ApiKeysScreen() {
     mutationFn: (id: string) =>
       apiFetch(`/auth/api-keys/${id}`, { method: "DELETE" }),
     onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.apiKeys() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.apiKeys() });
       if (newKey?.id === id) setNewKey(null);
     },
     onError: () => {

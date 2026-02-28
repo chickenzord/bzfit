@@ -1,11 +1,12 @@
 import { useCallback } from "react";
 import { View, Text, ActivityIndicator } from "react-native";
 import { useLocalSearchParams, useRouter, Stack, useFocusEffect } from "expo-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useTabBarHidden } from "../../_layout";
 import { apiFetch, ApiError } from "@/lib/api";
 import { ServingForm, ServingFormValues } from "@/components/ServingForm";
 import { queryKeys } from "@/lib/query-keys";
+import { useUpdateServing } from "@/lib/catalog";
 
 interface Serving {
   id: string;
@@ -34,8 +35,8 @@ function numStr(v: number | null): string {
 export default function ServingEditScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const queryClient = useQueryClient();
   const { setHidden } = useTabBarHidden();
+  const updateServingMutation = useUpdateServing();
 
   useFocusEffect(
     useCallback(() => {
@@ -45,7 +46,7 @@ export default function ServingEditScreen() {
   );
 
   const servingQuery = useQuery({
-    queryKey: queryKeys.serving(id),
+    queryKey: queryKeys.catalog.serving(id),
     queryFn: async () => {
       const serving = await apiFetch<Serving>(`/catalog/servings/${id}`);
       const food = await apiFetch<Food>(`/catalog/foods/${serving.foodId}`);
@@ -56,7 +57,7 @@ export default function ServingEditScreen() {
 
   async function handleSave(values: ServingFormValues) {
     const size = parseFloat(values.sizeStr);
-    const body: Record<string, unknown> = {
+    const data: Record<string, unknown> = {
       name: values.name.trim() || null,
       size,
       unit: values.unitStr.trim(),
@@ -66,15 +67,13 @@ export default function ServingEditScreen() {
     const pro = parseFloat(values.proteinStr);
     const carb = parseFloat(values.carbsStr);
     const fat = parseFloat(values.fatStr);
-    if (!isNaN(cal)) body.calories = cal;
-    if (!isNaN(pro)) body.protein = pro;
-    if (!isNaN(carb)) body.carbs = carb;
-    if (!isNaN(fat)) body.fat = fat;
+    if (!isNaN(cal)) data.calories = cal;
+    if (!isNaN(pro)) data.protein = pro;
+    if (!isNaN(carb)) data.carbs = carb;
+    if (!isNaN(fat)) data.fat = fat;
 
     const food = servingQuery.data!.food;
-    await apiFetch(`/catalog/servings/${id}`, { method: "PATCH", body });
-    queryClient.invalidateQueries({ queryKey: queryKeys.foods() });
-    queryClient.invalidateQueries({ queryKey: ["meals"] });
+    await updateServingMutation.mutateAsync({ id, foodId: food.id, data });
     router.replace(`/catalog/foods/${food.id}?editedServingId=${id}`);
   }
 

@@ -42,18 +42,18 @@ export default function CatalogScreen() {
   const isSearching = debouncedQuery.trim().length > 0;
 
   const allFoodsQuery = useQuery({
-    queryKey: queryKeys.foods(),
+    queryKey: queryKeys.catalog.foods(),
     queryFn: () =>
       apiFetch<{ data: Food[] }>("/catalog/foods").then((r) => r.data),
   });
 
   const needsReviewQuery = useQuery({
-    queryKey: queryKeys.needsReview(),
+    queryKey: queryKeys.catalog.needsReview(),
     queryFn: () => apiFetch<Food[]>("/catalog/foods/needs-review"),
   });
 
   const searchQuery_ = useQuery({
-    queryKey: queryKeys.foodSearch(debouncedQuery.trim()),
+    queryKey: queryKeys.catalog.foodSearch(debouncedQuery.trim()),
     queryFn: () =>
       apiFetch<Food[]>(
         `/catalog/foods/search?q=${encodeURIComponent(debouncedQuery.trim())}`,
@@ -64,7 +64,7 @@ export default function CatalogScreen() {
   // Refresh on screen focus so edits made elsewhere are reflected
   useFocusEffect(
     useCallback(() => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.foods() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.catalog.foods() });
     }, [queryClient]),
   );
 
@@ -163,7 +163,7 @@ export default function CatalogScreen() {
         <View className="flex-1 items-center justify-center pb-20">
           <Text className="text-red-400 text-base mb-2">{error}</Text>
           <Pressable
-            onPress={() => queryClient.invalidateQueries({ queryKey: queryKeys.foods() })}
+            onPress={() => queryClient.invalidateQueries({ queryKey: queryKeys.catalog.foods() })}
             className="mt-2"
           >
             <Text className="text-blue-400 text-sm">Retry</Text>

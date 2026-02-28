@@ -10,14 +10,14 @@ import {
   ActivityIndicator,
   Dimensions,
 } from "react-native";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Icon } from "@/lib/icons";
 import { useDebounce } from "@uidotdev/usehooks";
 import { apiFetch } from "@/lib/api";
 import {
-  quickAdd,
-  logMealItem,
-  createMealWithItem,
+  useQuickAdd,
+  useLogMealItem,
+  useCreateMealWithItem,
   type DailySummary,
 } from "@/lib/nutrition";
 import { queryKeys } from "@/lib/query-keys";
@@ -114,7 +114,9 @@ export function QuickAddModal({
   defaultMealType,
   summary,
 }: QuickAddModalProps) {
-  const queryClient = useQueryClient();
+  const quickAddMutation = useQuickAdd();
+  const logMealItemMutation = useLogMealItem();
+  const createMealWithItemMutation = useCreateMealWithItem();
   const [phase, setPhase] = useState<Phase>("search");
 
   // Search
@@ -123,7 +125,7 @@ export function QuickAddModal({
   const trimmedQuery = debouncedQuery.trim();
 
   const searchQuery = useQuery({
-    queryKey: queryKeys.foodSearch(trimmedQuery),
+    queryKey: queryKeys.catalog.foodSearch(trimmedQuery),
     queryFn: () =>
       apiFetch<SearchFood[]>(
         `/catalog/foods/search?q=${encodeURIComponent(trimmedQuery)}`
@@ -244,7 +246,8 @@ export function QuickAddModal({
     setError(null);
     try {
       if (isNewFood) {
-        await quickAdd({
+        // useQuickAdd handles invalidation: catalog.foods(), nutrition.dailySummary(date), nutrition.root()
+        await quickAddMutation.mutateAsync({
           food: { name: query.trim() },
           servingSize,
           servingUnit: servingUnit.trim(),
@@ -252,19 +255,21 @@ export function QuickAddModal({
           mealType,
           date,
         });
-        queryClient.invalidateQueries({ queryKey: queryKeys.foods() });
       } else {
         const serving = selectedServing!;
         const existingMeal = summary?.meals.find((m) => m.mealType === mealType);
         if (existingMeal) {
-          await logMealItem({
+          // useLogMealItem handles invalidation: nutrition.dailySummary(date), nutrition.root()
+          await logMealItemMutation.mutateAsync({
             mealId: existingMeal.id,
             foodId: selectedFood!.id,
             servingId: serving.id,
             quantity,
+            date,
           });
         } else {
-          await createMealWithItem({
+          // useCreateMealWithItem handles invalidation: nutrition.dailySummary(date), nutrition.root()
+          await createMealWithItemMutation.mutateAsync({
             date,
             mealType,
             foodId: selectedFood!.id,
@@ -273,8 +278,6 @@ export function QuickAddModal({
           });
         }
       }
-      queryClient.invalidateQueries({ queryKey: queryKeys.dailySummary(date) });
-      queryClient.invalidateQueries({ queryKey: ["meals", "dates"] });
       onSuccess();
       onClose();
     } catch (e: unknown) {

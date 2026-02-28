@@ -88,7 +88,7 @@ type GoalTargets = {
 
 export function useDailySummary(date: string) {
   const query = useQuery({
-    queryKey: queryKeys.dailySummary(date),
+    queryKey: queryKeys.nutrition.dailySummary(date),
     queryFn: () => apiFetch<DailySummary>(`/nutrition/meals/daily-summary?date=${date}`),
   });
 
@@ -104,7 +104,7 @@ export function useNutritionGoal() {
   const queryClient = useQueryClient();
 
   const query = useQuery({
-    queryKey: queryKeys.currentGoal(),
+    queryKey: queryKeys.goals.currentGoal(),
     queryFn: async () => {
       try {
         return await apiFetch<NutritionGoal>("/nutrition/goals");
@@ -119,8 +119,8 @@ export function useNutritionGoal() {
     mutationFn: ({ id, targets }: { id: string; targets: GoalTargets }) =>
       apiFetch<NutritionGoal>(`/nutrition/goals/${id}`, { method: "PATCH", body: targets }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.currentGoal() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.allGoals() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.goals.currentGoal() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.goals.allGoals() });
     },
   });
 
@@ -128,8 +128,8 @@ export function useNutritionGoal() {
     mutationFn: (targets: GoalTargets & { startDate?: string }) =>
       apiFetch<NutritionGoal>("/nutrition/goals", { method: "POST", body: targets }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.currentGoal() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.allGoals() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.goals.currentGoal() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.goals.allGoals() });
     },
   });
 
@@ -137,7 +137,7 @@ export function useNutritionGoal() {
     goal: query.data ?? null,
     loading: query.isLoading,
     error: query.error instanceof Error ? query.error.message : null,
-    refresh: () => queryClient.invalidateQueries({ queryKey: queryKeys.currentGoal() }),
+    refresh: () => queryClient.invalidateQueries({ queryKey: queryKeys.goals.currentGoal() }),
     update: async (targets: GoalTargets) => {
       const goal = query.data;
       if (!goal) throw new Error("No active goal to update");
@@ -152,7 +152,7 @@ export function useNutritionGoals() {
   const queryClient = useQueryClient();
 
   const query = useQuery({
-    queryKey: queryKeys.allGoals(),
+    queryKey: queryKeys.goals.allGoals(),
     queryFn: () => apiFetch<NutritionGoal[]>("/nutrition/goals/all"),
   });
 
@@ -160,8 +160,8 @@ export function useNutritionGoals() {
     mutationFn: (targets: GoalTargets & { startDate?: string }) =>
       apiFetch<NutritionGoal>("/nutrition/goals", { method: "POST", body: targets }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.allGoals() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.currentGoal() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.goals.allGoals() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.goals.currentGoal() });
     },
   });
 
@@ -169,8 +169,8 @@ export function useNutritionGoals() {
     mutationFn: ({ id, targets }: { id: string; targets: GoalTargets }) =>
       apiFetch<NutritionGoal>(`/nutrition/goals/${id}`, { method: "PATCH", body: targets }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.allGoals() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.currentGoal() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.goals.allGoals() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.goals.currentGoal() });
     },
   });
 
@@ -178,8 +178,8 @@ export function useNutritionGoals() {
     mutationFn: (id: string) =>
       apiFetch(`/nutrition/goals/${id}`, { method: "DELETE" }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.allGoals() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.currentGoal() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.goals.allGoals() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.goals.currentGoal() });
     },
   });
 
@@ -187,7 +187,7 @@ export function useNutritionGoals() {
     goals: query.data ?? [],
     loading: query.isLoading,
     error: query.error instanceof Error ? query.error.message : null,
-    refresh: () => queryClient.invalidateQueries({ queryKey: queryKeys.allGoals() }),
+    refresh: () => queryClient.invalidateQueries({ queryKey: queryKeys.goals.allGoals() }),
     create: (targets: GoalTargets & { startDate?: string }) =>
       createMutation.mutateAsync(targets),
     update: (id: string, targets: GoalTargets) =>
@@ -198,7 +198,7 @@ export function useNutritionGoals() {
 
 export function useMealDates(from: string, to: string) {
   const query = useQuery({
-    queryKey: queryKeys.mealDates(from, to),
+    queryKey: queryKeys.nutrition.mealDates(from, to),
     queryFn: async () => {
       const result = await apiFetch<string[]>(
         `/nutrition/meals/dates?from=${from}&to=${to}`,
@@ -214,68 +214,116 @@ export function useMealDates(from: string, to: string) {
   };
 }
 
-export async function quickAdd(dto: {
-  food: { name: string; variant?: string; brand?: string };
-  servingSize: number;
-  servingUnit: string;
-  quantity?: number;
-  mealType: string;
-  date: string;
-}) {
-  return apiFetch("/nutrition/meals/quick-add", { method: "POST", body: dto });
-}
-
-export async function logMealItem(params: {
-  mealId: string;
-  foodId: string;
-  servingId: string;
-  quantity: number;
-}) {
-  return apiFetch(`/nutrition/meals/${params.mealId}/items`, {
-    method: "POST",
-    body: {
-      foodId: params.foodId,
-      servingId: params.servingId,
-      quantity: params.quantity,
+export const useQuickAdd = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (dto: {
+      food: { name: string; variant?: string; brand?: string };
+      servingSize: number;
+      servingUnit: string;
+      quantity?: number;
+      mealType: string;
+      date: string;
+    }) => {
+      return apiFetch("/nutrition/meals/quick-add", { method: "POST", body: dto });
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.catalog.foods() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.nutrition.dailySummary(variables.date) });
+      // Invalidate all meal dates since a new meal item might affect dates
+      queryClient.invalidateQueries({ queryKey: queryKeys.nutrition.root() });
     },
   });
-}
+};
 
-export async function updateMealItem(itemId: string, quantity: number): Promise<void> {
-  await apiFetch(`/nutrition/meal-items/${itemId}`, {
-    method: "PATCH",
-    body: { quantity },
-  });
-}
-
-export async function deleteMealItem(itemId: string): Promise<void> {
-  try {
-    await apiFetch(`/nutrition/meal-items/${itemId}`, { method: "DELETE" });
-  } catch (e) {
-    if (e instanceof ApiError) throw e;
-    // JSON parse error on 204 No Content is expected — treat as success
-  }
-}
-
-export async function createMealWithItem(params: {
-  date: string;
-  mealType: string;
-  foodId: string;
-  servingId: string;
-  quantity: number;
-}) {
-  return apiFetch("/nutrition/meals", {
-    method: "POST",
-    body: {
-      date: params.date,
-      mealType: params.mealType,
-      items: [
-        {
+export const useLogMealItem = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: {
+      mealId: string;
+      foodId: string;
+      servingId: string;
+      quantity: number;
+      date: string; // Add date to params for invalidation
+    }) => {
+      return apiFetch(`/nutrition/meals/${params.mealId}/items`, {
+        method: "POST",
+        body: {
           foodId: params.foodId,
           servingId: params.servingId,
           quantity: params.quantity,
         },
-      ],
+      });
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.nutrition.dailySummary(variables.date) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.nutrition.root() }); // Invalidate all meal dates
     },
   });
-}
+};
+
+export const useUpdateMealItem = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ itemId, quantity, date }: { itemId: string; quantity: number; date: string }) => {
+      await apiFetch(`/nutrition/meal-items/${itemId}`, {
+        method: "PATCH",
+        body: { quantity },
+      });
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.nutrition.dailySummary(variables.date) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.nutrition.root() }); // Invalidate all meal dates
+    },
+  });
+};
+
+export const useDeleteMealItem = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ itemId, date }: { itemId: string; date: string }) => {
+      try {
+        await apiFetch(`/nutrition/meal-items/${itemId}`, { method: "DELETE" });
+      } catch (e) {
+        if (e instanceof ApiError) throw e;
+        // JSON parse error on 204 No Content is expected — treat as success
+      }
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.nutrition.dailySummary(variables.date) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.nutrition.root() }); // Invalidate all meal dates
+    },
+  });
+};
+
+export const useCreateMealWithItem = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: {
+      date: string;
+      mealType: string;
+      foodId: string;
+      servingId: string;
+      quantity: number;
+    }) => {
+      return apiFetch("/nutrition/meals", {
+        method: "POST",
+        body: {
+          date: params.date,
+          mealType: params.mealType,
+          items: [
+            {
+              foodId: params.foodId,
+              servingId: params.servingId,
+              quantity: params.quantity,
+            },
+          ],
+        },
+      });
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.nutrition.dailySummary(variables.date) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.nutrition.root() }); // Invalidate all meal dates
+    },
+  });
+};

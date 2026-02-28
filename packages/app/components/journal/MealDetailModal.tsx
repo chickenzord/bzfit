@@ -9,10 +9,8 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
 } from "react-native";
-import { useQueryClient } from "@tanstack/react-query";
 import { Icon } from "@/lib/icons";
-import { type Meal, type MealItem, deleteMealItem, updateMealItem } from "@/lib/nutrition";
-import { queryKeys } from "@/lib/query-keys";
+import { type Meal, type MealItem, useDeleteMealItem, useUpdateMealItem } from "@/lib/nutrition";
 
 const MEAL_TYPE_MAP = {
   BREAKFAST: { label: "Breakfast", icon: "meal-breakfast" as const },
@@ -36,7 +34,8 @@ export function MealDetailModal({
   dateLabel,
   date,
 }: MealDetailModalProps) {
-  const queryClient = useQueryClient();
+  const deleteMealItemMutation = useDeleteMealItem();
+  const updateMealItemMutation = useUpdateMealItem();
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
 
   // Edit state
@@ -104,8 +103,7 @@ export function MealDetailModal({
     setSavingItemId(item.id);
     setEditError(null);
     try {
-      await updateMealItem(item.id, qty);
-      queryClient.invalidateQueries({ queryKey: queryKeys.dailySummary(date) });
+      await updateMealItemMutation.mutateAsync({ itemId: item.id, quantity: qty, date });
       setEditingItemId(null);
     } catch {
       setEditError("Failed to save. Please try again.");
@@ -119,9 +117,7 @@ export function MealDetailModal({
     const isLast = meal ? meal.items.length === 1 : false;
     setDeletingItemId(itemId);
     try {
-      await deleteMealItem(itemId);
-      queryClient.invalidateQueries({ queryKey: queryKeys.dailySummary(date) });
-      queryClient.invalidateQueries({ queryKey: ["meals", "dates"] });
+      await deleteMealItemMutation.mutateAsync({ itemId, date });
       if (isLast) onClose();
     } catch {
       // leave as-is on error

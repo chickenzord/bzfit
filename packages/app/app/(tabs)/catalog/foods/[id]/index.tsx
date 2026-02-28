@@ -7,6 +7,7 @@ import { Icon } from "@/lib/icons";
 import { ApiError, apiFetch } from "@/lib/api";
 import { FlashMessage } from "@/components/FlashMessage";
 import { queryKeys } from "@/lib/query-keys";
+import { useDeleteFood, useDeleteServing } from "@/lib/catalog";
 
 interface Serving {
   id: string;
@@ -58,54 +59,26 @@ export default function FoodDetailsScreen() {
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const foodQuery = useQuery({
-    queryKey: queryKeys.food(id),
+    queryKey: queryKeys.catalog.food(id),
     queryFn: () => apiFetch<Food>(`/catalog/foods/${id}`),
     enabled: !!id,
   });
 
   const usageQuery = useQuery({
-    queryKey: queryKeys.servingUsage(confirmDeleteId ?? ""),
+    queryKey: queryKeys.catalog.servingUsage(confirmDeleteId ?? ""),
     queryFn: () =>
       apiFetch<{ mealItemCount: number }>(`/catalog/servings/${confirmDeleteId}/usage`),
     enabled: !!confirmDeleteId,
   });
 
-  const deleteFoodMutation = useMutation({
-    mutationFn: (force: boolean) =>
-      apiFetch(`/catalog/foods/${id}${force ? "?force=true" : ""}`, { method: "DELETE" }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.foods() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.needsReview() });
-      router.replace("/catalog");
-    },
-    onError: (err) => {
-      if (err instanceof ApiError && err.status === 409) {
-        const data = err.data as { mealItemCount?: number } | undefined;
-        setFoodMealItemCount(data?.mealItemCount ?? null);
-        setConfirmDeleteFood(false);
-        setConfirmForceDeleteFood(true);
-      } else {
-        setDeleteError(err instanceof ApiError ? err.message : "Failed to delete food");
-      }
-    },
-  });
+  const deleteFoodMutation = useDeleteFood();
 
-  const deleteServingMutation = useMutation({
-    mutationFn: (servingId: string) =>
-      apiFetch(`/catalog/servings/${servingId}`, { method: "DELETE" }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.food(id) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.needsReview() });
-    },
-    onError: (err) => {
-      setDeleteError(err instanceof ApiError ? err.message : "Failed to delete serving");
-    },
-  });
+  const deleteServingMutation = useDeleteServing();
 
   // Refresh when navigating back to this screen (e.g. after editing a serving)
   useFocusEffect(
     useCallback(() => {
-      if (id) queryClient.invalidateQueries({ queryKey: queryKeys.food(id) });
+      if (id) queryClient.invalidateQueries({ queryKey: queryKeys.catalog.food(id) });
     }, [id, queryClient]),
   );
 
@@ -135,7 +108,17 @@ export default function FoodDetailsScreen() {
   async function handleDeleteServing(servingId: string) {
     setConfirmDeleteId(null);
     setDeleteError(null);
-    await deleteServingMutation.mutateAsync(servingId).catch(() => {});
+    await deleteServingMutation.mutateAsync(
+      { id: servingId },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: queryKeys.catalog.food(id) });
+        },
+        onError: (err: unknown) => {
+          setDeleteError(err instanceof ApiError ? err.message : "Failed to delete serving");
+        },
+      }
+    ).catch(() => {});
   }
 
   const food = foodQuery.data ?? null;
@@ -272,7 +255,22 @@ export default function FoodDetailsScreen() {
         confirmLabel="Delete"
         destructive
         loading={deleteFoodMutation.isPending}
-        onConfirm={() => deleteFoodMutation.mutate(false)}
+        onConfirm={() => deleteFoodMutation.mutate(
+          { id, force: false },
+          {
+            onSuccess: () => router.replace("/catalog"),
+            onError: (err: unknown) => {
+              if (err instanceof ApiError && err.status === 409) {
+                const data = (err as ApiError & { data?: { mealItemCount?: number } }).data;
+                setFoodMealItemCount(data?.mealItemCount ?? null);
+                setConfirmDeleteFood(false);
+                setConfirmForceDeleteFood(true);
+              } else {
+                setDeleteError(err instanceof ApiError ? err.message : "Failed to delete food");
+              }
+            },
+          }
+        )}
         onCancel={() => { setConfirmDeleteFood(false); setDeleteError(null); }}
       />
 
@@ -283,7 +281,15 @@ export default function FoodDetailsScreen() {
         confirmLabel="Delete Anyway"
         destructive
         loading={deleteFoodMutation.isPending}
-        onConfirm={() => deleteFoodMutation.mutate(true)}
+        onConfirm={() => deleteFoodMutation.mutate(
+          { id, force: true },
+          {
+            onSuccess: () => router.replace("/catalog"),
+            onError: (err: unknown) => {
+              setDeleteError(err instanceof ApiError ? err.message : "Failed to delete food");
+            },
+          }
+        )}
         onCancel={() => { setConfirmForceDeleteFood(false); setDeleteError(null); }}
       />
 
@@ -315,7 +321,7 @@ export default function FoodDetailsScreen() {
 
         {food.servings.map((serving) => {
           const needsReviewStatus = serving.status === "NEEDS_REVIEW";
-          const isDeleting = deleteServingMutation.isPending && deleteServingMutation.variables === serving.id;
+          const isDeleting = deleteServingMutation.isPending && deleteServingMutation.variables?.id === serving.id;
           return (
             <View
               key={serving.id}

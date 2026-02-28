@@ -32,7 +32,7 @@ export default function NewServingScreen() {
   );
 
   const foodQuery = useQuery({
-    queryKey: queryKeys.food(foodId),
+    queryKey: queryKeys.catalog.food(foodId),
     queryFn: () => apiFetch<Food>(`/catalog/foods/${foodId}`),
     enabled: !!foodId,
   });
@@ -57,8 +57,8 @@ export default function NewServingScreen() {
     if (!isNaN(fat)) body.fat = fat;
 
     const created = await apiFetch<CreatedServing>(`/catalog/servings`, { method: "POST", body });
-    queryClient.invalidateQueries({ queryKey: queryKeys.food(foodId) });
-    queryClient.invalidateQueries({ queryKey: queryKeys.needsReview() });
+    queryClient.invalidateQueries({ queryKey: queryKeys.catalog.food(foodId) });
+    queryClient.invalidateQueries({ queryKey: queryKeys.catalog.needsReview() });
     router.replace(`/catalog/foods/${foodId}?newServingId=${created.id}`);
   }
 

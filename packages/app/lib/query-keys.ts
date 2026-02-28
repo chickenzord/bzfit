@@ -1,20 +1,25 @@
 export const queryKeys = {
-  // Catalog
-  foods: () => ["foods"] as const,
-  needsReview: () => ["foods", "needs-review"] as const,
-  food: (id: string) => ["foods", id] as const,
-  foodSearch: (q: string) => ["foods", "search", q] as const,
-  serving: (id: string) => ["servings", id] as const,
-  servingUsage: (id: string) => ["serving-usage", id] as const,
-
-  // Nutrition
-  dailySummary: (date: string) => ["meals", "daily-summary", date] as const,
-  mealDates: (from: string, to: string) => ["meals", "dates", from, to] as const,
-
-  // Goals
-  currentGoal: () => ["goals", "current"] as const,
-  allGoals: () => ["goals", "all"] as const,
-
-  // Auth
-  apiKeys: () => ["api-keys"] as const,
+  catalog: {
+    root: () => ["catalog"] as const,
+    foods: () => [...queryKeys.catalog.root(), "foods"] as const,
+    needsReview: () => [...queryKeys.catalog.root(), "foods", "needs-review"] as const,
+    food: (id: string) => [...queryKeys.catalog.root(), "foods", id] as const,
+    foodSearch: (q: string) => [...queryKeys.catalog.root(), "foods", "search", q] as const,
+    serving: (id: string) => [...queryKeys.catalog.root(), "servings", id] as const,
+    servingUsage: (id: string) => [...queryKeys.catalog.root(), "serving-usage", id] as const,
+  },
+  nutrition: {
+    root: () => ["nutrition"] as const,
+    dailySummary: (date: string) => [...queryKeys.nutrition.root(), "meals", "daily-summary", date] as const,
+    mealDates: (from: string, to: string) => [...queryKeys.nutrition.root(), "meals", "dates", from, to] as const,
+  },
+  goals: {
+    root: () => ["goals"] as const,
+    currentGoal: () => [...queryKeys.goals.root(), "current"] as const,
+    allGoals: () => [...queryKeys.goals.root(), "all"] as const,
+  },
+  auth: {
+    root: () => ["auth"] as const,
+    apiKeys: () => [...queryKeys.auth.root(), "api-keys"] as const,
+  },
 };
