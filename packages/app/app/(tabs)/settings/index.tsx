@@ -9,7 +9,8 @@ import { fetchServerInfo } from "@/lib/api";
 
 const DEFAULT_API_BASE = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3001";
 const APP_VERSION = Constants.expoConfig?.version ?? "0.0.0";
-const BUILD_NUMBER = Constants.nativeBuildVersion;
+// Build counter (0 = first build of a semver). Exposed via extra so it works on web too.
+const BUILD_COUNTER: number = Constants.expoConfig?.extra?.build ?? 0;
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -93,7 +94,7 @@ export default function SettingsScreen() {
         <View className="flex-row justify-between items-center mb-2">
           <Text className="text-slate-400 text-sm">App</Text>
           <Text className="text-slate-300 text-sm">
-            v{APP_VERSION}{BUILD_NUMBER ? ` (${BUILD_NUMBER})` : ""}
+            v{APP_VERSION}{BUILD_COUNTER > 0 ? ` (${BUILD_COUNTER})` : ""}
           </Text>
         </View>
 

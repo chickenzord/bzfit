@@ -43,6 +43,7 @@ module.exports = {
     },
     plugins: ["expo-router", "expo-secure-store", "expo-system-ui"],
     extra: {
+      build,
       router: {},
       eas: {
         projectId: "38135bc5-de7c-4946-a24b-14452ff6b472",
