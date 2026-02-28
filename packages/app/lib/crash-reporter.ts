@@ -16,6 +16,7 @@
  */
 
 import Constants from "expo-constants";
+import { NativeModules } from "react-native";
 
 type CrashReporter = {
   recordError: (error: Error, context?: string) => void;
@@ -29,7 +30,17 @@ type CrashReporter = {
 
 function createCrashlyticsReporter(): CrashReporter {
   // Dynamic require so the module is only resolved when Crashlytics is active.
-  // On de-Googled devices any Firebase call may throw — caught here at init time.
+  //
+  // Guard: check for the Firebase native module before requiring anything.
+  // With New Architecture (TurboModules/JSI), accessing a missing native
+  // property throws a synchronous ReferenceError at the JSI layer that can
+  // escape a regular try/catch. The NativeModules check avoids touching
+  // Firebase at all when the native module isn't present — this covers both
+  // de-Googled Android (no GMS) and dev clients built before Firebase was added.
+  if (!NativeModules.RNFBAppModule) {
+    return createNoopReporter();
+  }
+
   let crashlytics: ReturnType<
     typeof import("@react-native-firebase/crashlytics").default
   > | null = null;
@@ -38,7 +49,7 @@ function createCrashlyticsReporter(): CrashReporter {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     crashlytics = require("@react-native-firebase/crashlytics").default();
   } catch {
-    // GMS not available — Crashlytics cannot initialise. Fail silently.
+    // Unexpected init failure — fail silently.
   }
 
   return {
