@@ -24,12 +24,7 @@ Key principles:
 
 ## UI Implementation
 
-Mobile app uses NativeWind (TailwindCSS for React Native):
-- **NativeWind v4** for styling
-- **Expo Router** for navigation
-- **@expo/vector-icons** (Ionicons) for icons
-- **Dark mode** support from day 1
-- Minimalist design with vibrant accent colors
+See [`docs/expo-guidelines.md`](docs/expo-guidelines.md) for full Expo/React Native guidelines including color palette, component patterns, icon usage, and keyboard handling.
 
 ## Common Commands
 
@@ -113,18 +108,9 @@ bzfit/
 
 ## Critical Implementation Details
 
-### Search-First Logging Flow
-1. User searches "nasi goreng" → `GET /api/v1/foods/search?q=...`
-2. If found: Select serving → Log to meal
-3. If not found: Quick-add creates Food + Serving with `status=NEEDS_REVIEW`
-4. MealItem gets `isEstimated=true` flag → shows warning in UI
-5. User reviews later via `/api/v1/foods/needs-review` endpoint
-
 ### Authentication
-- **Mobile app**: JWT in expo-secure-store (native) / localStorage (web), sent as `Authorization: Bearer {token}`
-- **External systems**: API keys as query param `?api_key=xxx` or header `Authorization: ApiKey xxx`
-- **Scopes**: Array like `["read:meals", "write:foods"]` for permission control
-- **NestJS guards**: `@UseGuards(JwtAuthGuard)` for frontend, custom Passport strategy for API keys
+
+See [`docs/api-guidelines.md`](docs/api-guidelines.md#authentication) for full details. JWT for the mobile app, API keys for external systems/MCP servers.
 
 ### Database Flexibility
 Prisma handles SQLite ↔ PostgreSQL switching via `DATABASE_URL` env var. Use:
@@ -139,24 +125,7 @@ Backend serves the API only:
 
 ## API Patterns
 
-All endpoints namespaced at `/api/v1/*`. Auto-generated OpenAPI docs at `/api/docs`.
-
-**Catalog namespace** (`/api/v1/catalog/*`) - Food database:
-- `GET /catalog/foods` - List all foods
-- `GET /catalog/foods/search?q=...` - Search food catalog
-- `GET /catalog/foods/{id}` - Get food details
-- `GET /catalog/servings/{id}` - Get serving details
-- `GET /catalog/needs-review` - List items requiring nutrition data
-- `PATCH /catalog/servings/{id}` - Update nutrition + status
-
-**Nutrition namespace** (`/api/v1/nutrition/*`) - Meal logging:
-- `POST /nutrition/quick-add` - Add food + serving + log to meal in one call
-- `GET /nutrition/meals` - List meals
-- `GET /nutrition/meals/daily-summary?date=...` - Daily totals
-- `POST /nutrition/meals` - Create meal with items
-- `POST /nutrition/meals/{id}/items` - Add item to existing meal
-
-Use `class-validator` decorators (`@IsNotEmpty()`, `@Min(0)`, etc.) in DTOs.
+See [`docs/api-guidelines.md`](docs/api-guidelines.md) for the full endpoint reference, authentication details, DTO conventions, and the search-first logging flow.
 
 ## Testing Strategy
 
@@ -165,11 +134,35 @@ Use `class-validator` decorators (`@IsNotEmpty()`, `@Min(0)`, etc.) in DTOs.
 
 ## Evolving Specification
 
-The `initial_spec.md` is the source of truth but can evolve. When requirements change:
-1. Update `initial_spec.md` first
-2. Generate migrations: `pnpm prisma migrate dev --name descriptive_name`
-3. Update DTOs in `packages/shared/src/dto/`
-4. Update API endpoints and UI accordingly
+When requirements change:
+1. Generate migrations: `pnpm prisma migrate dev --name descriptive_name`
+2. Update DTOs in `packages/shared/src/dto/`
+3. Update API endpoints and UI accordingly
+
+## Agent Behavior Guidelines
+
+### Documentation
+- **Never reference code by line numbers** in any doc file. Line numbers shift constantly as code changes, making such references immediately stale. Reference by function name, symbol, or file path instead.
+
+### Git Commits
+- **Always ask the user before committing.** Never run `git commit` without explicit approval.
+
+### Fizzy / Task Planning
+- When breaking down a card, **post a comment** with the proposed plan for the user to review first. Do not create steps or sub-cards immediately.
+
+### Mobile UI — Keyboard Avoidance
+See [`docs/expo-guidelines.md`](docs/expo-guidelines.md#keyboard-avoidance) for the full pattern. In short: pages use `KeyboardAvoidingView behavior="padding"` + `automaticallyAdjustKeyboardInsets` on `ScrollView`; modals skip `KeyboardAvoidingView` and rely on `automaticallyAdjustKeyboardInsets` alone.
+
+### Code Reuse
+- Reuse existing components where practical.
+- If reuse would require a significant refactor (e.g., a full-screen component that owns its own `ScrollView`/`KeyboardAvoidingView` needs to be embedded as a sub-section), it is acceptable to implement inline following the same visual style instead.
+- In that case: **always leave a code comment** explaining why the component was not reused and what would be needed to do so in the future, so the next agent has the context. Example:
+  ```tsx
+  // ServingForm is not reused here because it is a full-screen component that owns its
+  // own ScrollView + KeyboardAvoidingView. Embedding it as a sub-section would require
+  // extracting the inner fields into a separate sub-component — a non-trivial refactor
+  // left for a future cleanup.
+  ```
 
 ## Out of MVP Scope
 
