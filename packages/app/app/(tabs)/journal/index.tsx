@@ -308,7 +308,14 @@ export default function JournalScreen() {
 
   const maxDate = new Date(today);
   maxDate.setDate(today.getDate() + 1); // 1 day ahead as timezone buffer
-  const days = generateDays(today, 91).filter((d) => d <= maxDate);
+
+  // Strip extends STRIP_FUTURE_BUFFER days past maxDate so the selected date
+  // (usually today) can be centered — without extra items after it the FlatList
+  // can't fulfil viewPosition: 0.5. Buffer dates are shown grayed and non-selectable.
+  const STRIP_FUTURE_BUFFER = 15;
+  const stripEndDate = new Date(today);
+  stripEndDate.setDate(today.getDate() + STRIP_FUTURE_BUFFER);
+  const days = generateDays(today, 91 + STRIP_FUTURE_BUFFER).filter((d) => d <= stripEndDate);
   const flatListRef = useRef<FlatList<Date>>(null);
 
   useEffect(() => {
@@ -479,14 +486,16 @@ export default function JournalScreen() {
             renderItem={({ item }) => {
               const isSelected = isSameDay(item, selectedDate);
               const isToday = isSameDay(item, today);
+              const isFuture = item > maxDate; // buffer date — shown for centering only
               return (
                 <TouchableOpacity
                   onPress={() => selectDate(item)}
+                  disabled={isFuture}
                   style={{ width: ITEM_WIDTH }}
                   className={`items-center py-2 mx-0.5 rounded-xl ${isSelected ? "bg-blue-500" : ""}`}
                 >
                   <Text
-                    className={`text-xs ${isSelected ? "text-blue-100" : "text-slate-500"}`}
+                    className={`text-xs ${isSelected ? "text-blue-100" : isFuture ? "text-slate-700" : "text-slate-500"}`}
                   >
                     {DAY_SHORT[item.getDay()]}
                   </Text>
@@ -496,12 +505,14 @@ export default function JournalScreen() {
                         ? "text-white"
                         : isToday
                         ? "text-blue-400"
+                        : isFuture
+                        ? "text-slate-700"
                         : "text-white"
                     }`}
                   >
                     {item.getDate()}
                   </Text>
-                  {!isSelected && (isToday || entryDates.has(toDateString(item))) && (
+                  {!isSelected && !isFuture && (isToday || entryDates.has(toDateString(item))) && (
                     <View
                       className={`w-1 h-1 rounded-full mt-0.5 ${isToday ? "bg-blue-400" : "bg-slate-400"}`}
                     />
