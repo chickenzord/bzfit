@@ -34,12 +34,13 @@ function RootNavigator() {
 
     const inAuthGroup = segments[0] === "(auth)";
     const inTabs = segments[0] === "(tabs)";
+    const inPublic = segments[0] === "privacy"; // public routes that require no auth
 
     if (!isAuthenticated && inTabs) {
       router.replace("/(auth)/login");
     } else if (isAuthenticated && inAuthGroup) {
       router.replace("/(tabs)");
-    } else if (!inAuthGroup && !inTabs) {
+    } else if (!inAuthGroup && !inTabs && !inPublic) {
       // Initial navigation from the root index — redirect based on auth
       if (isAuthenticated) {
         router.replace("/(tabs)");
