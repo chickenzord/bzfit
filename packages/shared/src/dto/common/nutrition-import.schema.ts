@@ -40,26 +40,6 @@ export const NutritionImportResponseSchema = z.object({
   results: z.array(NutritionResultSchema),
 });
 
-export const ApplyNutritionSchema = z.object({
-  calories: z.number().min(0).optional(),
-  protein: z.number().min(0).optional(),
-  carbs: z.number().min(0).optional(),
-  fat: z.number().min(0).optional(),
-  saturatedFat: z.number().min(0).optional(),
-  transFat: z.number().min(0).optional(),
-  fiber: z.number().min(0).optional(),
-  sugar: z.number().min(0).optional(),
-  sodium: z.number().min(0).optional(),
-  cholesterol: z.number().min(0).optional(),
-  /** Serving size the submitted values apply to. If different from the stored serving and
-   *  units are compatible, the backend will auto-scale all values before writing. */
-  resultServingSize: z.number().optional(),
-  resultServingUnit: z.string().optional(),
-  /** Human-readable label identifying the provider and source */
-  dataSource: z.string().optional(),
-});
-
 export type NutritionImportRequestDto = z.infer<typeof NutritionImportRequestSchema>;
 export type NutritionResultDto = z.infer<typeof NutritionResultSchema>;
 export type NutritionImportResponseDto = z.infer<typeof NutritionImportResponseSchema>;
-export type ApplyNutritionDto = z.infer<typeof ApplyNutritionSchema>;

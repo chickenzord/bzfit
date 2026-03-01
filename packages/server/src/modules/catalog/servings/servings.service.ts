@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { ServingResponseDto, CreateServingDto, UpdateServingDto, ApplyNutritionDto, NutritionImportResponseDto } from '@bzfit/shared';
+import { ServingResponseDto, CreateServingDto, UpdateServingDto, NutritionImportResponseDto } from '@bzfit/shared';
 import { ServingStatus } from '@prisma/client';
 import { DataProviderRegistry } from '../providers/data-provider.registry';
 import { NutritionDataContext } from '../providers/data-provider.interface';
@@ -235,46 +235,6 @@ export class ServingsService {
   }
 
   /**
-   * Apply imported nutrition values to a serving.
-   * If resultServingSize is provided and the units match the stored serving,
-   * all values are auto-scaled proportionally before writing.
-   * Status is NOT changed — the serving remains NEEDS_REVIEW until verified.
-   */
-  async applyNutrition(servingId: string, data: ApplyNutritionDto): Promise<ServingResponseDto> {
-    const serving = await this.prisma.serving.findUnique({ where: { id: servingId } });
-    if (!serving) throw new NotFoundException(`Serving with ID ${servingId} not found`);
-
-    const { scaleFactor, scalingNote } = resolveScaling(
-      serving.size,
-      serving.unit,
-      data.resultServingSize,
-      data.resultServingUnit,
-    );
-
-    const scaled = scaleNutrition(data, scaleFactor);
-    const dataSource = buildDataSource(data.dataSource, scalingNote);
-
-    const updated = await this.prisma.serving.update({
-      where: { id: servingId },
-      data: {
-        calories: scaled.calories,
-        protein: scaled.protein,
-        carbs: scaled.carbs,
-        fat: scaled.fat,
-        saturatedFat: scaled.saturatedFat,
-        transFat: scaled.transFat,
-        fiber: scaled.fiber,
-        sugar: scaled.sugar,
-        sodium: scaled.sodium,
-        cholesterol: scaled.cholesterol,
-        dataSource,
-      },
-    });
-
-    return this.formatServingResponse(updated);
-  }
-
-  /**
    * Helper to ensure only one default serving per food
    */
   private async ensureSingleDefaultServing(foodId: string, currentServingId: string) {
@@ -325,62 +285,4 @@ export class ServingsService {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Scaling helpers (module-level, not part of the service class)
-// ---------------------------------------------------------------------------
 
-/**
- * Determine the scale factor and a human-readable note for the dataSource field.
- * Scale factor of 1 means no transformation needed.
- */
-function resolveScaling(
-  storedSize: number,
-  storedUnit: string,
-  resultSize: number | undefined,
-  resultUnit: string | undefined,
-): { scaleFactor: number; scalingNote: string | null } {
-  if (resultSize == null || resultUnit == null) {
-    return { scaleFactor: 1, scalingNote: null };
-  }
-
-  const unitsMatch = storedUnit.toLowerCase().trim() === resultUnit.toLowerCase().trim();
-  if (!unitsMatch) {
-    // Incompatible units — cannot safely auto-scale; apply as-is
-    return { scaleFactor: 1, scalingNote: null };
-  }
-
-  if (resultSize === storedSize) {
-    return { scaleFactor: 1, scalingNote: null };
-  }
-
-  const scaleFactor = storedSize / resultSize;
-  const scalingNote = `scaled from ${resultSize}${resultUnit} to ${storedSize}${storedUnit}`;
-  return { scaleFactor, scalingNote };
-}
-
-type NutritionFields = Pick<
-  ApplyNutritionDto,
-  'calories' | 'protein' | 'carbs' | 'fat' | 'saturatedFat' | 'transFat' | 'fiber' | 'sugar' | 'sodium' | 'cholesterol'
->;
-
-function scaleNutrition(data: NutritionFields, factor: number): NutritionFields {
-  if (factor === 1) return data;
-  const scale = (v: number | undefined) => (v != null ? Math.round(v * factor * 100) / 100 : undefined);
-  return {
-    calories: scale(data.calories),
-    protein: scale(data.protein),
-    carbs: scale(data.carbs),
-    fat: scale(data.fat),
-    saturatedFat: scale(data.saturatedFat),
-    transFat: scale(data.transFat),
-    fiber: scale(data.fiber),
-    sugar: scale(data.sugar),
-    sodium: scale(data.sodium),
-    cholesterol: scale(data.cholesterol),
-  };
-}
-
-function buildDataSource(base: string | undefined, scalingNote: string | null): string | undefined {
-  if (!base) return undefined;
-  return scalingNote ? `${base} (${scalingNote})` : base;
-}

@@ -2,6 +2,36 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "./query-keys";
 import { apiFetch } from "./api";
 
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+export type NutritionProvider = {
+  name: string;
+  displayName: string;
+  dataType: "nutrition" | "workout";
+  kind: "estimation" | "lookup";
+  available: boolean;
+};
+
+export type NutritionResult = {
+  dataKind: "estimated" | "measured";
+  confidence?: "low" | "medium" | "high";
+  sourceLabel?: string;
+  calories?: number;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
+  saturatedFat?: number;
+  transFat?: number;
+  fiber?: number;
+  sugar?: number;
+  sodium?: number;
+  cholesterol?: number;
+  resultServingSize?: number;
+  resultServingUnit?: string;
+};
+
 type UpdateFoodData = {
   name?: string;
   variant?: string | null;
@@ -63,6 +93,49 @@ export const useDeleteServing = () => {
     },
     onSuccess: (_, variables) => {
       // Serving deletion cascade-deletes meal items → journal totals change
+      queryClient.invalidateQueries({ queryKey: queryKeys.catalog.needsReview() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.nutrition.root() });
+    },
+  });
+};
+
+export const useNutritionImport = () => {
+  return useMutation({
+    mutationFn: async ({
+      servingId,
+      provider,
+      extraContext,
+    }: {
+      servingId: string;
+      provider?: string;
+      extraContext?: string;
+    }) => {
+      return apiFetch<{ provider: string; providerKind: string; results: NutritionResult[] }>(
+        `/catalog/servings/${servingId}/nutrition-import`,
+        { method: "POST", body: { provider, extraContext } },
+      );
+    },
+  });
+};
+
+export const useApplyImportedNutrition = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      servingId,
+      patch,
+    }: {
+      servingId: string;
+      patch: Record<string, unknown>;
+    }) => {
+      return apiFetch(`/catalog/servings/${servingId}`, {
+        method: "PATCH",
+        body: patch,
+      });
+    },
+    onSuccess: (_, { servingId }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.catalog.serving(servingId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.catalog.needsReview() });
       queryClient.invalidateQueries({ queryKey: queryKeys.nutrition.root() });
     },

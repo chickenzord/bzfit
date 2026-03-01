@@ -31,6 +31,8 @@ const ICON_MAP = {
   "external-link": "external-link",
   "eye": "eye",
   "eye-off": "eye-off",
+  "cpu": "cpu",
+  "download": "download",
   // Tabs
   "calendar": "calendar",
   "grid": "grid",

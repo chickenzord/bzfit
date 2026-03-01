@@ -1,12 +1,14 @@
-import { useCallback } from "react";
-import { View, Text, ActivityIndicator } from "react-native";
+import { useCallback, useState } from "react";
+import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useLocalSearchParams, useRouter, Stack, useFocusEffect } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { useTabBarHidden } from "../../_layout";
 import { apiFetch, ApiError } from "@/lib/api";
 import { ServingForm, ServingFormValues } from "@/components/ServingForm";
+import { NutritionImportModal } from "@/components/catalog/NutritionImportModal";
 import { queryKeys } from "@/lib/query-keys";
 import { useUpdateServing } from "@/lib/catalog";
+import { Icon } from "@/lib/icons";
 
 interface Serving {
   id: string;
@@ -19,6 +21,7 @@ interface Serving {
   carbs: number | null;
   fat: number | null;
   status: "VERIFIED" | "NEEDS_REVIEW" | "USER_CREATED";
+  updatedAt: string;
 }
 
 interface Food {
@@ -37,6 +40,7 @@ export default function ServingEditScreen() {
   const router = useRouter();
   const { setHidden } = useTabBarHidden();
   const updateServingMutation = useUpdateServing();
+  const [importModalVisible, setImportModalVisible] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -101,8 +105,31 @@ export default function ServingEditScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: serving.name ?? `${serving.size}${serving.unit}` }} />
+      <Stack.Screen
+        options={{
+          title: serving.name ?? `${serving.size}${serving.unit}`,
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={() => setImportModalVisible(true)}
+              hitSlop={12}
+              className="flex-row items-center gap-1.5 mr-1"
+            >
+              <Icon name="cpu" size={16} color="#3b82f6" />
+              <Text className="text-blue-400 text-sm font-medium">Import</Text>
+            </TouchableOpacity>
+          ),
+        }}
+      />
+      <NutritionImportModal
+        visible={importModalVisible}
+        servingId={id}
+        servingSize={serving.size}
+        servingUnit={serving.unit}
+        onClose={() => setImportModalVisible(false)}
+        onApplied={() => setImportModalVisible(false)}
+      />
       <ServingForm
+        key={serving.updatedAt}
         food={food}
         initialValues={{
           name: serving.name ?? "",
