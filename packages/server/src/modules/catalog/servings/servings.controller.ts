@@ -3,6 +3,12 @@ import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagg
 import { JwtAuthGuard } from '../../auth/guards';
 import { CreateServingDto, UpdateServingDto } from './dto';
 import { ServingsService } from './servings.service';
+import { NutritionImportRequestDto, ApplyNutritionDto } from '@bzfit/shared';
+import { createZodDto } from 'nestjs-zod';
+import { NutritionImportRequestSchema, ApplyNutritionSchema } from '@bzfit/shared';
+
+class NutritionImportRequestBody extends createZodDto(NutritionImportRequestSchema) {}
+class ApplyNutritionBody extends createZodDto(ApplyNutritionSchema) {}
 
 @ApiTags('catalog')
 @Controller('catalog/servings')
@@ -42,6 +48,30 @@ export class ServingsController {
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Serving not found' })
   async verify(@Param('id') id: string, @Body() updateServingDto?: UpdateServingDto) {
     return this.servingsService.verifyServing(id, updateServingDto);
+  }
+
+  @Post(':id/nutrition-import')
+  @ApiOperation({ summary: 'Fetch nutrition candidates from an external provider (does not modify the serving)' })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Nutrition import results from the provider' })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Serving not found' })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Provider is not configured or unavailable' })
+  @ApiResponse({ status: HttpStatus.SERVICE_UNAVAILABLE, description: 'No nutrition providers are configured' })
+  async nutritionImport(
+    @Param('id') id: string,
+    @Body() body: NutritionImportRequestBody,
+  ) {
+    return this.servingsService.importNutrition(id, body.provider, body.extraContext);
+  }
+
+  @Post(':id/apply-nutrition')
+  @ApiOperation({ summary: 'Apply imported nutrition values to a serving (auto-scales if serving size differs)' })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Serving updated with nutrition data; status remains NEEDS_REVIEW' })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Serving not found' })
+  async applyNutrition(
+    @Param('id') id: string,
+    @Body() body: ApplyNutritionBody,
+  ) {
+    return this.servingsService.applyNutrition(id, body);
   }
 
   @Get(':id/usage')

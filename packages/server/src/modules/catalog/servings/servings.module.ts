@@ -3,9 +3,10 @@ import { ServingsController } from './servings.controller';
 import { ServingsService } from './servings.service';
 import { FoodsModule } from '../foods/foods.module';
 import { PrismaModule } from '../../../prisma/prisma.module';
+import { ProvidersModule } from '../providers/providers.module';
 
 @Module({
-  imports: [PrismaModule, FoodsModule], // FoodsModule is still needed for Food entity checks when creating servings
+  imports: [PrismaModule, FoodsModule, ProvidersModule],
   controllers: [ServingsController],
   providers: [ServingsService],
   exports: [ServingsService],
