@@ -356,6 +356,9 @@ export default function JournalScreen() {
   const caloriesTarget = goals?.calories?.target ?? null;
   const caloriesPercent = Math.min(goals?.calories?.percentage ?? 0, 100);
   const caloriesRawPercent = Math.round(goals?.calories?.percentage ?? 0);
+  const hasNeedsReview = summary?.meals.some((m) =>
+    m.items.some((item) => item.serving.status === "NEEDS_REVIEW")
+  ) ?? false;
 
   const selectedMeal =
     summary?.meals.find((m) => m.mealType === selectedMealType) ?? null;
@@ -605,7 +608,15 @@ export default function JournalScreen() {
           onPress={() => setGoalsVisible(true)}
           className="bg-slate-900 rounded-2xl p-5 mb-4 border border-slate-800 active:opacity-70"
         >
-          <Text className="text-slate-400 text-sm mb-2">Calories</Text>
+          <View className="flex-row items-center justify-between mb-2">
+            <Text className="text-slate-400 text-sm">Calories</Text>
+            {hasNeedsReview && (
+              <View className="flex-row items-center gap-1">
+                <Icon name="alert-circle" size={13} color="#f59e0b" />
+                <Text className="text-amber-500 text-xs">Needs review</Text>
+              </View>
+            )}
+          </View>
           <View className="flex-row items-end gap-2">
             <Text className="text-white text-4xl font-bold">
               {Math.round(totals.calories)}
