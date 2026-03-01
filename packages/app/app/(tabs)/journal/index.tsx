@@ -324,7 +324,9 @@ export default function JournalScreen() {
     }
   }, []);
 
-  // Scroll to selected date when calendar collapses
+  // Scroll strip to selected date whenever the selected date changes or the calendar
+  // collapses back to the strip. The dependency on selectedDate ensures that tapping
+  // a date in the strip (or navigating via any other means) also centers that date.
   useEffect(() => {
     if (expanded) return;
     const selectedIdx = days.findIndex((d) => isSameDay(d, selectedDate));
@@ -337,7 +339,7 @@ export default function JournalScreen() {
         });
       }, 100);
     }
-  }, [expanded]);
+  }, [expanded, selectedDate]);
 
   const dateStr = toDateString(selectedDate);
   const { data: summary, loading, refresh } = useDailySummary(dateStr);
@@ -397,8 +399,10 @@ export default function JournalScreen() {
 
   return (
     <View className="flex-1 bg-slate-950" style={{ paddingTop: insets.top }}>
-    <ScrollView className="flex-1" stickyHeaderIndices={[0]}>
-      {/* Sticky header: branding + calendar */}
+      {/* Fixed header: branding + calendar — kept outside ScrollView to avoid touch
+          competition between the outer vertical ScrollView and the inner FlatList/grid.
+          stickyHeaderIndices caused the outer ScrollView to intercept taps on calendar
+          cells at scroll-position 0. */}
       <View className="bg-slate-950 pt-3 pb-3 border-b border-slate-800">
         {/* Branding row */}
         <View className="flex-row items-center justify-between px-4 mb-4">
@@ -568,8 +572,9 @@ export default function JournalScreen() {
             ))}
           </View>
         )}
-      </View>
+      </View>{/* end fixed header */}
 
+      <ScrollView className="flex-1">
       {/* Daily content */}
       <View className="px-4 pt-4 pb-10">
         <View className="flex-row items-center justify-between mb-4">
@@ -754,6 +759,8 @@ export default function JournalScreen() {
         })}
       </View>
 
+      </ScrollView>
+
       <MealDetailModal
         visible={selectedMealType !== null}
         onClose={() => setSelectedMealType(null)}
@@ -773,7 +780,6 @@ export default function JournalScreen() {
         visible={goalsVisible}
         onClose={() => setGoalsVisible(false)}
       />
-    </ScrollView>
     </View>
   );
 }
