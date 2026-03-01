@@ -1,50 +1,65 @@
-import { Feather } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import type { ComponentProps } from "react";
+
+// ---------------------------------------------------------------------------
+// Registry — each entry declares which library it comes from
+// ---------------------------------------------------------------------------
+
+type FeatherEntry = { lib: "feather"; name: ComponentProps<typeof Feather>["name"] };
+type IonEntry = { lib: "ionicons"; name: ComponentProps<typeof Ionicons>["name"] };
+type IconEntry = FeatherEntry | IonEntry;
 
 const ICON_MAP = {
   // Navigation
-  "chevron-left": "chevron-left",
-  "chevron-right": "chevron-right",
-  "chevron-up": "chevron-up",
-  "chevron-down": "chevron-down",
-  "arrow-left": "arrow-left",
+  "chevron-left":    { lib: "feather", name: "chevron-left" },
+  "chevron-right":   { lib: "feather", name: "chevron-right" },
+  "chevron-up":      { lib: "feather", name: "chevron-up" },
+  "chevron-down":    { lib: "feather", name: "chevron-down" },
+  "arrow-left":      { lib: "feather", name: "arrow-left" },
   // Actions
-  "close": "x",
-  "close-circle": "x-circle",
-  "plus": "plus",
-  "plus-circle": "plus-circle",
-  "check": "check",
-  "check-circle": "check-circle",
-  "edit": "edit",
-  "trash": "trash-2",
-  "more-vertical": "more-vertical",
+  "close":           { lib: "feather", name: "x" },
+  "close-circle":    { lib: "feather", name: "x-circle" },
+  "plus":            { lib: "feather", name: "plus" },
+  "plus-circle":     { lib: "feather", name: "plus-circle" },
+  "check":           { lib: "feather", name: "check" },
+  "check-circle":    { lib: "feather", name: "check-circle" },
+  "edit":            { lib: "feather", name: "edit" },
+  "trash":           { lib: "feather", name: "trash-2" },
+  "more-vertical":   { lib: "feather", name: "more-vertical" },
+  "download":        { lib: "feather", name: "download" },
   // Status / Info
-  "search": "search",
-  "alert-circle": "alert-circle",
-  "info": "info",
-  "flag": "flag",
+  "search":          { lib: "feather", name: "search" },
+  "alert-circle":    { lib: "feather", name: "alert-circle" },
+  "info":            { lib: "feather", name: "info" },
+  "flag":            { lib: "feather", name: "flag" },
   // Branding
-  "flame": "zap",
+  "flame":           { lib: "feather", name: "zap" },
   // Utilities
-  "key": "key",
-  "copy": "copy",
-  "external-link": "external-link",
-  "eye": "eye",
-  "eye-off": "eye-off",
-  "cpu": "cpu",
-  "download": "download",
+  "key":             { lib: "feather", name: "key" },
+  "copy":            { lib: "feather", name: "copy" },
+  "external-link":   { lib: "feather", name: "external-link" },
+  "eye":             { lib: "feather", name: "eye" },
+  "eye-off":         { lib: "feather", name: "eye-off" },
+  "cpu":             { lib: "feather", name: "cpu" },
   // Tabs
-  "calendar": "calendar",
-  "grid": "grid",
-  "settings": "settings",
+  "calendar":        { lib: "feather", name: "calendar" },
+  "grid":            { lib: "feather", name: "grid" },
+  "settings":        { lib: "feather", name: "settings" },
   // Meal types
-  "meal-breakfast": "sunrise",
-  "meal-lunch": "sun",
-  "meal-dinner": "moon",
-  "meal-snack": "coffee",
-} satisfies Record<string, ComponentProps<typeof Feather>["name"]>;
+  "meal-breakfast":  { lib: "feather", name: "sunrise" },
+  "meal-lunch":      { lib: "feather", name: "sun" },
+  "meal-dinner":     { lib: "feather", name: "moon" },
+  "meal-snack":      { lib: "feather", name: "coffee" },
+  // AI / special
+  "sparkles":        { lib: "ionicons", name: "sparkles" },
+  "sparkles-outline":{ lib: "ionicons", name: "sparkles-outline" },
+} as const satisfies Record<string, IconEntry>;
 
 export type IconName = keyof typeof ICON_MAP;
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
 
 type Props = {
   name: IconName;
@@ -53,5 +68,11 @@ type Props = {
 };
 
 export function Icon({ name, size, color }: Props) {
-  return <Feather name={ICON_MAP[name]} size={size} color={color} />;
+  const entry = ICON_MAP[name];
+
+  if (entry.lib === "ionicons") {
+    return <Ionicons name={entry.name} size={size} color={color} />;
+  }
+
+  return <Feather name={entry.name} size={size} color={color} />;
 }

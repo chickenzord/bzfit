@@ -114,7 +114,7 @@ export default function ServingEditScreen() {
               hitSlop={12}
               className="flex-row items-center gap-1.5 mr-1"
             >
-              <Icon name="cpu" size={16} color="#3b82f6" />
+              <Icon name="sparkles" size={16} color="#3b82f6" />
               <Text className="text-blue-400 text-sm font-medium">Import</Text>
             </TouchableOpacity>
           ),

@@ -369,7 +369,7 @@ export function NutritionImportModal({
                         }`}
                       >
                         <Icon
-                          name={p.kind === "estimation" ? "cpu" : "search"}
+                          name={p.kind === "estimation" ? "sparkles" : "search"}
                           size={13}
                           color={active ? "#3b82f6" : "#64748b"}
                         />

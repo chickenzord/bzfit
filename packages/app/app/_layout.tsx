@@ -6,7 +6,7 @@ import { Stack, router, useRootNavigationState, useSegments } from "expo-router"
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { useFonts } from "expo-font";
-import { Feather } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import * as SplashScreen from "expo-splash-screen";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "../lib/auth";
@@ -72,7 +72,7 @@ function RootNavigator() {
 }
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts(Feather.font);
+  const [fontsLoaded] = useFonts({ ...Feather.font, ...Ionicons.font });
 
   // Don't render anything until fonts are loaded — native splash stays visible
   if (!fontsLoaded) return null;
